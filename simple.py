@@ -3,11 +3,24 @@
 non-age-structured SIR model with periodic birth rate.'''
 
 import dataclasses
+import math
 
 import matplotlib.pyplot
 import numpy
 import scipy.integrate
 import scipy.special
+
+
+def arange(start, stop, step, endpoint=True, dtype=None):
+    '''Like `numpy.arange()` but ensure that
+    * `stop - step` is an integer multiple of `step`, and
+    * last point is in the output if `endpoint` is True.'''
+    # Make `stop - start` an integer multiple of `step`.
+    num = math.ceil((stop - start) / step)
+    stop = start + num * step
+    if endpoint:
+        num += 1
+    return numpy.linspace(start, stop, num=num, endpoint=endpoint, dtype=dtype)
 
 
 class Solution:
@@ -18,6 +31,11 @@ class Solution:
         self.log = log
 
     @property
+    def t(self):
+        '''The times.'''
+        return self.solution.t
+
+    @property
     def y(self):
         '''The solution.'''
         val = self.solution.y
@@ -25,21 +43,16 @@ class Solution:
             val = numpy.exp(val)
         return val
 
-    @property
-    def t(self):
-        '''The times.'''
-        return self.solution.t
-
-    def sol(self, time):
+    def interp(self, time):
         '''Interpolate the solution.'''
-        val = self.solution.sol(time)
+        val = numpy.interp(time, self.solution.t, self.solution.y)
         if self.log:
             val = numpy.exp(val)
         return val
 
     def distance(self, time_0, time_1, ord=2):
         '''Distance between solutions at `time_0` and `time_1`.'''
-        sols = self.sol([time_0, time_1])
+        sols = self.interp([time_0, time_1])
         return numpy.linalg.norm(sols[:, 0] - sols[:, 1], ord=ord)
 
     def is_periodic(self, period, ord=None, tol=1e-8):
@@ -51,11 +64,10 @@ class Solution:
         print(distance)
         return distance < tol
 
-    def plot(self, points=301, show=True):
+    def plot(self, show=True):
         '''Plot the solution.'''
         (figure, axes) = matplotlib.pyplot.subplots()
-        time = numpy.linspace(*self.t[[0, -1]], points)
-        axes.plot(time, self.sol(time).T)
+        axes.plot(self.t, self.y.T)
         axes.set_xlabel('time')
         axes.set_ylabel('number')
         axes.legend(self.states)
@@ -136,29 +148,35 @@ class Model:
         return (dsusceptible_log, dinfectious_log, drecovered_log)
 
     @staticmethod
-    def build_initial_conditions(log, log_of_zero=-20):
+    def build_initial_conditions():
         '''Build the initial conditions.'''
         infectious = 0.01
         recovered = 0
         susceptible = 1 - infectious - recovered
-        val = numpy.array((susceptible, infectious, recovered))
-        if log:
-            val = numpy.ma.log(val).filled(log_of_zero)
-        return val
+        return numpy.array((susceptible, infectious, recovered))
 
-    def solve(self, time_start, time_end, log=True, **kwds):
+    def solve(self, time_start, time_end, time_step,
+              initial_conditions=None, log=True, _log_of_zero=-20,
+              **kwds):
         '''Solve the ODEs.'''
-        func = self.rhs_log if log else self.rhs
+        if initial_conditions is None:
+            initial_conditions = self.build_initial_conditions()
+        if not log:
+            func = self.rhs
+        else:
+            func = self.rhs_log
+            initial_conditions = numpy.ma.log(initial_conditions).filled(
+                _log_of_zero)
+        times = arange(time_start, time_end, time_step)
         sol = scipy.integrate.solve_ivp(func,
                                         (time_start, time_end),
-                                        self.build_initial_conditions(log=log),
-                                        dense_output=True,
-                                        vectorized=True,
+                                        initial_conditions,
+                                        t_eval=times,
                                         **kwds)
         return Solution(sol, self.STATES, log)
 
 
 if __name__ == '__main__':
     model = Model()
-    solution = model.solve(0, 200)
+    solution = model.solve(0, 10, 0.01)
     figure = solution.plot()
