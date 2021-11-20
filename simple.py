@@ -3,88 +3,73 @@
 non-age-structured SIR model with periodic birth rate.'''
 
 import dataclasses
-import math
 
 import matplotlib.pyplot
 import numpy
-import scipy.integrate
 import scipy.special
 
-
-def arange(start, stop, step, endpoint=True, dtype=None):
-    '''Like `numpy.arange()` but ensure that
-    * `stop - step` is an integer multiple of `step`, and
-    * last point is in the output if `endpoint` is True.'''
-    # Make `stop - start` an integer multiple of `step`.
-    num = math.ceil((stop - start) / step)
-    stop = start + num * step
-    if endpoint:
-        num += 1
-    return numpy.linspace(start, stop, num=num, endpoint=endpoint, dtype=dtype)
+import solver
+import utility
 
 
 class Solution:
     '''Model solution.'''
-    def __init__(self, solution, states, log):
-        self.solution = solution
-        self.states = states
+    def __init__(self, t, y, log, states):
+        self.t = t
+        self._y = y
         self.log = log
-
-    @property
-    def t(self):
-        '''The times.'''
-        return self.solution.t
+        self.states = states
 
     @property
     def y(self):
-        '''The solution.'''
-        val = self.solution.y
+        '''The solution, untransformed, if necessary.'''
+        y = self._y
         if self.log:
-            val = numpy.exp(val)
-        return val
+            y = numpy.exp(y)
+        return y
 
-    def interp(self, time):
+    def interp(self, t):
         '''Interpolate the solution.'''
-        val = numpy.interp(time, self.solution.t, self.solution.y)
+        # Interpolate, then untransform, if necessary.
+        y = utility.interp(t, self.t, self._y)
         if self.log:
-            val = numpy.exp(val)
-        return val
+            y = numpy.exp(y)
+        return y
 
-    def distance(self, time_0, time_1, ord=2):
+    def distance(self, t_0, t_1):
         '''Distance between solutions at `time_0` and `time_1`.'''
-        sols = self.interp([time_0, time_1])
-        return numpy.linalg.norm(sols[:, 0] - sols[:, 1], ord=ord)
+        y = self.interp([t_0, t_1])
+        return numpy.linalg.norm(y[..., 0] - y[..., 1])
 
-    def is_periodic(self, period, ord=None, tol=1e-8):
-        '''Whether the solution periodic with period `period`.'''
-        time_1 = solution.t[-1]
-        time_0 = time_1 - period
-        assert time_0 >= solution.t[0]
-        distance = self.distance(time_0, time_1, ord=ord)
-        print(distance)
-        return distance < tol
+    def is_periodic(self, period, tol=1e-8):
+        '''Whether the tail of the solution is periodic with period
+        `period`.'''
+        t_1 = solution.t[-1]
+        t_0 = t_1 - period
+        assert t_0 >= solution.t[0], \
+            f'{t_0=} is outside of the solution domain!'
+        return self.distance(t_0, t_1) < tol
 
     def plot(self, show=True):
         '''Plot the solution.'''
-        (figure, axes) = matplotlib.pyplot.subplots()
-        axes.plot(self.t, self.y.T)
+        (fig, axes) = matplotlib.pyplot.subplots()
+        axes.plot(self.t, self.y)
         axes.set_xlabel('time')
         axes.set_ylabel('number')
         axes.legend(self.states)
         if show:
             matplotlib.pyplot.show()
-        return figure
+        return fig
 
-    def plot_population_size(self, points=301, show=True):
+    def plot_population_size(self, show=True):
         '''Plot the population size.'''
-        (figure, axes) = matplotlib.pyplot.subplots()
-        time = numpy.linspace(*self.t[[0, -1]], points)
-        axes.plot(time, self.sol(time).sum(0))
+        (fig, axes) = matplotlib.pyplot.subplots()
+        axes.plot(self.t, self.y.sum(axis=1))
         axes.set_xlabel('time')
         axes.set_ylabel('population size')
         if show:
             matplotlib.pyplot.show()
-        return figure
+        return fig
 
 
 @dataclasses.dataclass
@@ -124,7 +109,7 @@ class Model:
                        - self.parameters.death_rate * infectious)
         drecovered = (self.parameters.recovery_rate * infectious
                       - self.parameters.death_rate * recovered)
-        return (dsusceptible, dinfectious, drecovered)
+        return numpy.array((dsusceptible, dinfectious, drecovered))
 
     def rhs_log(self, time, state_log):
         '''The right-hand-side of the model ODEs for the log-transformed state
@@ -145,7 +130,7 @@ class Model:
                            * numpy.exp(infectious_log
                                        - recovered_log))
                           - self.parameters.death_rate)
-        return (dsusceptible_log, dinfectious_log, drecovered_log)
+        return numpy.array((dsusceptible_log, dinfectious_log, drecovered_log))
 
     @staticmethod
     def build_initial_conditions():
@@ -155,28 +140,24 @@ class Model:
         susceptible = 1 - infectious - recovered
         return numpy.array((susceptible, infectious, recovered))
 
-    def solve(self, time_start, time_end, time_step,
-              initial_conditions=None, log=True, _log_of_zero=-20,
-              **kwds):
+    def solve(self, t_start, t_end, t_step, y_0=None, log=False,
+              _log_of_zero=-20):
         '''Solve the ODEs.'''
-        if initial_conditions is None:
-            initial_conditions = self.build_initial_conditions()
+        if y_0 is None:
+            y_0 = self.build_initial_conditions()
         if not log:
             func = self.rhs
         else:
             func = self.rhs_log
-            initial_conditions = numpy.ma.log(initial_conditions).filled(
-                _log_of_zero)
-        times = arange(time_start, time_end, time_step)
-        sol = scipy.integrate.solve_ivp(func,
-                                        (time_start, time_end),
-                                        initial_conditions,
-                                        t_eval=times,
-                                        **kwds)
-        return Solution(sol, self.STATES, log)
+            assert numpy.all(y_0 >= 0)
+            y_0 = numpy.ma.filled(numpy.ma.log(y_0), _log_of_zero)
+        (t, y) = solver.solver(func, t_start, t_end, t_step, y_0)
+        if not log:
+            assert (y >= 0).all()
+        return Solution(t, y, log, self.STATES)
 
 
 if __name__ == '__main__':
     model = Model()
-    solution = model.solve(0, 10, 0.01)
+    solution = model.solve(0, 10, 0.001)
     figure = solution.plot()
