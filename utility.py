@@ -24,11 +24,3 @@ def interp(x, xp, fp):
                          for j in range(fp.shape[-1])],
                         axis=-1)
     return f
-
-
-def all_subclasses(cls):
-    '''Find all subclasses, subsubclasses, etc. of `cls`.'''
-    for c in cls.__subclasses__():
-        yield c
-        for s in all_subclasses(c):
-            yield s

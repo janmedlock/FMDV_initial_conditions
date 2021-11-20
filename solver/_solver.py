@@ -1,14 +1,16 @@
-'''Solvers for differential equations.'''
+'''Implementation of solvers for differential equations.'''
 
 import abc
 
 import numpy
 import scipy.optimize
 
-import utility
+from . import _utility
 
 
-class _Solver(metaclass=abc.ABCMeta):
+class Solver(metaclass=abc.ABCMeta):
+    '''Base class for solvers.'''
+
     @property
     @abc.abstractmethod
     def method(self):
@@ -17,7 +19,7 @@ class _Solver(metaclass=abc.ABCMeta):
     @classmethod
     def create(cls, method, func, t, y_0):
         '''Factory to choose the right solver class for `method`.'''
-        for subcls in utility.all_subclasses(cls):
+        for subcls in _utility.all_subclasses(cls):
             if subcls.method == method:
                 return subcls(func, t, y_0)
         raise ValueError(f'Unknown {method=}!')
@@ -45,14 +47,14 @@ class _Solver(metaclass=abc.ABCMeta):
         return y
 
 
-class _Euler(_Solver):
+class Euler(Solver):
     method = 'Euler'
 
     def _y_new(self, t_new, t_cur, y_cur):
         return y_cur + (t_new - t_cur) * self.func(t_cur, y_cur)
 
 
-class _ImplicitSolver(_Solver):
+class _ImplicitSolver(Solver):
     @property
     @abc.abstractmethod
     def _a(self):
@@ -74,7 +76,7 @@ class _ImplicitSolver(_Solver):
         return result.x
 
 
-class _ImplicitEuler(_ImplicitSolver):
+class ImplicitEuler(_ImplicitSolver):
     method = 'Implicit Euler'
 
     _a = 1
@@ -85,7 +87,7 @@ class _ImplicitEuler(_ImplicitSolver):
         return y_cur
 
 
-class _CrankNicolson(_ImplicitSolver):
+class CrankNicolson(_ImplicitSolver):
     method = 'Crank–Nicolson'
 
     _a = 0.5
@@ -98,5 +100,5 @@ class _CrankNicolson(_ImplicitSolver):
 
 def solve(func, t, y_0, method='Crank–Nicolson'):
     '''Solve the ODE defined by the derivatives in `func`.'''
-    solver = _Solver.create(method, func, t, y_0)
+    solver = Solver.create(method, func, t, y_0)
     return solver.solve()
