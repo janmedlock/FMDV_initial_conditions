@@ -1,0 +1,113 @@
+\documentclass{jpmarticle}
+
+\title{Crank--Nicolson for an SIR model}
+\author{Jan Medlock}
+
+\begin{document}
+
+\maketitle
+
+The model is
+\begin{equation}
+  \begin{split}
+    \frac{\md S}{\md t} &= b(t) N - \beta I S - \mu S,
+    \\
+    \frac{\md I}{\md t} &= \beta I S - \gamma I - \mu I,
+    \\
+    \frac{\md R}{\md t} &= \gamma I - \mu R,
+  \end{split}
+\end{equation}
+with birth rate
+\begin{equation}
+  b(t) = \mu \left[
+    1 + \sigma \sqrt{2} \cos\left(2 \pi t\right)
+  \right],
+\end{equation}
+and population size
+\begin{equation}
+  N(t) = S(t) + I(t) + R(t).
+\end{equation}
+
+The total population follows
+\begin{equation}
+  \begin{split}
+    \frac{\md N}{\md t}
+    &= b(t) N - \mu N
+    \\
+    &= \mu \sigma \sqrt{2} \cos\left(2 \pi t\right) N,
+  \end{split}
+\end{equation}
+so that
+\begin{equation}
+  \log N(t) = \log N(0)
+  + \frac{\mu \sigma}{\pi \sqrt{2}}
+  \sin\left(2 \pi t\right),
+\end{equation}
+or
+\begin{equation}
+  N(t) = N(0) \exp\left[
+    \frac{\mu \sigma}{\pi \sqrt{2}}
+    \sin\left(2 \pi t\right)
+  \right],
+\end{equation}
+i.e.~periodic with period $1$.
+
+The model for log-transformed variables is
+\begin{equation}
+  \begin{split}
+    \frac{\md S_{\log}}{\md t}
+    &= b(t) \me^{\left(N_{\log} - S_{\log}\right)}
+    - \beta \me^{I_{\log}}
+    - \mu,
+    \\
+    \frac{\md I_{\log}}{\md t}
+    &= \beta \me^{S_{\log}} - \gamma - \mu,
+    \\
+    \frac{\md R_{\log}}{\md t}
+    &= \gamma \me^{\left(I_{\log} - R_{\log}\right)}
+    - \mu,
+  \end{split}
+\end{equation}
+with
+\begin{equation}
+  N_{\log} = \log\left(
+    \me^{S_{\log}} + \me^{I_{\log}} + \me^{R_{\log}}
+  \right).
+\end{equation}
+
+For the system of differential equations
+\begin{equation}
+  \begin{split}
+    \frac{\md \vec{Y}}{\md t}
+    &= \vec{f}\left(t, \vec{Y}\right),
+    \\
+    \vec{Y}(0) &= \vec{Y}^0,
+  \end{split}
+\end{equation}
+and time step $\Delta t$, let $t^k = k \Delta t$ for
+$k \in \{0, 1, \ldots, K - 1\}$ and
+\begin{equation}
+  \vec{Y}^k \approx \vec{Y}(t^k).
+\end{equation}
+The Crank--Nicolson scheme is
+\begin{equation}
+  \frac{\vec{Y}^k - \vec{Y}^{k - 1}}{\Delta t}
+  = \frac{
+    \vec{f}\left(t^k, \vec{Y}^k\right)
+    + \vec{f}\left(t^{k - 1}, \vec{Y}^{k - 1}\right)
+  }{2}
+\end{equation}
+for $k \in \{1, \ldots, K - 1\}$.
+That is, to find $\vec{Y}^k$ such that
+\begin{equation}
+  \vec{Y}^k
+  - \frac{\Delta t}{2}
+  \vec{f}\left(t^k, \vec{Y}^k\right)
+  - \vec{Y}^{k - 1}
+  - \frac{\Delta t}{2}
+  \vec{f}\left(t^{k - 1}, \vec{Y}^{k - 1}\right)
+  = 0.
+\end{equation}
+
+
+\end{document}

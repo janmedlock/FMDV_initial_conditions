@@ -6,7 +6,6 @@ import dataclasses
 
 import matplotlib.pyplot
 import numpy
-import scipy.special
 
 import solver
 import utility
@@ -14,31 +13,14 @@ import utility
 
 class Solution:
     '''Model solution.'''
-    def __init__(self, t, y, log, states):
+    def __init__(self, t, y, states):
         self.t = t
-        self._y = y
-        self.log = log
+        self.y = y
         self.states = states
-
-    @property
-    def y(self):
-        '''The solution, untransformed, if necessary.'''
-        y = self._y
-        if self.log:
-            y = numpy.exp(y)
-        return y
-
-    def interp(self, t):
-        '''Interpolate the solution.'''
-        # Interpolate, then untransform, if necessary.
-        y = utility.interp(t, self.t, self._y)
-        if self.log:
-            y = numpy.exp(y)
-        return y
 
     def distance(self, t_0, t_1):
         '''Distance between solutions at `time_0` and `time_1`.'''
-        y = self.interp([t_0, t_1])
+        y = utility.interp([t_0, t_1], self.t, self.y)
         return numpy.linalg.norm(y[..., 0] - y[..., 1])
 
     def is_periodic(self, period, tol=1e-8):
@@ -109,28 +91,7 @@ class Model:
                        - self.parameters.death_rate * infectious)
         drecovered = (self.parameters.recovery_rate * infectious
                       - self.parameters.death_rate * recovered)
-        return numpy.array((dsusceptible, dinfectious, drecovered))
-
-    def rhs_log(self, time, state_log):
-        '''The right-hand-side of the model ODEs for the log-transformed state
-        variables.'''
-        (susceptible_log, infectious_log, recovered_log) = state_log
-        population_size_log = scipy.special.logsumexp(state_log, axis=0)
-        dsusceptible_log = ((self.birth_rate(time)
-                             * numpy.exp(population_size_log
-                                         - susceptible_log))
-                            - (self.parameters.transmission_rate
-                               * numpy.exp(infectious_log))
-                            - self.parameters.death_rate)
-        dinfectious_log = ((self.parameters.transmission_rate
-                            * numpy.exp(susceptible_log))
-                           - self.parameters.recovery_rate
-                           - self.parameters.death_rate)
-        drecovered_log = ((self.parameters.recovery_rate
-                           * numpy.exp(infectious_log
-                                       - recovered_log))
-                          - self.parameters.death_rate)
-        return numpy.array((dsusceptible_log, dinfectious_log, drecovered_log))
+        return (dsusceptible, dinfectious, drecovered)
 
     @staticmethod
     def build_initial_conditions():
@@ -138,23 +99,16 @@ class Model:
         infectious = 0.01
         recovered = 0
         susceptible = 1 - infectious - recovered
-        return numpy.array((susceptible, infectious, recovered))
+        return (susceptible, infectious, recovered)
 
-    def solve(self, t_start, t_end, t_step, y_0=None, log=False,
-              _log_of_zero=-20):
+    def solve(self, t_start, t_end, t_step, y_start=None):
         '''Solve the ODEs.'''
-        if y_0 is None:
-            y_0 = self.build_initial_conditions()
-        if not log:
-            func = self.rhs
-        else:
-            func = self.rhs_log
-            assert numpy.all(y_0 >= 0)
-            y_0 = numpy.ma.filled(numpy.ma.log(y_0), _log_of_zero)
-        (t, y) = solver.solver(func, t_start, t_end, t_step, y_0)
-        if not log:
-            assert (y >= 0).all()
-        return Solution(t, y, log, self.STATES)
+        t = utility.arange(t_start, t_end, t_step)
+        if y_start is None:
+            y_start = self.build_initial_conditions()
+        y = solver.solve(self.rhs, t, y_start)
+        assert (y >= 0).all()
+        return Solution(t, y, self.STATES)
 
 
 if __name__ == '__main__':

@@ -1,71 +1,102 @@
 '''Solvers for differential equations.'''
 
+import abc
+
 import numpy
 import scipy.optimize
 
 import utility
 
 
-def euler(func, t, t_step, y):
-    '''Solve the ODE defined by the derivatives in `func` using the
-    explicit Euler scheme.'''
-    for k in range(1, len(t)):
-        y[k] = y[k - 1] + t_step * func(t[k - 1], y[k - 1])
-        assert numpy.all(numpy.isfinite(y[k])), \
-            f't[{k}]={t[k]}: y[{k}]={y[k]}'
+class _Solver(metaclass=abc.ABCMeta):
+    @property
+    @abc.abstractmethod
+    def method(self):
+        '''The name of the method.'''
 
-
-def _c(y, t, func, d):
-    '''Compute the `c` term for `_objective()` that is independent of
-    `y_k`.'''
-    if d == 0:
-        return y
-    else:
-        return y + d * func(t, y)
-
-
-def _objective(y_k, t_k, func, b, c):
-    '''Function to solve in each step.'''
-    return y_k - b * func(t_k, y_k) - c
-
-
-def _implicit(func, t, y, b, d):
-    '''Solve the ODE defined by the derivatives in `func` using an
-    implicit scheme.'''
-    for k in range(1, len(t)):
-        c = _c(y[k - 1], t[k - 1], func, d)
-        result = scipy.optimize.root(_objective,
-                                     y[k - 1],
-                                     args=(t[k], func, b, c))
-        assert result.success, f't[{k}]={t[k]}: {result}'
-        assert numpy.all(numpy.isfinite(result.x)), \
-            f't[{k}]={t[k]}: y[{k}]={result.x}'
-        y[k] = result.x
-
-
-def implicit_euler(func, t, t_step, y):
-    '''Solve the ODE defined by the derivatives in `func` using the
-    implicit Euler scheme.'''
-    _implicit(func, t, y, t_step, 0)
-
-
-def crank_nicolson(func, t, t_step, y):
-    '''Solve the ODE defined by the derivatives in `func` using the
-    Crank–Nicolson scheme.'''
-    _implicit(func, t, y, t_step / 2, t_step / 2)
-
-
-def solver(func, t_start, t_end, t_step, y_start, method='crank_nicolson'):
-    '''Solve the ODE defined by the derivatives in `func`.'''
-    t = utility.arange(t_start, t_end, t_step)
-    y = numpy.empty((len(t), len(y_start)))
-    y[0] = y_start
-    if method == 'euler':
-        euler(func, t, t_step, y)
-    elif method == 'implicit_euler':
-        implicit_euler(func, t, t_step, y)
-    elif method == 'crank_nicolson':
-        crank_nicolson(func, t, t_step, y)
-    else:
+    @classmethod
+    def create(cls, method, func, t, y_0):
+        '''Factory to choose the right solver class for `method`.'''
+        for subcls in utility.all_subclasses(cls):
+            if subcls.method == method:
+                return subcls(func, t, y_0)
         raise ValueError(f'Unknown {method=}!')
-    return (t, y)
+
+    def __init__(self, func, t, y_0):
+        self._func = func
+        self.t = t
+        self.y_0 = y_0
+
+    def func(self, t, y):
+        '''The result of `self._func(t, y)` as a `numpy.array()`.'''
+        return numpy.asarray(self._func(t, y))
+
+    @abc.abstractmethod
+    def _y_new(self, t_new, t_cur, y_cur):
+        '''Do a step.'''
+
+    def solve(self):
+        '''Solve.'''
+        shape = (len(self.t), *numpy.shape(self.y_0))
+        y = numpy.empty(shape)
+        y[0] = self.y_0
+        for k in range(1, len(self.t)):
+            y[k] = self._y_new(self.t[k], self.t[k - 1], y[k - 1])
+        return y
+
+
+class _Euler(_Solver):
+    method = 'Euler'
+
+    def _y_new(self, t_new, t_cur, y_cur):
+        return y_cur + (t_new - t_cur) * self.func(t_cur, y_cur)
+
+
+class _ImplicitSolver(_Solver):
+    @property
+    @abc.abstractmethod
+    def _a(self):
+        '''Coefficient in `_objective`.'''
+
+    @abc.abstractmethod
+    def _b(self, t_new, t_cur, y_cur):
+        '''Compute the term in `_objective()` that is independent of
+        `y_new`.'''
+
+    def _objective(self, y_new, t_new, t_cur, b):
+        return y_new - self._a * (t_new - t_cur) * self.func(t_new, y_new) - b
+
+    def _y_new(self, t_new, t_cur, y_cur):
+        result = scipy.optimize.root(self._objective, y_cur,
+                                     args=(t_new, t_cur,
+                                           self._b(t_new, t_cur, y_cur)))
+        assert result.success, f't={t_new}: {result}'
+        return result.x
+
+
+class _ImplicitEuler(_ImplicitSolver):
+    method = 'Implicit Euler'
+
+    _a = 1
+
+    def _b(self, t_new, t_cur, y_cur):
+        '''Compute the term in `_objective()` that is independent of
+        `y_new`.'''
+        return y_cur
+
+
+class _CrankNicolson(_ImplicitSolver):
+    method = 'Crank–Nicolson'
+
+    _a = 0.5
+
+    def _b(self, t_new, t_cur, y_cur):
+        '''Compute the term in `_objective()` that is independent of
+        `y_new`.'''
+        return y_cur + 0.5 * (t_new - t_cur) * self.func(t_cur, y_cur)
+
+
+def solve(func, t, y_0, method='Crank–Nicolson'):
+    '''Solve the ODE defined by the derivatives in `func`.'''
+    solver = _Solver.create(method, func, t, y_0)
+    return solver.solve()
