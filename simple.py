@@ -32,26 +32,33 @@ class Solution:
             f'{t_0=} is outside of the solution domain!'
         return self.distance(t_0, t_1) < tol
 
-    def plot(self, show=True):
+    def plot(self, axes=None, fig=None, legend=True, show=True, **kwds):
         '''Plot the solution.'''
-        (fig, axes) = matplotlib.pyplot.subplots()
-        axes.plot(self.t, self.y)
+        if axes is None:
+            if fig is None:
+                fig = matplotlib.pyplot.figure()
+            axes = fig.add_subplot()
+        axes.plot(self.t, self.y, **kwds)
         axes.set_xlabel('time')
         axes.set_ylabel('number')
-        axes.legend(self.states)
+        if legend:
+            axes.legend(self.states)
         if show:
             matplotlib.pyplot.show()
-        return fig
+        return axes
 
-    def plot_population_size(self, show=True):
+    def plot_population_size(self, axes=None, fig=None, show=True):
         '''Plot the population size.'''
-        (fig, axes) = matplotlib.pyplot.subplots()
+        if axes is None:
+            if fig is None:
+                fig = matplotlib.pyplot.figure()
+            axes = fig.add_subplot()
         axes.plot(self.t, self.y.sum(axis=1))
         axes.set_xlabel('time')
         axes.set_ylabel('population size')
         if show:
             matplotlib.pyplot.show()
-        return fig
+        return axes
 
 
 @dataclasses.dataclass
@@ -67,8 +74,8 @@ class Model:
     '''The SIR model.'''
     STATES = ('susceptible', 'infectious', 'recovered')
 
-    def __init__(self, *args, **kwds):
-        self.parameters = Parameters(*args, **kwds)
+    def __init__(self, **kwds):
+        self.parameters = Parameters(**kwds)
 
     def birth_rate(self, time):
         '''Periodic birth rate.'''
@@ -111,7 +118,19 @@ class Model:
         return Solution(t, y, self.STATES)
 
 
+class ModelConstantBirth(Model):
+    '''The SIR model with constant birth rate.'''
+
+    def __init__(self, **kwds):
+        super().__init__(birth_rate_variation=0, **kwds)
+
+
 if __name__ == '__main__':
+    (t_start, t_end, t_step) = (0, 10, 0.001)
     model = Model()
-    solution = model.solve(0, 10, 0.001)
-    figure = solution.plot()
+    solution = model.solve(t_start, t_end, t_step)
+    axes = solution.plot(linestyle='solid', show=False)
+    model_constant = ModelConstantBirth()
+    solution_constant = model_constant.solve(t_start, t_end, t_step)
+    axes.set_prop_cycle(None)  # Reset color cycle
+    solution_constant.plot(linestyle='dotted', legend=False, axes=axes)
