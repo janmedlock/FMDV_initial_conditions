@@ -1,3 +1,3 @@
 '''Solvers for differential equations.'''
 
-from ._solver import Solver, solve
+from .solver import Solver, solve

@@ -5,7 +5,7 @@ import abc
 import numpy
 import scipy.optimize
 
-from . import _utility
+from . import utility
 
 
 _METHOD_DEFAULT = 'Crank–Nicolson'
@@ -22,7 +22,7 @@ class Solver(metaclass=abc.ABCMeta):
     @classmethod
     def create(cls, func, method=_METHOD_DEFAULT):
         '''Factory to choose the right solver class for `method`.'''
-        for subcls in _utility.all_subclasses(cls):
+        for subcls in utility.all_subclasses(cls):
             if subcls.method == method:
                 return subcls(func)
         raise ValueError(f'Unknown {method=}!')
