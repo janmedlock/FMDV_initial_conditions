@@ -8,6 +8,9 @@ import scipy.optimize
 from . import _utility
 
 
+_METHOD_DEFAULT = 'Crank–Nicolson'
+
+
 class Solver(metaclass=abc.ABCMeta):
     '''Base class for solvers.'''
 
@@ -17,17 +20,15 @@ class Solver(metaclass=abc.ABCMeta):
         '''The name of the method.'''
 
     @classmethod
-    def create(cls, method, func, t, y_0):
+    def create(cls, func, method=_METHOD_DEFAULT):
         '''Factory to choose the right solver class for `method`.'''
         for subcls in _utility.all_subclasses(cls):
             if subcls.method == method:
-                return subcls(func, t, y_0)
+                return subcls(func)
         raise ValueError(f'Unknown {method=}!')
 
-    def __init__(self, func, t, y_0):
+    def __init__(self, func):
         self._func = func
-        self.t = t
-        self.y_0 = y_0
 
     def func(self, t, y):
         '''The result of `self._func(t, y)` as a `numpy.array()`.'''
@@ -37,13 +38,16 @@ class Solver(metaclass=abc.ABCMeta):
     def _y_new(self, t_new, t_cur, y_cur):
         '''Do a step.'''
 
-    def solve(self):
+    def solve(self, t, y_0=None, y=None):
         '''Solve.'''
-        shape = (len(self.t), *numpy.shape(self.y_0))
-        y = numpy.empty(shape)
-        y[0] = self.y_0
-        for k in range(1, len(self.t)):
-            y[k] = self._y_new(self.t[k], self.t[k - 1], y[k - 1])
+        if ((y_0 is None and y is None)
+                or (y_0 is not None and y is not None)):
+            raise ValueError('One of `y_0` or `y` must be specified.')
+        if y is None:
+            y = numpy.empty((len(t), *numpy.shape(y_0)))
+            y[0] = y_0
+        for k in range(1, len(t)):
+            y[k] = self._y_new(t[k], t[k - 1], y[k - 1])
         return y
 
 
@@ -98,7 +102,7 @@ class CrankNicolson(_ImplicitSolver):
         return y_cur + 0.5 * (t_new - t_cur) * self.func(t_cur, y_cur)
 
 
-def solve(func, t, y_0, method='Crank–Nicolson'):
+def solve(func, t, y_0, **kwds):
     '''Solve the ODE defined by the derivatives in `func`.'''
-    solver = Solver.create(method, func, t, y_0)
-    return solver.solve()
+    solver = Solver.create(func, **kwds)
+    return solver.solve(t, y_0=y_0)
