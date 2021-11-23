@@ -5,6 +5,7 @@ import abc
 import numpy
 import scipy.optimize
 
+from . import solution
 from . import utility
 
 
@@ -20,15 +21,16 @@ class Solver(metaclass=abc.ABCMeta):
         '''The name of the method.'''
 
     @classmethod
-    def create(cls, func, method=_METHOD_DEFAULT):
+    def create(cls, func, method=_METHOD_DEFAULT, states=None):
         '''Factory to choose the right solver class for `method`.'''
         for subcls in utility.all_subclasses(cls):
             if subcls.method == method:
-                return subcls(func)
+                return subcls(func, states=states)
         raise ValueError(f'Unknown {method=}!')
 
-    def __init__(self, func):
+    def __init__(self, func, states=None):
         self._func = func
+        self.states = states
 
     def func(self, t, y):
         '''The result of `self._func(t, y)` as a `numpy.array()`.'''
@@ -38,17 +40,17 @@ class Solver(metaclass=abc.ABCMeta):
     def _y_new(self, t_new, t_cur, y_cur):
         '''Do a step.'''
 
-    def solve(self, t, y_0=None, y=None):
+    def solve(self, t, y_0, y=None, _solution=True):
         '''Solve.'''
-        if ((y_0 is None and y is None)
-                or (y_0 is not None and y is not None)):
-            raise ValueError('One of `y_0` or `y` must be specified.')
         if y is None:
             y = numpy.empty((len(t), *numpy.shape(y_0)))
-            y[0] = y_0
+        y[0] = y_0
         for k in range(1, len(t)):
             y[k] = self._y_new(t[k], t[k - 1], y[k - 1])
-        return y
+        if _solution:
+            return solution.Solution(t, y, states=self.states)
+        else:
+            return y
 
 
 class Euler(Solver):
@@ -105,4 +107,4 @@ class CrankNicolson(_ImplicitSolver):
 def solve(func, t, y_0, **kwds):
     '''Solve the ODE defined by the derivatives in `func`.'''
     solver = Solver.create(func, **kwds)
-    return solver.solve(t, y_0=y_0)
+    return solver.solve(t, y_0)
