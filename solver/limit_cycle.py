@@ -10,7 +10,7 @@ from . import utility
 def _objective(y_0, solver_, t, y):
     '''Solve the ODEs and return the difference between the initial state
     and the state one period later.'''
-    solver_.solve(t, y_0, y=y, _solution=False)
+    solver_(t, y_0, y=y, _solution=False)
     return y[-1] - y_0
 
 
@@ -24,4 +24,4 @@ def find(func, t_0, period, t_step, y_0_guess, **kwds):
                                  args=(solver_, t, y))
     assert result.success, f'{result}'
     y_0 = result.x
-    return solver_.solve(t, y_0, y=y)
+    return solver_(t, y_0, y=y)

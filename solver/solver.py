@@ -40,7 +40,7 @@ class Solver(metaclass=abc.ABCMeta):
     def _y_new(self, t_new, t_cur, y_cur):
         '''Do a step.'''
 
-    def solve(self, t, y_0, y=None, _solution=True):
+    def __call__(self, t, y_0, y=None, _solution=True):
         '''Solve.'''
         if y is None:
             y = numpy.empty((len(t), *numpy.shape(y_0)))
@@ -107,4 +107,4 @@ class CrankNicolson(_ImplicitSolver):
 def solve(func, t, y_0, **kwds):
     '''Solve the ODE defined by the derivatives in `func`.'''
     solver = Solver.create(func, **kwds)
-    return solver.solve(t, y_0)
+    return solver(t, y_0)
