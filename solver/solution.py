@@ -1,5 +1,6 @@
 '''Classes to hold solutions and points in state space.'''
 
+import cycler
 import matplotlib.pyplot
 import numpy
 import pandas
@@ -7,76 +8,70 @@ import pandas
 from . import utility
 
 
-class _StateBase:
-    def __init__(self, data):
-        self._data = data
+def Solution(y, t=None, states=None):
+    '''A solution.'''
+    if states is not None:
+        states = pandas.Index(states, name='state')
+    if t is None:
+        return pandas.Series(y, index=states)
+    else:
+        index = pandas.Index(t, name='time')
+        return pandas.DataFrame(y, index=index, columns=states)
 
-    @staticmethod
-    def _index_states(states):
-        return pandas.Index(states, name='state')
 
-    def __repr__(self):
-        return self._data.__repr__()
+class _SolutionAccessorBase:
+    '''Common code for `_SolutionSeriesAccessor()` and
+    `_SolutionDataFrameAccessor()`.'''
 
-    @property
-    def y(self):
-        '''State values.'''
-        return self._data.to_numpy()
+    def __init__(self, pandas_obj):
+        self._obj = pandas_obj
 
     @property
     def states(self):
-        '''State names.'''
-        return self._data.axes[-1]
+        '''State coordinates.'''
+        return self._obj.axes[-1]
 
     @property
     def population_size(self):
         '''Population size.'''
-        axis = self._data.ndim - 1  # Sum over last axis.
-        return self._data.sum(axis=axis)
+        # Sum over the last axis.
+        axis = self._obj.ndim - 1
+        return self._obj.sum(axis=axis)
 
-    def _get_state_axes(self):
+    def _make_axes_state(self):
+        '''Make state axes.'''
         if len(self.states) == 2:
             projection = 'rectilinear'
         elif len(self.states) == 3:
             projection = '3d'
         else:
             raise ValueError(
-                f'State dimension is {len(self._data.states)}, '
-                'but only 2 and 3 are supported!')
+                f'{len(self.states)=}, but only 2 and 3 are supported!')
         fig = matplotlib.pyplot.figure()
-        labels = dict(zip(('xlabel', 'ylabel', 'zlabel'), self.states))
-        return fig.add_subplot(projection=projection, **labels)
+        axis_labels = dict(zip(('xlabel', 'ylabel', 'zlabel'), self.states))
+        return fig.add_subplot(projection=projection,
+                               **axis_labels)
 
 
-class State(_StateBase):
-    '''Model state coordinates.'''
-    def __init__(self, y, states=None):
-        data = pandas.Series(y, index=states)
-        super().__init__(data)
+@pandas.api.extensions.register_series_accessor('solution')
+class _SolutionSeriesAccessor(_SolutionAccessorBase):
+    '''API for a point in state space.'''
 
-    def plot(self, ax=None, **kwds):
+    def plot_state(self, ax=None, **kwds):
         '''Plot the point in state space.'''
         if ax is None:
-            ax = self._get_state_axes()
-        ax.scatter(*self.y, **kwds)
+            ax = self._make_axes_state()
+        ax.scatter(*self._obj, **kwds)
         return ax
 
 
-class Solution(_StateBase):
-    '''Model solution.'''
-    def __init__(self, t, y, states=None):
-        index = pandas.Index(t, name='$t$')
-        data = pandas.DataFrame(y, columns=states, index=index)
-        super().__init__(data)
-
-    @property
-    def t(self):
-        '''Time values.'''
-        return self._data.index.to_numpy()
+@pandas.api.extensions.register_dataframe_accessor('solution')
+class _SolutionDataFrameAccessor(_SolutionAccessorBase):
+    '''API for state vs. time.'''
 
     def interp(self, t):
         '''Interpolate to `t`.'''
-        return utility.interp(t, self.t, self.y)
+        return utility.interp(t, self._obj.index, self._obj)
 
     def distance(self, t_0, t_1):
         '''Distance between solutions at `time_0` and `time_1`.'''
@@ -86,17 +81,30 @@ class Solution(_StateBase):
     def is_periodic(self, period, tol=1e-8):
         '''Whether the tail of the solution is periodic with period
         `period`.'''
-        t_1 = self.t[-1]
+        t_1 = self._obj.index[-1]
         t_0 = t_1 - period
         return self.distance(t_0, t_1) < tol
 
-    def plot(self, **kwds):
-        '''Plot the solution.'''
-        return self._data.plot(**kwds)
+    def _prop_cycler_solution(self):
+        orig = matplotlib.pyplot.rcParams['axes.prop_cycle']
+        inner = orig[:len(self.states)]
+        outer = cycler.cycler(linestyle=('solid', 'dotted', 'dashed'))
+        return outer * inner
 
-    def plot_phase(self, ax=None, **kwds):
+    def _make_axes_solution(self):
+        fig = matplotlib.pyplot.figure()
+        return fig.add_subplot(prop_cycle=self._prop_cycler_solution())
+
+    def plot_solution(self, ax=None, **kwds):
+        '''Plot the solution vs time.'''
+        if ax is None:
+            ax = self._make_axes_solution()
+        return self._obj.plot(ax=ax, **kwds)
+
+    def plot_state(self, ax=None, **kwds):
         '''Make a phase plot.'''
         if ax is None:
-            ax = self._get_state_axes()
-        ax.plot(*self.y.T, **kwds)
+            ax = self._make_axes_state()
+        cols = (col for (_, col) in self._obj.items())
+        ax.plot(*cols, **kwds)
         return ax

@@ -21,6 +21,7 @@ class Parameters:
 
 class Model:
     '''The SIR model.'''
+
     STATES = ('susceptible', 'infectious', 'recovered')
 
     def __init__(self, **kwds):
@@ -60,7 +61,7 @@ class Model:
     @staticmethod
     def assert_nonnegative_solution(sol):
         '''Check the that `sol` is non-negative.'''
-        assert (sol.y >= 0).all()
+        assert (sol >= 0).all(axis=None)
 
     def solve(self, t_start, t_end, t_step, y_start=None):
         '''Solve the ODEs.'''
@@ -70,12 +71,6 @@ class Model:
         sol = solver.solve(self, t, y_start, states=self.STATES)
         self.assert_nonnegative_solution(sol)
         return sol
-
-    def find_equilibrium(self, t, y_0_guess):
-        '''Find an equilibrium of the model.'''
-        eql = solver.equilibrium.find(self, t, y_0_guess, states=self.STATES)
-        self.assert_nonnegative_solution(eql)
-        return eql
 
     def find_limit_cycle(self, t_0, period, t_step, y_0_guess):
         '''Find a limit cycle of the model.'''
@@ -91,20 +86,27 @@ class ModelConstantBirth(Model):
     def __init__(self, **kwds):
         super().__init__(birth_rate_variation=0, **kwds)
 
+    def find_equilibrium(self, t, y_0_guess):
+        '''Find an equilibrium of the model.'''
+        eql = solver.equilibrium.find(self, t, y_0_guess,
+                                      states=self.STATES)
+        self.assert_nonnegative_solution(eql)
+        return eql
+
 
 if __name__ == '__main__':
     (t_start, t_end, t_step) = (0, 10, 0.001)
-    model_constant = ModelConstantBirth()
-    solution_constant = model_constant.solve(t_start, t_end, t_step)
-    ax = solution_constant.plot(linestyle='dotted', legend=False)
-    ax.set_prop_cycle(None)  # Reset color cycle
-    equilibrium = model_constant.find_equilibrium(t_end,
-                                                  solution_constant.y[-1])
-    ax_phase = equilibrium.plot()
     model = Model()
     solution = model.solve(t_start, t_end, t_step)
-    solution.plot(ax=ax)
+    ax_solution = solution.solution.plot_solution()
     PERIOD = 1
-    limit_cycle = model.find_limit_cycle(t_end, PERIOD, t_step, solution.y[-1])
-    limit_cycle.plot_phase(ax=ax_phase)
+    limit_cycle = model.find_limit_cycle(t_end, PERIOD, t_step,
+                                         solution.loc[t_end])
+    ax_state = limit_cycle.solution.plot_state()
+    model_constant = ModelConstantBirth()
+    solution_constant = model_constant.solve(t_start, t_end, t_step)
+    solution_constant.solution.plot_solution(ax=ax_solution, legend=False)
+    equilibrium = model_constant.find_equilibrium(t_end,
+                                                  solution_constant.loc[t_end])
+    equilibrium.solution.plot_state(ax=ax_state)
     matplotlib.pyplot.show()

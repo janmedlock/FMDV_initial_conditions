@@ -21,11 +21,11 @@ class Solver(metaclass=abc.ABCMeta):
         '''The name of the method.'''
 
     @classmethod
-    def create(cls, func, method=_METHOD_DEFAULT, states=None):
+    def create(cls, func, method=_METHOD_DEFAULT, **kwds):
         '''Factory to choose the right solver class for `method`.'''
         for subcls in utility.all_subclasses(cls):
             if subcls.method == method:
-                return subcls(func, states=states)
+                return subcls(func, **kwds)
         raise ValueError(f'Unknown {method=}!')
 
     def __init__(self, func, states=None):
@@ -50,7 +50,7 @@ class Solver(metaclass=abc.ABCMeta):
         for k in range(1, len(t)):
             y[k] = self._y_new(t[k], t[k - 1], y[k - 1])
         if _solution:
-            return solution.Solution(t, y, states=self.states)
+            return solution.Solution(y, t, states=self.states)
         else:
             return y
 

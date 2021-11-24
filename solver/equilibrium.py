@@ -16,4 +16,4 @@ def find(func, t, y_guess, states=None):
                                  args=(func, t))
     assert result.success, f'{result}'
     y = result.x
-    return solution.State(y, states=states)
+    return solution.Solution(y, states=states)
