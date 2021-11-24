@@ -1,6 +1,6 @@
 '''Solvers for differential equations.'''
 
-from .equilibrium import *
-from .limit_cycle import *
 from .solver import *
-from .utility import *
+from . import equilibrium
+from . import limit_cycle
+from . import utility

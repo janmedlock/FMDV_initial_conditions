@@ -69,22 +69,6 @@ class _SolutionSeriesAccessor(_SolutionAccessorBase):
 class _SolutionDataFrameAccessor(_SolutionAccessorBase):
     '''API for state vs. time.'''
 
-    def interp(self, t):
-        '''Interpolate to `t`.'''
-        return utility.interp(t, self._obj.index, self._obj)
-
-    def distance(self, t_0, t_1):
-        '''Distance between solutions at `time_0` and `time_1`.'''
-        (y_0, y_1) = self.interp([t_0, t_1])
-        return numpy.linalg.norm(y_0 - y_1)
-
-    def is_periodic(self, period, tol=1e-8):
-        '''Whether the tail of the solution is periodic with period
-        `period`.'''
-        t_1 = self._obj.index[-1]
-        t_0 = t_1 - period
-        return self.distance(t_0, t_1) < tol
-
     def _prop_cycler_solution(self):
         orig = matplotlib.pyplot.rcParams['axes.prop_cycle']
         inner = orig[:len(self.states)]
