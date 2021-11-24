@@ -3,6 +3,7 @@
 import numpy
 import scipy.optimize
 
+from . import fundamental
 from . import solver
 from . import utility
 
@@ -33,3 +34,23 @@ def find(func, t_0, period, t_step, y_0_guess, **kwds):
     y_0 = transform.inverse(x)
     # Return the solution at all of the intermediate t values.
     return solver_(t, y_0, y=y)
+
+
+def monodromy_matrix(jacobian, limit_cycle, **kwds):
+    '''Get the monodromy matrix.'''
+    phi = fundamental.solution(jacobian, limit_cycle, **kwds)
+    return phi[-1]
+
+
+def characteristic_exponents(jacobian, limit_cycle, **kwds):
+    '''Get the characteristic exponents of `limit_cycle`.'''
+    phi_period = monodromy_matrix(jacobian, limit_cycle, **kwds)
+    mlt = numpy.linalg.eigvals(phi_period)
+    t = limit_cycle.index
+    period = t[-1] - t[0]
+    exps = numpy.log(mlt) / period
+    # Drop the one closest to 0.
+    drop = numpy.abs(exps).argmin()
+    assert numpy.isclose(exps[drop], 0)
+    exps = numpy.delete(exps, drop)
+    return utility.sort_by_real_part(exps)

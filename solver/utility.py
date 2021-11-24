@@ -20,6 +20,12 @@ def arange(start, stop, step, endpoint=True, dtype=None):
     return arr
 
 
+def sort_by_real_part(arr):
+    '''Sort the elements of `arr` by real part.'''
+    order = arr.real.argsort()
+    return arr[order]
+
+
 class TransformConstantSum:
     '''Reduce the dimension of `y` by 1 using its sum.'''
 

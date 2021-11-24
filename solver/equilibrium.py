@@ -1,5 +1,6 @@
 '''Find equilibria.'''
 
+import numpy
 import scipy.optimize
 
 from . import solution
@@ -21,3 +22,10 @@ def find(func, t, y_guess, states=None):
     assert result.success, f'{result}'
     y = transform.inverse(result.x)
     return solution.Solution(y, states=states)
+
+
+def eigenvalues(jacobian, t, equilibrium):
+    '''Get the eigenvalues of `equilibrium`.'''
+    jac = jacobian(t, equilibrium)
+    evals = numpy.linalg.eigvals(jac)
+    return utility.sort_by_real_part(evals)

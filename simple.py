@@ -54,6 +54,31 @@ class Model:
         )
         return (d_susceptible, d_infectious, d_recovered)
 
+    def jacobian(self, t, y):
+        '''The Jacobian of the model ODEs.'''
+        (susceptible, infectious, recovered) = y
+        grad_susceptible = (
+            (self.birth_rate(t)
+             - self.parameters.transmission_rate * infectious
+             - self.parameters.death_rate),
+            (self.birth_rate(t)
+             - self.parameters.transmission_rate * susceptible),
+            self.birth_rate(t)
+        )
+        grad_infectious = (
+            self.parameters.transmission_rate * infectious,
+            (self.parameters.transmission_rate * susceptible
+             - self.parameters.recovery_rate
+             - self.parameters.death_rate),
+            0
+        )
+        grad_recovered = (
+            0,
+            self.parameters.recovery_rate,
+            - self.parameters.death_rate
+        )
+        return (grad_susceptible, grad_infectious, grad_recovered)
+
     @staticmethod
     def build_initial_conditions():
         '''Build the initial conditions.'''
@@ -83,6 +108,10 @@ class Model:
         self.assert_nonnegative(lcy)
         return lcy
 
+    def get_characteristic_exponents(self, lcy):
+        '''Get the characteristic exponents.'''
+        return solver.limit_cycle.characteristic_exponents(self.jacobian, lcy)
+
 
 class ModelConstantBirth(Model):
     '''The SIR model with constant birth rate.'''
@@ -90,12 +119,16 @@ class ModelConstantBirth(Model):
     def __init__(self, **kwds):
         super().__init__(birth_rate_variation=0, **kwds)
 
-    def find_equilibrium(self, t, y_0_guess):
+    def find_equilibrium(self, y_0_guess):
         '''Find an equilibrium of the model.'''
-        eql = solver.equilibrium.find(self, t, y_0_guess,
+        eql = solver.equilibrium.find(self, 0, y_0_guess,
                                       states=self.STATES)
         self.assert_nonnegative(eql)
         return eql
+
+    def get_eigenvalues(self, eql):
+        '''Get the eigenvalues of the Jacobian.'''
+        return solver.equilibrium.eigenvalues(self.jacobian, 0, eql)
 
 
 if __name__ == '__main__':
@@ -106,11 +139,12 @@ if __name__ == '__main__':
     PERIOD = 1
     limit_cycle = model.find_limit_cycle(t_end, PERIOD, t_step,
                                          solution.loc[t_end])
+    print(model.get_characteristic_exponents(limit_cycle))
     ax_state = limit_cycle.solution.plot_state()
     model_constant = ModelConstantBirth()
     solution_constant = model_constant.solve(t_start, t_end, t_step)
     solution_constant.solution.plot_solution(ax=ax_solution, legend=False)
-    equilibrium = model_constant.find_equilibrium(t_end,
-                                                  solution_constant.loc[t_end])
+    equilibrium = model_constant.find_equilibrium(solution_constant.loc[t_end])
+    print(model_constant.get_eigenvalues(equilibrium))
     equilibrium.solution.plot_state(ax=ax_state)
     matplotlib.pyplot.show()
