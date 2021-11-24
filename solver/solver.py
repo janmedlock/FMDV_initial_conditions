@@ -41,7 +41,9 @@ class Solver(metaclass=abc.ABCMeta):
         '''Do a step.'''
 
     def __call__(self, t, y_0, y=None, _solution=True):
-        '''Solve.'''
+        '''Solve. `y` is storage for the solution, which will be built if not
+        provided. `_solution=False` skips wrapping the solution in
+        `solution.Solution()` for speed.'''
         if y is None:
             y = numpy.empty((len(t), *numpy.shape(y_0)))
         y[0] = y_0
