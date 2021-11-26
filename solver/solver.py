@@ -37,7 +37,7 @@ class Solver(metaclass=abc.ABCMeta):
         return numpy.asarray(self._func(t, y))
 
     @abc.abstractmethod
-    def _y_new(self, t_new, t_cur, y_cur):
+    def _step(self, t_cur, y_cur, t_new, y_new):
         '''Do a step.'''
 
     def __call__(self, t, y_0, y=None, _solution=True):
@@ -48,7 +48,7 @@ class Solver(metaclass=abc.ABCMeta):
             y = numpy.empty((len(t), *numpy.shape(y_0)))
         y[0] = y_0
         for k in range(1, len(t)):
-            y[k] = self._y_new(t[k], t[k - 1], y[k - 1])
+            self._step(t[k - 1], y[k - 1], t[k], y[k])
         if _solution:
             return solution.Solution(y, t, states=self.states)
         else:
@@ -58,8 +58,8 @@ class Solver(metaclass=abc.ABCMeta):
 class Euler(Solver):
     method = 'Euler'
 
-    def _y_new(self, t_new, t_cur, y_cur):
-        return y_cur + (t_new - t_cur) * self.func(t_cur, y_cur)
+    def _step(self, t_cur, y_cur, t_new, y_new):
+        y_new[:] = y_cur + (t_new - t_cur) * self.func(t_cur, y_cur)
 
 
 class _ImplicitSolver(Solver):
@@ -69,19 +69,19 @@ class _ImplicitSolver(Solver):
         '''Coefficient in `_objective`.'''
 
     @abc.abstractmethod
-    def _b(self, t_new, t_cur, y_cur):
+    def _b(self, t_cur, y_cur, t_new):
         '''Compute the term in `_objective()` that is independent of
         `y_new`.'''
 
-    def _objective(self, y_new, t_new, t_cur, b):
+    def _objective(self, y_new, t_cur, t_new, b):
         return y_new - self._a * (t_new - t_cur) * self.func(t_new, y_new) - b
 
-    def _y_new(self, t_new, t_cur, y_cur):
+    def _step(self, t_cur, y_cur, t_new, y_new):
+        b = self._b(t_cur, y_cur, t_new)
         result = scipy.optimize.root(self._objective, y_cur,
-                                     args=(t_new, t_cur,
-                                           self._b(t_new, t_cur, y_cur)))
+                                     args=(t_cur, t_new, b))
         assert result.success, f't={t_new}: {result}'
-        return result.x
+        y_new[:] = result.x
 
 
 class ImplicitEuler(_ImplicitSolver):
@@ -89,7 +89,7 @@ class ImplicitEuler(_ImplicitSolver):
 
     _a = 1
 
-    def _b(self, t_new, t_cur, y_cur):
+    def _b(self, t_cur, y_cur, t_new):
         '''Compute the term in `_objective()` that is independent of
         `y_new`.'''
         return y_cur
@@ -100,7 +100,7 @@ class CrankNicolson(_ImplicitSolver):
 
     _a = 0.5
 
-    def _b(self, t_new, t_cur, y_cur):
+    def _b(self, t_cur, y_cur, t_new):
         '''Compute the term in `_objective()` that is independent of
         `y_new`.'''
         return y_cur + 0.5 * (t_new - t_cur) * self.func(t_cur, y_cur)
