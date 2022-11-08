@@ -55,6 +55,7 @@ i.e.~periodic with period $1$.
 The model for log-transformed variables is
 \begin{equation}
   \begin{split}
+    \label{model_log}
     \frac{\md S_{\log}}{\md t}
     &= b(t) \me^{\left(N_{\log} - S_{\log}\right)}
     - \beta \me^{I_{\log}}
@@ -98,7 +99,7 @@ The Crank--Nicolson scheme is
   }{2}
 \end{equation}
 for $k \in \{1, \ldots, K - 1\}$.
-That is, to find $\vec{Y}^k$ such that
+That is, we must find $\vec{Y}^k$ such that
 \begin{equation}
   \vec{Y}^k
   - \frac{\Delta t}{2}
@@ -106,8 +107,61 @@ That is, to find $\vec{Y}^k$ such that
   - \vec{Y}^{k - 1}
   - \frac{\Delta t}{2}
   \vec{f}\left(t^{k - 1}, \vec{Y}^{k - 1}\right)
-  = 0.
+  = \vec{0}.
 \end{equation}
 
+For model \eqref{model_log},
+\begin{equation}
+  \begin{split}
+    0 &=
+    S_{\log}^k
+    - \frac{\Delta t}{2} \left\{
+      b\left(t^k\right)
+      \left[
+        1
+        + \me^{\left(I_{\log}^k - S_{\log}^k\right)}
+        + \me^{\left(R_{\log}^k - S_{\log}^k\right)}
+      \right]
+      - \beta \me^{I_{\log}^k}
+      - \mu
+    \right\}
+    \\ & \quad {}
+    - S_{\log}^{k - 1}
+    - \frac{\Delta t}{2} \left\{
+      b\left(t^{k - 1}\right)
+      \left[
+        1
+        + \me^{\left(I_{\log}^{k - 1} - S_{\log}^{k - 1}\right)}
+        + \me^{\left(R_{\log}^{k - 1} - S_{\log}^{k - 1}\right)}
+      \right]
+      - \beta \me^{I_{\log}^{k - 1}}
+      - \mu
+    \right\},
+    \\
+    0 &=
+    I_{\log}^k
+    - \frac{\Delta t}{2} \left[
+      \beta \me^{S_{\log}^k}
+      - \gamma - \mu
+    \right]
+    - I_{\log}^{k - 1}
+    - \frac{\Delta t}{2} \left[
+      \beta \me^{S_{\log}^{k - 1}}
+      - \gamma - \mu
+    \right],
+    \\
+    0 &=
+    R_{\log}^k
+    - \frac{\Delta t}{2} \left[
+      \gamma \me^{\left(I_{\log}^k - R_{\log}^k\right)}
+      - \mu
+    \right]
+    - R_{\log}^{k - 1}
+    - \frac{\Delta t}{2} \left[
+      \gamma \me^{\left(I_{\log}^{k - 1} - R_{\log}^{k - 1}\right)}
+      - \mu
+    \right].
+  \end{split}
+\end{equation}
 
 \end{document}
