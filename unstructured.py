@@ -1,13 +1,14 @@
 #!/usr/bin/python3
-'''Simple ODE test. Based on our FMDV work, this is a
-non-age-structured SIR model with periodic birth rate.'''
+'''Based on our FMDV work, this is an unstructured SIR model with
+periodic birth rate.'''
 
 import dataclasses
 
 import matplotlib.pyplot
 import numpy
 
-import solver
+import solvers
+import solvers.unstructured
 
 
 @dataclasses.dataclass
@@ -20,7 +21,7 @@ class Parameters:
 
 
 class Model:
-    '''The SIR model.'''
+    '''Unstructured SIR model.'''
 
     STATES = ('susceptible', 'infectious', 'recovered')
 
@@ -96,23 +97,26 @@ class Model:
 
     def solve(self, t_start, t_end, t_step, y_start=None):
         '''Solve the ODEs.'''
-        t = solver.utility.arange(t_start, t_end, t_step)
+        t = solvers.utility.arange(t_start, t_end, t_step)
         if y_start is None:
             y_start = self.build_initial_conditions()
-        sol = solver.solve(self, t, y_start, states=self.STATES)
+        sol = solvers.unstructured.solve(self, t, y_start,
+                                         states=self.STATES)
         self.assert_nonnegative(sol)
         return sol
 
     def find_limit_cycle(self, t_0, period, t_step, y_0_guess):
         '''Find a limit cycle of the model.'''
-        lcy = solver.limit_cycle.find(self, t_0, period, t_step,
-                                      y_0_guess, states=self.STATES)
+        lcy = solvers.unstructured.limit_cycle.find(self, t_0, period, t_step,
+                                                    y_0_guess,
+                                                    states=self.STATES)
         self.assert_nonnegative(lcy)
         return lcy
 
     def get_characteristic_exponents(self, lcy):
         '''Get the characteristic exponents.'''
-        return solver.limit_cycle.characteristic_exponents(self.jacobian, lcy)
+        return solvers.unstructured.limit_cycle.characteristic_exponents(
+            self.jacobian, lcy)
 
 
 class ModelConstantBirth(Model):
@@ -123,14 +127,15 @@ class ModelConstantBirth(Model):
 
     def find_equilibrium(self, y_0_guess):
         '''Find an equilibrium of the model.'''
-        eql = solver.equilibrium.find(self, 0, y_0_guess,
-                                      states=self.STATES)
+        eql = solvers.unstructured.equilibrium.find(self, 0, y_0_guess,
+                                                    states=self.STATES)
         self.assert_nonnegative(eql)
         return eql
 
     def get_eigenvalues(self, eql):
         '''Get the eigenvalues of the Jacobian.'''
-        return solver.equilibrium.eigenvalues(self.jacobian, 0, eql)
+        return solvers.unstructured.equilibrium.eigenvalues(self.jacobian,
+                                                            0, eql)
 
 
 if __name__ == '__main__':

@@ -5,7 +5,7 @@ import scipy.optimize
 
 from . import fundamental
 from . import solver
-from . import utility
+from .. import utility
 
 
 def _objective(x, solver_, t, y, transform):

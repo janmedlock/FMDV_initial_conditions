@@ -4,7 +4,7 @@ import numpy
 import scipy.optimize
 
 from . import solution
-from . import utility
+from .. import utility
 
 
 def _objective(x, func, t, transform):

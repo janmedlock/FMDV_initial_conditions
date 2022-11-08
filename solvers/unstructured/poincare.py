@@ -2,7 +2,7 @@
 
 from . import solution
 from . import solver
-from . import utility
+from .. import utility
 
 
 class Map:

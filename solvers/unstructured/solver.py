@@ -6,7 +6,7 @@ import numpy
 import scipy.optimize
 
 from . import solution
-from . import utility
+from .. import utility
 
 
 _METHOD_DEFAULT = 'Crank–Nicolson'
