@@ -24,6 +24,8 @@ class Model:
 
     STATES = ('susceptible', 'infectious', 'recovered')
 
+    PERIOD = 1  # year
+
     def __init__(self, **kwds):
         self.parameters = Parameters(**kwds)
 
@@ -32,7 +34,7 @@ class Model:
         return (self.parameters.death_rate
                 * (1 + (self.parameters.birth_rate_variation
                         * numpy.sqrt(2)
-                        * numpy.cos(2 * numpy.pi * t))))
+                        * numpy.cos(2 * numpy.pi * t / self.PERIOD))))
 
     def __call__(self, t, y):
         '''The right-hand-side of the model ODEs.'''
@@ -136,8 +138,7 @@ if __name__ == '__main__':
     model = Model()
     solution = model.solve(t_start, t_end, t_step)
     ax_solution = solution.solution.plot_solution()
-    PERIOD = 1
-    limit_cycle = model.find_limit_cycle(t_end, PERIOD, t_step,
+    limit_cycle = model.find_limit_cycle(t_end, model.PERIOD, t_step,
                                          solution.loc[t_end])
     print(model.get_characteristic_exponents(limit_cycle))
     ax_state = limit_cycle.solution.plot_state()
