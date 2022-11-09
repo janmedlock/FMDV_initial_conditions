@@ -90,11 +90,6 @@ class Model:
         susceptible = 1 - infectious - recovered
         return (susceptible, infectious, recovered)
 
-    @staticmethod
-    def assert_nonnegative(y):
-        '''Check that `y` is non-negative.'''
-        assert (y >= 0).all(axis=None)
-
     def solve(self, t_start, t_end, t_step, y_start=None):
         '''Solve the ODEs.'''
         t = solvers.utility.arange(t_start, t_end, t_step)
@@ -102,7 +97,7 @@ class Model:
             y_start = self.build_initial_conditions()
         sol = solvers.unstructured.solve(self, t, y_start,
                                          states=self.STATES)
-        self.assert_nonnegative(sol)
+        solvers.utility.assert_nonnegative(sol)
         return sol
 
     def find_limit_cycle(self, t_0, period, t_step, y_0_guess):
@@ -110,7 +105,7 @@ class Model:
         lcy = solvers.unstructured.limit_cycle.find(self, t_0, period, t_step,
                                                     y_0_guess,
                                                     states=self.STATES)
-        self.assert_nonnegative(lcy)
+        solvers.utility.assert_nonnegative(lcy)
         return lcy
 
     def get_characteristic_exponents(self, lcy):
@@ -129,7 +124,7 @@ class ModelConstantBirth(Model):
         '''Find an equilibrium of the model.'''
         eql = solvers.unstructured.equilibrium.find(self, 0, y_0_guess,
                                                     states=self.STATES)
-        self.assert_nonnegative(eql)
+        solvers.utility.assert_nonnegative(eql)
         return eql
 
     def get_eigenvalues(self, eql):

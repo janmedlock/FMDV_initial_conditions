@@ -1,0 +1,341 @@
+\documentclass{jpmarticle}
+
+\usepackage{units}
+\usepackage{csquotes}
+\usepackage[style=vancouver]{biblatex}
+\addbibresource{notes.bib}
+
+\title{Crank--Nicolson for some SIR models}
+\author{Jan Medlock}
+
+\begin{document}
+
+\maketitle
+
+\section{Unstructured SIR model}
+
+The model is
+\begin{equation}
+  \label{model_unstructured}
+  \begin{split}
+    \frac{\md S}{\md t}(t) &=
+    b(t) N(t) - \beta I(t) S(t) - \mu S(t),
+    \\
+    \frac{\md I}{\md t}(t) &=
+    \beta I(t) S(t) - \gamma I(t) - \mu I(t),
+    \\
+    \frac{\md R}{\md t}(t) &=
+    \gamma I(t) - \mu R(t),
+  \end{split}
+\end{equation}
+with birth rate
+\begin{equation}
+  b(t) = \mu \left[
+    1 + \sigma \sqrt{2} \cos\left(2 \pi t\right)
+  \right],
+\end{equation}
+and population size
+\begin{equation}
+  N(t) = S(t) + I(t) + R(t).
+\end{equation}
+
+The total population follows
+\begin{equation}
+  \begin{split}
+    \frac{\md N}{\md t}(t)
+    &= b(t) N(t) - \mu N(t)
+    \\
+    &= \mu \sigma \sqrt{2} \cos\left(2 \pi t\right) N(t),
+  \end{split}
+\end{equation}
+so that
+\begin{equation}
+  \log N(t) = \log N(0)
+  + \frac{\mu \sigma}{\pi \sqrt{2}}
+  \sin\left(2 \pi t\right),
+\end{equation}
+or
+\begin{equation}
+  N(t) = N(0) \exp\left[
+    \frac{\mu \sigma}{\pi \sqrt{2}}
+    \sin\left(2 \pi t\right)
+  \right],
+\end{equation}
+i.e.~periodic with period $1$.
+
+For the system of differential equations
+\begin{equation}
+  \begin{split}
+    \frac{\md \vec{Y}}{\md t}(t)
+    &= \vec{f}\left(t, \vec{Y}(t)\right),
+    \\
+    \vec{Y}(0) &= \vec{Y}^0,
+  \end{split}
+\end{equation}
+and time step $\Delta t$, let $t^k = k \Delta t$ for
+$k \in \{0, 1, \ldots, K - 1\}$ and
+\begin{equation}
+  \vec{Y}^k \approx \vec{Y}(t^k).
+\end{equation}
+The Crank--Nicolson scheme is
+\begin{equation}
+  \frac{\vec{Y}^k - \vec{Y}^{k - 1}}{\Delta t}
+  = \frac{
+    \vec{f}\left(t^k, \vec{Y}^k\right)
+    + \vec{f}\left(t^{k - 1}, \vec{Y}^{k - 1}\right)
+  }{2}
+\end{equation}
+for $k \in \{1, \ldots, K - 1\}$.
+That is, we must find $\vec{Y}^k$ such that
+\begin{equation}
+  \label{cn_unstructured}
+  \vec{Y}^k
+  - \frac{\Delta t}{2}
+  \vec{f}\left(t^k, \vec{Y}^k\right)
+  - \vec{Y}^{k - 1}
+  - \frac{\Delta t}{2}
+  \vec{f}\left(t^{k - 1}, \vec{Y}^{k - 1}\right)
+  = \vec{0}.
+\end{equation}
+If $\vec{f}\left(t^k, \vec{Y}^k\right)$ is linear in $\vec{Y}^k$
+then equation \eqref{cn_unstructured} may be solved efficiently for
+$\vec{Y}^k$ using matrix algebra, but generally we must use a
+nonlinear solver.
+
+For model \eqref{model_unstructured},
+\begin{equation}
+  \vec{Y}^k =
+  \begin{bmatrix}
+    S^k \\ I^k \\ R^k
+  \end{bmatrix}
+\end{equation}
+and
+\begin{equation}
+  \vec{f}\left(t^k, \vec{Y}^k\right) =
+  \begin{bmatrix}
+    b\left(t^k\right) N^k
+    - \beta I^k S^k
+    - \mu S^k
+    \\
+    \beta I^k S^k
+    - \gamma I^k
+    - \mu I^k
+    \\
+    \gamma I^k
+    - \mu R^k
+  \end{bmatrix},
+\end{equation}
+where
+\begin{equation}
+  \label{eq:1}
+  N^k = S^k + I^k + R^k.
+\end{equation}
+
+
+\section{Age-structured SIR model}
+
+The model is
+\begin{equation}
+  \label{model_age_structured}
+  \begin{split}
+    s(t, \unit[0]{y})
+    &= b(t) \int_0^\infty m(a) n(t, a) \md a,
+    \\
+    \frac{\partial s}{\partial t}(t, a)
+    + \frac{\partial s}{\partial a}(t, a)
+    &= - \lambda(t) s(t, a) - \mu(a) s(t, a),
+    \\
+    i(t, \unit[0]{y})
+    &= 0,
+    \\
+    \frac{\partial i}{\partial t}(t, a)
+    + \frac{\partial i}{\partial a}(t, a)
+    &= \lambda(t) s(t, a) - \gamma i(t, a) - \mu(a) i(t, a),
+    \\
+    r(t, \unit[0]{y})
+    &= 0,
+    \\
+    \frac{\partial r}{\partial t}(t, a)
+    + \frac{\partial r}{\partial a}(t, a)
+    &= \gamma i(t, a) - \mu(a) r(t, a),
+  \end{split}
+\end{equation}
+with birth rate
+\begin{equation}
+  b(t) = \bar{b} \left[
+    1 + \sigma \sqrt{2} \cos\left(2 \pi t\right)
+  \right],
+\end{equation}
+force of infection
+\begin{equation}
+  \lambda(t) = \int_0^\infty \beta(a) i(t, a) \md a,
+\end{equation}
+and population size
+\begin{equation}
+  n(t, a) = s(t, a) + i(t, a) + r(t, a).
+\end{equation}
+
+\subsection{Total population}
+
+The total population follows the linear PDE
+\begin{equation}
+  \begin{split}
+    n(t, \unit[0]{y})
+    &= b(t) \int_0^\infty m(a) n(t, a) \md a,
+    \\
+    \frac{\partial n}{\partial t}(t, a)
+    + \frac{\partial n}{\partial a}(t, a)
+    &= - \mu(a) n(t, a).
+  \end{split}
+\end{equation}
+
+Because $b(t)$ is periodic with period $T = \unit[1]{y}$, we used
+Floquet theory \autocite{parker_1992} to find the stable age
+distribution and the asymptotic population growth rate. Floquet theory
+requires the fundamental solution $\Phi(t, a, a')$ to
+\begin{equation}
+  \begin{split}
+    \Phi(t, \unit[0]{y}, a')
+    &= b(t) \int_0^\infty m(a) \Phi(t, a, a') \md a,
+    \\
+    \frac{\partial \Phi}{\partial t}(t, a, a')
+    + \frac{\partial \Phi}{\partial a}(t, a, a')
+    &= - \mu(a) \Phi(t, a, a'),
+    \\
+    \Phi(t_0, a, a')
+    &= \delta(a - a'),
+  \end{split}
+\end{equation}
+where $\delta(x)$ is the Dirac delta.
+
+To solve this numerically, we used the Crank--Nicolson method on
+characteristics and the composite trapezoid rule for the birth
+integral \autocite{milner_1992}.  Given the time step $\Delta t$,
+let $a_i = i \Delta t$
+and $a'_j = j \Delta t$
+for $i, j \in \{0, 1, 2, \ldots, I - 1\}$;
+$t^k = t_0 + k \Delta t$
+for $k \in \{0, 1, \ldots, K - 1\}$;
+and $\Phi_{i, j}^k \approx \Phi(t^k, a_i, a'_j)$.
+For each $j$
+and each $k \geq 1$, the Crank--Nicolson method on characteristics is
+\begin{equation}
+  \label{CN_step}
+  \frac{\Phi_{i, j}^k - \Phi_{i - 1, j}^{k - 1}}{\Delta t}
+  = - \mu(a_{i - 1 / 2})
+  \frac{\Phi_{i, j}^k + \Phi_{i - 1, j}^{k - 1}}{2},
+\end{equation}
+or
+\begin{equation}
+  \Phi_{i, j}^k
+  = \frac{1 - C_{i - 1 / 2}}{1 + C_{i - 1 / 2}}
+  \Phi_{i - 1, j}^{k - 1},
+\end{equation}
+with
+\begin{equation}
+  C_{i - 1 / 2}
+  = \frac{1}{2} \mu(a_{i - 1 / 2}) \Delta t,
+\end{equation}
+for $i \in \{1, 2, \ldots, I - 2\}$.  For $i = I - 1$,
+a term was added to prevent aging out of this
+last age group:
+\begin{equation}
+  \Phi_{I - 1, j}^k
+  = \frac{1 - C_{I - 3 / 2}}{1 + C_{I - 3 / 2}}
+  \Phi_{I - 2, j}^{k - 1}
+  + \frac{1 - C_{I - 1}}{1 + C_{I - 1}}
+  \Phi_{I - 1, j}^{k - 1},
+\end{equation}
+with
+\begin{equation}
+  C_{I - 1}
+  = \frac{1}{2} \mu(a_{I - 1}) \Delta t.
+\end{equation}
+For $i = 0$, the birth integral is given by the composite trapezoid rule,
+\begin{equation}
+  \label{birth_step}
+  \Phi_{0, j}^k =
+  b(t^k)
+  \sum_{i = 1}^{I - 1}
+  \frac{m(a_i) \Phi_{i, j}^k
+    + m(a_{i - 1}) \Phi_{i - 1, j}^k}{2}
+  \Delta t,
+\end{equation}
+or
+\begin{equation}
+  \mat{\Phi}_0^k = b(t^k) \vec{v} \mat{\Phi}^k,
+\end{equation}
+with the vector $\vec{v} = [v_i]$ for
+\begin{equation}
+  v_i =
+  \begin{cases}
+    \frac{1}{2} m(a_i) \Delta t
+    & \text{if $i = 0$ or $i = I - 1$}, \\
+    m(a_i) \Delta t
+    & \text{otherwise}.
+  \end{cases}
+\end{equation}
+The initial condition is
+\begin{equation}
+  \Phi_{i, j}^0 =
+  \begin{cases}
+    1 & \text{if $i = j$}, \\
+    0 & \text{otherwise}.
+  \end{cases}
+\end{equation}
+Considering $\mat{\Phi}^k = [\Phi_{i, j}^k]$ as a matrix that
+evolves in time, the method is easily implemented with matrix algebra:
+the Crank--Nicolson step \eqref{CN_step} is
+\begin{equation}
+  \mat{\Phi}^k = \mat{M} \mat{\Phi}^{k - 1},
+\end{equation}
+with the matrix $\mat{M} = [M_{i, j}]$ where
+\begin{equation}
+  M_{i, j} =
+  \begin{cases}
+    \frac{1 - C_{i - 1 / 2}}{1 + C_{i - 1 / 2}}
+    & \text{if $i = j + 1$}, \\
+    \frac{1 - C_{I - 1}}{1 + C_{I - 1}} & \text{if $i = j = I - 1$}, \\
+    0 & \text{otherwise}.
+  \end{cases}
+\end{equation}
+The initial condition is
+\begin{equation}
+  \mat{\Phi}^0 = \mat{I},
+\end{equation}
+where $\mat{I}$ is the $I \times I$ identity matrix.
+
+Using this numerical scheme, we solved for the monodromy matrix, the
+fundamental solution after one period:
+\begin{equation}
+  \mat{\Psi} = [\Psi_{i, j}] \approx [\Phi(t_0 + T, a_i, a'_j)].
+\end{equation}
+The monodromy matrix projects the population forward at by one period,
+\begin{equation}
+  \vec{n}(t_0 + T) = \mat{\Psi} \vec{n}(t_0),
+\end{equation}
+where $\vec{n}(t) = [n(t, a_i)]$.
+Using the monodromy matrix to repeatedly project the population
+forward gives
+\begin{equation}
+  \vec{n}(t_0 + K T)
+  = \mat{\Psi}^K \vec{n}(t_0)
+  \to \rho_0^K \vec{w}_0
+  = \me^{r K T} \vec{w}_0
+\end{equation}
+as $K \to \infty$,
+where $\rho_0$ is the dominant eigenvalue, i.e.~the eigenvalue with
+largest magnitude, of $\mat{\Psi}$;
+the corresponding right eigenvector $\vec{w}_0$ is the stable age
+distribution; and
+\begin{equation}
+  r = \frac{1}{T} \log \rho_0
+\end{equation}
+is the asymptotic population growth rate.
+
+We used a nonlinear solver to search for the mean birth rate $\bar{b}$
+that gives population growth rate $r = 0$.
+
+\printbibliography
+
+\end{document}
