@@ -1,5 +1,6 @@
 '''Utilities.'''
 
+import jax
 import numpy
 import scipy.sparse.linalg
 
@@ -62,6 +63,27 @@ def get_dominant_eigen(A, which='LR', return_eigenvector=True,
         return (l0, v0)
     else:
         return l0
+
+
+def jacobian(func):
+    '''Get the Jacobian matrix for the vector-valued `func`.'''
+    jacfwd = jax.jacfwd(func, argnums=1)
+    def jac(t, x):
+        return numpy.stack(jacfwd(t, numpy.asarray(x)))
+    return jac
+
+
+def jacobian_matrix_product(func):
+    '''Get the function that returns the product of the Jacobian of
+    `func` at `t`, `x` with the matrix `M`.'''
+    def jmp(t, x, M):
+        def f(x):
+            return func(t, x)
+        def jvp(m):
+            (_, jvp) = jax.jvp(f, (numpy.asarray(x), ), (m, ))
+            return jvp
+        return numpy.stack(jax.vmap(jvp)(M))
+    return jmp
 
 
 class TransformConstantSum:

@@ -38,15 +38,25 @@ class _SolutionAccessorBase:
         axis = self._obj.ndim - 1
         return self._obj.sum(axis=axis)
 
+    @property
+    def _dim_state(self):
+        n_states = len(self.states)
+        if n_states < 2:
+            raise ValueError(f'{len(self.states)=}')
+        elif n_states == 2:
+            return 2
+        else:  # n_states >= 3.
+            return 3
+
     def _make_axes_state(self):
         '''Make state axes.'''
-        if len(self.states) == 2:
+        dim_state = self._dim_state
+        if dim_state == 2:
             projection = 'rectilinear'
-        elif len(self.states) == 3:
+        elif dim_state == 3:
             projection = '3d'
         else:
-            raise ValueError(
-                f'{len(self.states)=}, but only 2 and 3 are supported!')
+            raise ValueError(f'{dim_state=}')
         fig = matplotlib.pyplot.figure()
         axis_labels = dict(zip(('xlabel', 'ylabel', 'zlabel'), self.states))
         return fig.add_subplot(projection=projection,
@@ -61,7 +71,7 @@ class _SolutionSeriesAccessor(_SolutionAccessorBase):
         '''Plot the point in state space.'''
         if ax is None:
             ax = self._make_axes_state()
-        ax.scatter(*self._obj, **kwds)
+        ax.scatter(*self._obj[:self._dim_state], **kwds)
         return ax
 
 

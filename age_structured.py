@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-'''Based on our FMDV work, this is an age-structured SIR model with
+'''Based on our FMDV work, this is an age-structured model with
 periodic birth rate.'''
 
 import dataclasses
@@ -7,6 +7,7 @@ import dataclasses
 import numpy
 import pandas
 
+import birth
 import solvers
 import solvers.age_structured
 
@@ -37,8 +38,8 @@ class Parameters:
         return numpy.where(age < 4, 0, 1)
 
 
-class Model:
-    '''Age-structured SIR model.'''
+class Model(birth.PeriodicBirthRateMixin):
+    '''Age-structured model with periodic birth rate.'''
 
     STATES = ('susceptible', 'infectious', 'recovered')
 
@@ -47,13 +48,6 @@ class Model:
     def __init__(self, **kwds):
         self.parameters = Parameters(**kwds)
         self._set_birth_rate_mean()
-
-    def birth_rate(self, t):
-        '''Periodic birth rate.'''
-        return (self.birth_rate_mean
-                * (1 + (self.parameters.birth_rate_variation
-                        * numpy.sqrt(2)
-                        * numpy.cos(2 * numpy.pi * t / self.PERIOD))))
 
     def _set_birth_rate_mean(self):
         '''Set `birth_rate_mean` to the value that gives zero

@@ -36,16 +36,16 @@ def find(func, t_0, period, t_step, y_0_guess, **kwds):
     return solver_(t, y_0, y=y)
 
 
-def monodromy_matrix(jacobian, limit_cycle, **kwds):
+def monodromy_matrix(func, limit_cycle, **kwds):
     '''Get the monodromy matrix.'''
-    phi = fundamental.solution(jacobian, limit_cycle, **kwds)
+    phi = fundamental.solution(func, limit_cycle, **kwds)
     return phi[-1]
 
 
-def characteristic_exponents(jacobian, limit_cycle, **kwds):
+def characteristic_exponents(func, limit_cycle, **kwds):
     '''Get the characteristic exponents of `limit_cycle`.'''
-    phi_period = monodromy_matrix(jacobian, limit_cycle, **kwds)
-    mlt = numpy.linalg.eigvals(phi_period)
+    psi = monodromy_matrix(func, limit_cycle, **kwds)
+    mlt = numpy.linalg.eigvals(psi)
     t = limit_cycle.index
     period = t[-1] - t[0]
     exps = numpy.log(mlt) / period

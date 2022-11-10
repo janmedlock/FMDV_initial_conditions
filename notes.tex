@@ -12,17 +12,23 @@
 
 \maketitle
 
-\section{Unstructured SIR model}
+\section{Unstructured model}
 
 The model is
 \begin{equation}
   \label{model_unstructured}
   \begin{split}
+    \frac{\md M}{\md t}(t) &=
+    b(t) N(t) - \omega M(t) - \mu M(t),
+    \\
     \frac{\md S}{\md t}(t) &=
-    b(t) N(t) - \beta I(t) S(t) - \mu S(t),
+    \omega M(t) - \beta I(t) S(t) - \mu S(t),
+    \\
+    \frac{\md E}{\md t}(t) &=
+    \beta I(t) S(t) - \pi E(t) - \mu E(t),
     \\
     \frac{\md I}{\md t}(t) &=
-    \beta I(t) S(t) - \gamma I(t) - \mu I(t),
+    \pi E(t) - \gamma I(t) - \mu I(t),
     \\
     \frac{\md R}{\md t}(t) &=
     \gamma I(t) - \mu R(t),
@@ -36,7 +42,7 @@ with birth rate
 \end{equation}
 and population size
 \begin{equation}
-  N(t) = S(t) + I(t) + R(t).
+  N(t) = M(t) + S(t) + E(t) + I(t) + R(t).
 \end{equation}
 
 The total population follows
@@ -106,7 +112,7 @@ For model \eqref{model_unstructured},
 \begin{equation}
   \vec{Y}^k =
   \begin{bmatrix}
-    S^k \\ I^k \\ R^k
+    M^k \\ S^k \\ E^k \\ I^k \\ R^k
   \end{bmatrix}
 \end{equation}
 and
@@ -114,10 +120,18 @@ and
   \vec{f}\left(t^k, \vec{Y}^k\right) =
   \begin{bmatrix}
     b\left(t^k\right) N^k
+    - \omega M^k
+    - \mu M^k
+    \\
+    \omega M^k
     - \beta I^k S^k
     - \mu S^k
     \\
     \beta I^k S^k
+    - \pi E^k
+    - \mu E^l
+    \\
+    \pi E^k
     - \gamma I^k
     - \mu I^k
     \\
@@ -128,7 +142,7 @@ and
 where
 \begin{equation}
   \label{eq:1}
-  N^k = S^k + I^k + R^k.
+  N^k = M^k + S^k + E^k + I^k + R^k.
 \end{equation}
 
 

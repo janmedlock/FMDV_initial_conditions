@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-'''Based on our FMDV work, this is an unstructured SIR model with
+'''Based on our FMDV work, this is an unstructured model with
 periodic birth rate.'''
 
 import dataclasses
@@ -7,6 +7,7 @@ import dataclasses
 import matplotlib.pyplot
 import numpy
 
+import birth
 import solvers
 import solvers.unstructured
 
@@ -16,79 +17,63 @@ class Parameters:
     '''Model parameters.'''
     death_rate: float = 0.1  # per year
     birth_rate_variation: float = 0.5
+    maternal_immunity_waning_rate: float =  1 / 0.37  # per year
     transmission_rate: float = 2.8 * 365  # per year
+    progression_rate = 1 / 0.5 * 365  # per year
     recovery_rate: float = 1 / 5.7 * 365  # per year
 
 
-class Model:
-    '''Unstructured SIR model.'''
+class Model(birth.PeriodicBirthRateMixin):
+    '''Unstructured model with periodic birth rate.'''
 
-    STATES = ('susceptible', 'infectious', 'recovered')
+    STATES = ('maternal_immunity', 'susceptible', 'exposed',
+              'infectious', 'recovered')
 
     PERIOD = 1  # year
 
     def __init__(self, **kwds):
         self.parameters = Parameters(**kwds)
-
-    def birth_rate(self, t):
-        '''Periodic birth rate.'''
-        return (self.parameters.death_rate
-                * (1 + (self.parameters.birth_rate_variation
-                        * numpy.sqrt(2)
-                        * numpy.cos(2 * numpy.pi * t / self.PERIOD))))
+        self.birth_rate_mean = self.parameters.death_rate
 
     def __call__(self, t, y):
         '''The right-hand-side of the model ODEs.'''
-        (susceptible, infectious, recovered) = y
-        population_size = y.sum(axis=0)
-        d_susceptible = (
-            self.birth_rate(t) * population_size
-            - self.parameters.transmission_rate * infectious * susceptible
-            - self.parameters.death_rate * susceptible
+        (M, S, E, I, R) = y
+        N = y.sum(axis=0)
+        dM = (
+            self.birth_rate(t) * N
+            - self.parameters.maternal_immunity_waning_rate * M
+            - self.parameters.death_rate * M
         )
-        d_infectious = (
-            self.parameters.transmission_rate * infectious * susceptible
-            - self.parameters.recovery_rate * infectious
-            - self.parameters.death_rate * infectious
+        dS = (
+            self.parameters.maternal_immunity_waning_rate * M
+            - self.parameters.transmission_rate * I * S
+            - self.parameters.death_rate * S
         )
-        d_recovered = (
-            self.parameters.recovery_rate * infectious
-            - self.parameters.death_rate * recovered
+        dE = (
+            self.parameters.transmission_rate * I * S
+            - self.parameters.progression_rate * E
+            - self.parameters.death_rate * E
         )
-        return (d_susceptible, d_infectious, d_recovered)
-
-    def jacobian(self, t, y):
-        '''The Jacobian of the model ODEs.'''
-        (susceptible, infectious, recovered) = y
-        grad_susceptible = (
-            (self.birth_rate(t)
-             - self.parameters.transmission_rate * infectious
-             - self.parameters.death_rate),
-            (self.birth_rate(t)
-             - self.parameters.transmission_rate * susceptible),
-            self.birth_rate(t)
+        dI = (
+            self.parameters.progression_rate * E
+            - self.parameters.recovery_rate * I
+            - self.parameters.death_rate * I
         )
-        grad_infectious = (
-            self.parameters.transmission_rate * infectious,
-            (self.parameters.transmission_rate * susceptible
-             - self.parameters.recovery_rate
-             - self.parameters.death_rate),
-            0
+        dR = (
+            self.parameters.recovery_rate * I
+            - self.parameters.death_rate * R
         )
-        grad_recovered = (
-            0,
-            self.parameters.recovery_rate,
-            - self.parameters.death_rate
-        )
-        return (grad_susceptible, grad_infectious, grad_recovered)
+        return (dM, dS, dE, dI, dR)
 
     @staticmethod
     def build_initial_conditions():
         '''Build the initial conditions.'''
-        infectious = 0.01
-        recovered = 0
-        susceptible = 1 - infectious - recovered
-        return (susceptible, infectious, recovered)
+        M = 0
+        E = 0
+        I = 0.01
+        R = 0
+        S = 1 - M - E - I - R
+        return (M, S, E, I, R)
 
     def solve(self, t_start, t_end, t_step, y_start=None):
         '''Solve the ODEs.'''
@@ -110,8 +95,8 @@ class Model:
 
     def get_characteristic_exponents(self, lcy):
         '''Get the characteristic exponents.'''
-        return solvers.unstructured.limit_cycle.characteristic_exponents(
-            self.jacobian, lcy)
+        return solvers.unstructured.limit_cycle.characteristic_exponents(self,
+                                                                         lcy)
 
 
 class ModelConstantBirth(Model):
@@ -129,7 +114,7 @@ class ModelConstantBirth(Model):
 
     def get_eigenvalues(self, eql):
         '''Get the eigenvalues of the Jacobian.'''
-        return solvers.unstructured.equilibrium.eigenvalues(self.jacobian,
+        return solvers.unstructured.equilibrium.eigenvalues(self,
                                                             0, eql)
 
 

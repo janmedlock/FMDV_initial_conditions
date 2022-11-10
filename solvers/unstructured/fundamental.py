@@ -3,22 +3,25 @@
 import numpy
 
 from . import solver
+from .. import utility
 
 
 class _VariationalEquation:
-    def __init__(self, jacobian, y):
-        self.jacobian = jacobian
+    def __init__(self, func, y):
+        self.jacobian = utility.jacobian(func)
+        # self.jacobian_matrix_product = utility.jacobian_matrix_product(func)
         self.y = y
 
     def __call__(self, t, phi_raveled):
         phi = phi_raveled.reshape((self.y.shape[-1], -1))
         d_phi = self.jacobian(t, self.y.loc[t]) @ phi
+        # d_phi = self.jacobian_matrix_product(t, self.y.loc[t], phi)
         return d_phi.ravel()
 
 
-def solution(jacobian, y, **kwds):
+def solution(func, y, **kwds):
     '''Solve for the fundamental solution.'''
-    var_eq = _VariationalEquation(jacobian, y)
+    var_eq = _VariationalEquation(func, y)
     solver_ = solver.Solver.create(var_eq, **kwds)
     t = y.index
     phi_0 = numpy.eye(y.shape[-1])

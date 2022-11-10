@@ -24,8 +24,8 @@ def find(func, t, y_guess, states=None):
     return solution.Solution(y, states=states)
 
 
-def eigenvalues(jacobian, t, equilibrium):
+def eigenvalues(func, t, equilibrium):
     '''Get the eigenvalues of `equilibrium`.'''
-    jac = jacobian(t, equilibrium)
-    evals = numpy.linalg.eigvals(jac)
+    jacobian = utility.jacobian(func)
+    evals = numpy.linalg.eigvals(jacobian(t, equilibrium))
     return utility.sort_by_real_part(evals)
