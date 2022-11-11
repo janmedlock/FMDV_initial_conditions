@@ -6,8 +6,8 @@ import scipy.integrate
 import scipy.optimize
 import scipy.sparse
 
-from . import sparse
-from .. import utility
+from . import _sparse
+from .... import utility
 
 
 class _Solver:
@@ -22,6 +22,8 @@ class _Solver:
         self.birth_rate = birth_rate
         self.period = period
         self.age_step = self.time_step = age_step
+        if self.period == 0:
+            self.period = self.time_step
         self.ages = utility.arange(0, age_max, self.age_step,
                                    endpoint=True)
         self.times = utility.arange(0, self.period, self.time_step,
@@ -42,7 +44,7 @@ class _Solver:
         # Keep the last age group from ageing out.
         k_last = self.death_rate(self.ages[-1]) * self.time_step / 2
         mat_cn[-1, -1] = (1 - k_last) / (1 + k_last)
-        self._mat_cn = sparse.csr_matrix(mat_cn)
+        self._mat_cn = _sparse.csr_matrix(mat_cn)
 
     def _init_birth(self):
         '''Build the vector used for the integral step.'''

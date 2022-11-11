@@ -73,7 +73,8 @@ def jacobian(func):
         return numpy.stack(
             torch.autograd.functional.jacobian(
                 functools.partial(func, t),
-                torch.tensor(y)
+                torch.tensor(y),
+                vectorize=True
             )
         )
     return jac

@@ -38,27 +38,22 @@ class _SolutionAccessorBase:
         axis = self._obj.ndim - 1
         return self._obj.sum(axis=axis)
 
-    @property
-    def _dim_state(self):
-        n_states = len(self.states)
-        if n_states < 2:
-            raise ValueError(f'{len(self.states)=}')
-        elif n_states == 2:
-            return 2
-        else:  # n_states >= 3.
-            return 3
+    def _get_states(self, states):
+        if states is None:
+            return self.states
+        return states
 
-    def _make_axes_state(self):
+    def _make_axes_state(self, states):
         '''Make state axes.'''
-        dim_state = self._dim_state
-        if dim_state == 2:
+        states = self._get_states(states)
+        if len(states) == 2:
             projection = 'rectilinear'
-        elif dim_state == 3:
+        elif len(states) == 3:
             projection = '3d'
         else:
-            raise ValueError(f'{dim_state=}')
+            raise ValueError(f'{len(states)=}')
         fig = matplotlib.pyplot.figure()
-        axis_labels = dict(zip(('xlabel', 'ylabel', 'zlabel'), self.states))
+        axis_labels = dict(zip(('xlabel', 'ylabel', 'zlabel'), states))
         return fig.add_subplot(projection=projection,
                                **axis_labels)
 
@@ -67,11 +62,12 @@ class _SolutionAccessorBase:
 class _SolutionSeriesAccessor(_SolutionAccessorBase):
     '''API for a point in state space.'''
 
-    def plot_state(self, ax=None, **kwds):
+    def plot_state(self, states=None, ax=None, **kwds):
         '''Plot the point in state space.'''
+        states = self._get_states(states)
         if ax is None:
-            ax = self._make_axes_state()
-        ax.scatter(*self._obj[:self._dim_state], **kwds)
+            ax = self._make_axes_state(states)
+        ax.scatter(*self._obj[states], **kwds)
         return ax
 
 
@@ -79,26 +75,31 @@ class _SolutionSeriesAccessor(_SolutionAccessorBase):
 class _SolutionDataFrameAccessor(_SolutionAccessorBase):
     '''API for state vs. time.'''
 
-    def _prop_cycler_solution(self):
+    def _prop_cycler_solution(self, states):
+        states = self._get_states(states)
         orig = matplotlib.pyplot.rcParams['axes.prop_cycle']
-        inner = orig[:len(self.states)]
+        inner = orig[:len(states)]
         outer = cycler.cycler(linestyle=('solid', 'dotted', 'dashed'))
         return outer * inner
 
-    def _make_axes_solution(self):
+    def _make_axes_solution(self, states):
         fig = matplotlib.pyplot.figure()
-        return fig.add_subplot(prop_cycle=self._prop_cycler_solution())
+        return fig.add_subplot(prop_cycle=self._prop_cycler_solution(states))
 
-    def plot_solution(self, ax=None, **kwds):
+    def plot_solution(self, states=None, ax=None, **kwds):
         '''Plot the solution vs time.'''
+        states = self._get_states(states)
         if ax is None:
-            ax = self._make_axes_solution()
-        return self._obj.plot(ax=ax, **kwds)
+            ax = self._make_axes_solution(states)
+        return self._obj[states].plot(ax=ax, **kwds)
 
-    def plot_state(self, ax=None, **kwds):
+    def plot_state(self, states=None, ax=None, **kwds):
         '''Make a phase plot.'''
+        states = self._get_states(states)
         if ax is None:
-            ax = self._make_axes_state()
-        cols = (col for (_, col) in self._obj.items())
+            ax = self._make_axes_state(states)
+        # Not `col = self._obj[states]` because the result must
+        # iterate over columns, not rows.
+        cols = (self._obj[col] for col in states)
         ax.plot(*cols, **kwds)
         return ax
