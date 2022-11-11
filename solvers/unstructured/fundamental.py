@@ -9,13 +9,11 @@ from .. import utility
 class _VariationalEquation:
     def __init__(self, func, y):
         self.jacobian = utility.jacobian(func)
-        # self.jacobian_matrix_product = utility.jacobian_matrix_product(func)
         self.y = y
 
     def __call__(self, t, phi_raveled):
         phi = phi_raveled.reshape((self.y.shape[-1], -1))
         d_phi = self.jacobian(t, self.y.loc[t]) @ phi
-        # d_phi = self.jacobian_matrix_product(t, self.y.loc[t], phi)
         return d_phi.ravel()
 
 

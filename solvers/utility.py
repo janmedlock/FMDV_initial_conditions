@@ -1,8 +1,10 @@
 '''Utilities.'''
 
-import jax
+import functools
+
 import numpy
 import scipy.sparse.linalg
+import torch.autograd.functional
 
 
 def all_subclasses(cls):
@@ -67,23 +69,14 @@ def get_dominant_eigen(A, which='LR', return_eigenvector=True,
 
 def jacobian(func):
     '''Get the Jacobian matrix for the vector-valued `func`.'''
-    jacfwd = jax.jacfwd(func, argnums=1)
-    def jac(t, x):
-        return numpy.stack(jacfwd(t, numpy.asarray(x)))
+    def jac(t, y):
+        return numpy.stack(
+            torch.autograd.functional.jacobian(
+                functools.partial(func, t),
+                torch.tensor(y)
+            )
+        )
     return jac
-
-
-def jacobian_matrix_product(func):
-    '''Get the function that returns the product of the Jacobian of
-    `func` at `t`, `x` with the matrix `M`.'''
-    def jmp(t, x, M):
-        def f(x):
-            return func(t, x)
-        def jvp(m):
-            (_, jvp) = jax.jvp(f, (numpy.asarray(x), ), (m, ))
-            return jvp
-        return numpy.stack(jax.vmap(jvp)(M))
-    return jmp
 
 
 class TransformConstantSum:
