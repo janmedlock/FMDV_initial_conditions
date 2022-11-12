@@ -7,7 +7,7 @@ import scipy.optimize
 import scipy.sparse
 
 from . import _sparse
-from . import _utility
+from .. import _utility
 
 
 class _Solver:
