@@ -1,43 +1,56 @@
 '''Based on our FMDV work, this is an unstructured model.'''
 
+import scipy.integrate
+
 from . import _equilibrium
 from . import _limit_cycle
-from . import _parameters
 from . import _solver
-from .. import _model
+from .. import model
+from .. import _population
 from .. import _utility
 
 
-class _Model(_model.Model):
-    '''Base class for unstructured models.'''
+class Model(model.Base):
+    '''Unstructured model.'''
+
+    def __init__(self, **kwds):
+        super().__init__(**kwds)
+        self._set_death_rate_mean()
+        self._set_birth_rate_mean_to_zero_pop_growth()
+
+    def _set_death_rate_mean(self):
+        self.death_rate_mean = _population.get_death_rate_mean(self.birth_rate)
+
+    def _set_birth_rate_mean_to_zero_pop_growth(self):
+        self.birth_rate.mean = self.death_rate_mean
 
     def __call__(self, t, y):
         '''The right-hand-side of the model ODEs.'''
         (M, S, E, I, R) = y
         N = y.sum(axis=0)
         dM = (
-            self.parameters.birth_rate(t) * N
-            - 1 / self.parameters.maternal_immunity_duration_mean * M
-            - self.parameters.death_rate_mean * M
+            self.birth_rate(t) * N
+            - 1 / self.parameters.maternal_immunity_mean * M
+            - self.death_rate_mean * M
         )
         dS = (
-            1 / self.parameters.maternal_immunity_duration_mean * M
+            1 / self.parameters.maternal_immunity_mean * M
             - self.parameters.transmission_rate * I * S
-            - self.parameters.death_rate_mean * S
+            - self.death_rate_mean * S
         )
         dE = (
             self.parameters.transmission_rate * I * S
             - 1 / self.parameters.progression_mean * E
-            - self.parameters.death_rate_mean * E
+            - self.death_rate_mean * E
         )
         dI = (
             1 / self.parameters.progression_mean * E
             - 1 / self.parameters.recovery_mean * I
-            - self.parameters.death_rate_mean * I
+            - self.death_rate_mean * I
         )
         dR = (
             1 / self.parameters.recovery_mean * I
-            - self.parameters.death_rate_mean * R
+            - self.death_rate_mean * R
         )
         return (dM, dS, dE, dI, dR)
 
@@ -61,16 +74,6 @@ class _Model(_model.Model):
         _utility.assert_nonnegative(sol)
         return sol
 
-
-class ModelBirthConstant(_Model):
-    '''Unstructured model with constant birth rate.'''
-
-    # _Parameters = _parameters.ParametersBirthConstant
-    # For some reason the above does not work.
-    @property
-    def _Parameters(self):
-        return _parameters.ParametersBirthConstant
-
     def find_equilibrium(self, y_0_guess):
         '''Find an equilibrium of the model.'''
         eql = _equilibrium.find(self, 0, y_0_guess,
@@ -81,16 +84,6 @@ class ModelBirthConstant(_Model):
     def get_eigenvalues(self, eql):
         '''Get the eigenvalues of the Jacobian.'''
         return _equilibrium.eigenvalues(self, 0, eql)
-
-
-class ModelBirthPeriodic(_Model):
-    '''Unstructured model with periodic birth rate.'''
-
-    # _Parameters = _parameters.ParametersBirthPeriodic
-    # For some reason the above does not work.
-    @property
-    def _Parameters(self):
-        return _parameters.ParametersBirthPeriodic
 
     def find_limit_cycle(self, t_0, period, t_step, y_0_guess):
         '''Find a limit cycle of the model.'''
