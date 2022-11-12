@@ -5,8 +5,8 @@ import abc
 import numpy
 import scipy.optimize
 
-from . import solution
-from .. import utility
+from . import _solution
+from .. import _utility
 
 
 _METHOD_DEFAULT = 'Crank–Nicolson'
@@ -23,7 +23,7 @@ class Solver(metaclass=abc.ABCMeta):
     @classmethod
     def create(cls, func, method=_METHOD_DEFAULT, **kwds):
         '''Factory to choose the right solver class for `method`.'''
-        for subcls in utility.all_subclasses(cls):
+        for subcls in _utility.all_subclasses(cls):
             if subcls.method == method:
                 return subcls(func, **kwds)
         raise ValueError(f'Unknown {method=}!')
@@ -40,17 +40,17 @@ class Solver(metaclass=abc.ABCMeta):
     def _step(self, t_cur, y_cur, t_new, y_new):
         '''Do a step.'''
 
-    def __call__(self, t, y_0, y=None, _solution=True):
+    def __call__(self, t, y_0, y=None, _solution_wrap=True):
         '''Solve. `y` is storage for the solution, which will be built if not
-        provided. `_solution=False` skips wrapping the solution in
-        `solution.Solution()` for speed.'''
+        provided. `_solution_wrap=False` skips wrapping the solution in
+        `_solution.Solution()` for speed.'''
         if y is None:
             y = numpy.empty((len(t), *numpy.shape(y_0)))
         y[0] = y_0
         for k in range(1, len(t)):
             self._step(t[k - 1], y[k - 1], t[k], y[k])
-        if _solution:
-            return solution.Solution(y, t, states=self.states)
+        if _solution_wrap:
+            return _solution.Solution(y, t, states=self.states)
         else:
             return y
 

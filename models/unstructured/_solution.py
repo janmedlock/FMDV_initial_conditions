@@ -2,10 +2,7 @@
 
 import cycler
 import matplotlib.pyplot
-import numpy
 import pandas
-
-from .. import utility
 
 
 def Solution(y, t=None, states=None):

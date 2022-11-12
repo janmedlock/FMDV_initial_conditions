@@ -7,7 +7,7 @@ import scipy.optimize
 import scipy.sparse
 
 from . import _sparse
-from .. import utility
+from . import _utility
 
 
 class _Solver:
@@ -24,10 +24,10 @@ class _Solver:
         self.age_step = self.time_step = age_step
         if self.period == 0:
             self.period = self.time_step
-        self.ages = utility.arange(0, age_max, self.age_step,
-                                   endpoint=True)
-        self.times = utility.arange(0, self.period, self.time_step,
+        self.ages = _utility.arange(0, age_max, self.age_step,
                                     endpoint=True)
+        self.times = _utility.arange(0, self.period, self.time_step,
+                                     endpoint=True)
         self._sol_curr = numpy.empty((len(self.ages), ) * 2)
         self._sol_prev = numpy.empty((len(self.ages), ) * 2)
         self._init_crank_nicolson()
@@ -102,15 +102,15 @@ class _Solver:
         '''Get the population growth rate.'''
         monodromy = self.solve_monodromy(birth_scaling)
         # Get the dominant Floquet multiplier.
-        rho0 = utility.get_dominant_eigen(monodromy, which='LM',
-                                          return_eigenvector=False)
+        rho0 = _utility.get_dominant_eigen(monodromy, which='LM',
+                                           return_eigenvector=False)
         # Convert that to the dominant Floquet exponent.
         return numpy.log(rho0) / self.period
 
     def get_stable_age_density(self):
         monodromy = self.solve_monodromy()
-        (_, v0) = utility.get_dominant_eigen(monodromy, which='LM',
-                                             return_eigenvector=True)
+        (_, v0) = _utility.get_dominant_eigen(monodromy, which='LM',
+                                              return_eigenvector=True)
         # Normalize `v0` in place so that its integral over ages is 1.
         v0 /= scipy.integrate.trapz(v0, self.ages)
         return pandas.Series(v0,
@@ -118,7 +118,7 @@ class _Solver:
                              name='stable age distribution')
 
 
-@utility.cache.cache
+@_utility.cache.cache
 def get_birth_scaling_for_zero_pop_growth(death_rate, maternity_rate,
                                           birth_rate, period,
                                           *args, **kwds):
@@ -136,7 +136,7 @@ def get_birth_scaling_for_zero_pop_growth(death_rate, maternity_rate,
     return scipy.optimize.brentq(solver.get_pop_growth, lower, upper)
 
 
-@utility.cache.cache
+@_utility.cache.cache
 def get_stable_age_density(death_rate, maternity_rate, birth_rate, period,
                            *args, **kwds):
     '''Find the stable age distribution.'''

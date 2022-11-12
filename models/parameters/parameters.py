@@ -2,12 +2,32 @@
 
 import dataclasses
 
+from . import birth
+from . import death
+from . import maternal_immunity
+from . import maternity
+from . import progression
+from . import recovery
+from . import transmission
+
 
 @dataclasses.dataclass
-class Parameters:
-    '''Parameters common to all models.'''
+class Parameters(death.Death,
+                 maternal_immunity.Waning,
+                 maternity.Maternity,
+                 progression.Progression,
+                 recovery.Recovery,
+                 transmission.Transmission):
+    '''Parameters for all models.'''
 
-    maternal_immunity_waning_rate: float =  1 / 0.37  # per year
-    transmission_rate: float = 2.8 * 365              # per year
-    progression_rate: float = 1 / 0.5 * 365           # per year
-    recovery_rate: float = 1 / 5.7 * 365              # per year
+
+@dataclasses.dataclass
+class ParametersBirthPeriodic(Parameters,
+                              birth.Periodic):
+    '''Parameters for all models with periodic birth rate.'''
+
+
+@dataclasses.dataclass
+class ParametersBirthConstant(Parameters,
+                              birth.Constant):
+    '''Parameters for all models with constant birth rate.'''

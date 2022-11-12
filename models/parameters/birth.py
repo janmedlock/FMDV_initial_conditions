@@ -5,19 +5,34 @@ import dataclasses
 
 import numpy
 
+from .. import _population
+
 
 @dataclasses.dataclass
 class _Birth(metaclass=abc.ABCMeta):
-    '''Base for birth rates.'''
-
-    @property
-    @abc.abstractmethod
-    def birth_rate_mean(self):
-        '''The mean birth rate over time.'''
+    '''Base for birth rate.'''
 
     @abc.abstractmethod
     def birth_rate(self, t):
         '''The birth rate as a function of time.'''
+
+    def __post_init__(self):
+        self._set_birth_rate_mean_to_zero_pop_growth()
+        try:
+            post_init = super().__post_init__
+        except AttributeError:
+            pass
+        else:
+            post_init()
+
+    def _set_birth_rate_mean_to_zero_pop_growth(self):
+        '''Set `birth_rate_mean` to the value that gives zero
+        population growth rate.'''
+        self.birth_rate_mean = 0.5  # Starting guess.
+        scale = _population.get_birth_scaling_for_zero_pop_growth(
+            self.death_rate, self.maternity_rate, self.birth_rate,
+            self.birth_rate_period)
+        self.birth_rate_mean *= scale
 
 
 @dataclasses.dataclass
