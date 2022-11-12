@@ -119,6 +119,7 @@ class _Solver:
                              name='stable age distribution')
 
 
+@utility.cache.cache
 def get_birth_scaling_for_zero_pop_growth(death_rate, maternity_rate,
                                           birth_rate, period,
                                           *args, **kwds):
@@ -136,6 +137,7 @@ def get_birth_scaling_for_zero_pop_growth(death_rate, maternity_rate,
     return scipy.optimize.brentq(solver.get_pop_growth, lower, upper)
 
 
+@utility.cache.cache
 def get_stable_age_density(death_rate, maternity_rate, birth_rate, period,
                            *args, **kwds):
     '''Find the stable age distribution.'''

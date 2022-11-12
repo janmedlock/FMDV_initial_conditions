@@ -1,10 +1,19 @@
 '''Utilities.'''
 
 import functools
+import pathlib
 
+import joblib
 import numpy
 import scipy.sparse.linalg
 import torch.autograd.functional
+
+
+# Put the cache in a subdirectory of the directory that this file is in.
+_cache_path = pathlib.Path(__file__) \
+                     .parent \
+                     .joinpath('_cache')
+cache = joblib.Memory(_cache_path)
 
 
 def all_subclasses(cls):
