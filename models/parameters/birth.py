@@ -37,8 +37,8 @@ class Constant(_Birth):
 class Periodic(_Birth):
     '''Periodic birth rate.'''
 
-    birth_rate_variation: float = 0.5  # unitless
-    birth_rate_period: float = 1.       # year
+    birth_rate_variation: float = 0.613  # unitless
+    birth_rate_period: float = 1.        # year
 
     def birth_rate(self, t):
         '''Periodic birth rate.'''
