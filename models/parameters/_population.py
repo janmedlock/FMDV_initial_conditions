@@ -109,9 +109,8 @@ class _Solver:
 
     def get_stable_age_density(self):
         monodromy = self.solve_monodromy()
-        (rho0, v0) = utility.get_dominant_eigen(monodromy, which='LM',
-                                                return_eigenvector=True)
-        assert numpy.isclose(rho0, 1), f'{rho0=}'
+        (_, v0) = utility.get_dominant_eigen(monodromy, which='LM',
+                                             return_eigenvector=True)
         # Normalize `v0` in place so that its integral over ages is 1.
         v0 /= scipy.integrate.trapz(v0, self.ages)
         return pandas.Series(v0,

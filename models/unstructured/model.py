@@ -75,6 +75,10 @@ class ModelBirthPeriodic(_Model):
         utility.assert_nonnegative(lcy)
         return lcy
 
+    def get_characteristic_multipliers(self, lcy):
+        '''Get the characteristic multipliers.'''
+        return limit_cycle.characteristic_multipliers(self, lcy)
+
     def get_characteristic_exponents(self, lcy):
         '''Get the characteristic exponents.'''
         return limit_cycle.characteristic_exponents(self, lcy)

@@ -33,10 +33,19 @@ def arange(start, stop, step, endpoint=True, dtype=None):
     return arr
 
 
+def _sort_by(arr, fcn):
+    order = fcn(arr).argsort()
+    return arr[order]
+
+
+def sort_by_abs(arr):
+    '''Sort the elements of `arr` by absolute value.'''
+    return _sort_by(arr, numpy.abs)
+
+
 def sort_by_real_part(arr):
     '''Sort the elements of `arr` by real part.'''
-    order = arr.real.argsort()
-    return arr[order]
+    return _sort_by(arr, numpy.real)
 
 
 def assert_nonnegative(y):

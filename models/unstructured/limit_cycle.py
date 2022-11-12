@@ -42,15 +42,21 @@ def monodromy_matrix(func, limit_cycle, **kwds):
     return phi[-1]
 
 
+def characteristic_multipliers(func, limit_cycle, **kwds):
+    '''Get the characteristic multipliers of `limit_cycle`.'''
+    psi = monodromy_matrix(func, limit_cycle, **kwds)
+    mlts = numpy.linalg.eigvals(psi)
+    # Drop the one closest to 1.
+    drop = numpy.abs(mlts - 1).argmin()
+    assert numpy.isclose(mlts[drop], 1)
+    mlts = numpy.delete(mlts, drop)
+    return utility.sort_by_abs(mlts)
+
+
 def characteristic_exponents(func, limit_cycle, **kwds):
     '''Get the characteristic exponents of `limit_cycle`.'''
-    psi = monodromy_matrix(func, limit_cycle, **kwds)
-    mlt = numpy.linalg.eigvals(psi)
+    mlts = characteristic_multipliers(func, limit_cycle, **kwds)
     t = limit_cycle.index
     period = t[-1] - t[0]
-    exps = numpy.log(mlt) / period
-    # Drop the one closest to 0.
-    drop = numpy.abs(exps).argmin()
-    assert numpy.isclose(exps[drop], 0)
-    exps = numpy.delete(exps, drop)
-    return utility.sort_by_real_part(exps)
+    exps = numpy.log(mlts) / period
+    return exps
