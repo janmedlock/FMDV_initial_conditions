@@ -24,7 +24,7 @@ class _Birth(metaclass=abc.ABCMeta):
 class Constant(_Birth):
     '''Constant birth rate.'''
 
-    # Not set by `dataclasses.dataclass`.
+    # These are *not* handled by `dataclasses.dataclass`.
     birth_rate_variation = 0.  # unitless
     birth_rate_period = 0.     # year
 

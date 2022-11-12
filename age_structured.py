@@ -7,5 +7,7 @@ import models.age_structured
 
 if __name__ == '__main__':
     model_constant = models.age_structured.ModelBirthConstant()
+    print(model_constant.parameters.birth_rate_mean)
 
     model_periodic = models.age_structured.ModelBirthPeriodic()
+    print(model_periodic.parameters.birth_rate_mean)

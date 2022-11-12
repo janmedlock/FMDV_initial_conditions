@@ -1,7 +1,6 @@
 '''Birth rates.'''
 
 import dataclasses
-import functools
 
 from ...parameters import birth
 
@@ -10,8 +9,9 @@ from ...parameters import birth
 class _Birth:
     '''Common birth rate.'''
 
-    @functools.cached_property
+    @property
     def birth_rate_mean(self):
+        '''`birth_rate_mean = death_rate`.'''
         return self.death_rate
 
 

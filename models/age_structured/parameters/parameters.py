@@ -3,15 +3,13 @@
 import dataclasses
 
 from . import birth
-from . import death
-from . import maternity
 from ... import parameters
 
 
 @dataclasses.dataclass
 class Parameters(parameters.Parameters,
-                 death.Death,
-                 maternity.Maternity):
+                 parameters.death.Death,
+                 parameters.maternity.Maternity):
     '''Parameters for age-structured models.'''
 
 

@@ -7,7 +7,7 @@ import scipy.optimize
 import scipy.sparse
 
 from . import _sparse
-from .... import utility
+from .. import utility
 
 
 class _Solver:
@@ -88,7 +88,7 @@ class _Solver:
         self._step_crank_nicolson()
         self._step_birth(t_curr, birth_scaling)
 
-    def solve_monodromy(self, birth_scaling):
+    def solve_monodromy(self, birth_scaling=1):
         '''Get the monodromy matrix Psi = Phi(T), where Phi is the
         fundmental solution and T is the period.'''
         if len(self.times) == 0:
@@ -107,6 +107,17 @@ class _Solver:
         # Convert that to the dominant Floquet exponent.
         return numpy.log(rho0) / self.period
 
+    def get_stable_age_density(self):
+        monodromy = self.solve_monodromy()
+        (rho0, v0) = utility.get_dominant_eigen(monodromy, which='LM',
+                                                return_eigenvector=True)
+        assert numpy.isclose(rho0, 1), f'{rho0=}'
+        # Normalize `v0` in place so that its integral over ages is 1.
+        v0 /= scipy.integrate.trapz(v0, self.ages)
+        return pandas.Series(v0,
+                             index=pandas.Index(self.ages, name='age (y)'),
+                             name='stable age distribution')
+
 
 def get_birth_scaling_for_no_pop_growth(death_rate, maternity_rate,
                                         birth_rate, period,
@@ -123,3 +134,11 @@ def get_birth_scaling_for_no_pop_growth(death_rate, maternity_rate,
     while solver.get_pop_growth(upper) <= 0:
         (lower, upper) = (upper, MULT * upper)
     return scipy.optimize.brentq(solver.get_pop_growth, lower, upper)
+
+
+def get_stable_age_density(death_rate, maternity_rate, birth_rate, period,
+                           *args, **kwds):
+    '''Find the stable age distribution.'''
+    solver = _Solver(death_rate, maternity_rate, birth_rate, period,
+                     *args, **kwds)
+    return solver.get_stable_age_density()

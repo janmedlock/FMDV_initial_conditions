@@ -24,4 +24,9 @@ class Death:
     @classmethod
     def death_rate(cls, age):
         '''Death rate.'''
-        return cls._death_rate[age]
+        out = cls._death_rate[age]
+        try:
+            out.set_axis(age, inplace=True)
+        except AttributeError:
+            pass
+        return out

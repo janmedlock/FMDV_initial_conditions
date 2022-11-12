@@ -13,8 +13,7 @@ if __name__ == '__main__':
 
     model_constant = models.unstructured.ModelBirthConstant()
     solution_constant = model_constant.solve(t_start, t_end, t_step)
-    ax_solution = solution_constant.solution.plot_solution(states=states_plot,
-                                                           legend=False)
+    ax_solution = solution_constant.solution.plot_solution()
     equilibrium = model_constant.find_equilibrium(solution_constant.loc[t_end])
     ax_state = equilibrium.solution.plot_state(states=states_plot)
     equilibrium_eigvals = model_constant.get_eigenvalues(equilibrium)
@@ -22,8 +21,7 @@ if __name__ == '__main__':
 
     model_periodic = models.unstructured.ModelBirthPeriodic()
     solution_periodic = model_periodic.solve(t_start, t_end, t_step)
-    solution_periodic.solution.plot_solution(states=states_plot,
-                                             ax=ax_solution)
+    solution_periodic.solution.plot_solution(ax=ax_solution, legend=False)
     limit_cycle = model_periodic.find_limit_cycle(
         t_end,
         model_periodic.parameters.birth_rate_period,
