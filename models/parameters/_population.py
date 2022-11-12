@@ -119,9 +119,9 @@ class _Solver:
                              name='stable age distribution')
 
 
-def get_birth_scaling_for_no_pop_growth(death_rate, maternity_rate,
-                                        birth_rate, period,
-                                        *args, **kwds):
+def get_birth_scaling_for_zero_pop_growth(death_rate, maternity_rate,
+                                          birth_rate, period,
+                                          *args, **kwds):
     '''Find the birth scaling that gives zero population growth rate.'''
     solver = _Solver(death_rate, maternity_rate, birth_rate, period,
                      *args, **kwds)

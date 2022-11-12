@@ -7,7 +7,7 @@ import scipy.integrate
 
 from ... import age_structured
 from ... import parameters
-from ...parameters import _population_growth
+from ...parameters import _population
 
 
 @dataclasses.dataclass
@@ -25,7 +25,7 @@ class _Death(metaclass=abc.ABCMeta):
     def _set_death_rate_to_mean_of_age_structured(self):
         kws = dataclasses.asdict(self)
         parameters = self._ParametersAgeStructured(**kws)
-        stable_age_density = _population_growth.get_stable_age_density(
+        stable_age_density = _population.get_stable_age_density(
             parameters.death_rate,
             parameters.maternity_rate,
             parameters.birth_rate,
