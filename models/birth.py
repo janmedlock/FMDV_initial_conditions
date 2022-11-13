@@ -5,16 +5,16 @@ import numpy
 from . import _population
 
 
-class _BirthRate:
-    '''Base for birth rate.'''
+class _Birth:
+    '''Base for births.'''
 
-    def __init__(self, parameters, death_rate, maternity_rate):
+    def __init__(self, parameters, death, maternity):
         self.variation = parameters.birth_variation
         self.period = parameters.birth_period
-        self.mean = self._mean_for_zero_population_growth(death_rate,
-                                                          maternity_rate)
+        self.mean = self._mean_for_zero_population_growth(death,
+                                                          maternity)
 
-    def _mean_for_zero_population_growth(self, death_rate, maternity_rate):
+    def _mean_for_zero_population_growth(self, death, maternity):
         '''Get the value for `self.mean` that gives zero population
         growth rate.'''
         # `self.mean` must be set for
@@ -24,14 +24,14 @@ class _BirthRate:
         if mean_unset := not hasattr(self, 'mean'):
             self.mean = 0.5  # Starting guess.
         scale = _population.birth_scaling_for_zero_population_growth(
-            self, death_rate, maternity_rate)
+            self, death, maternity)
         mean_for_zero_population_growth = scale * self.mean
         if mean_unset:
             del self.mean
         return mean_for_zero_population_growth
 
 
-class BirthRateConstant(_BirthRate):
+class BirthConstant(_Birth):
     '''Constant birth rate.'''
 
     # `_population.birth_scaling_for_zero_population_growth()` has a
@@ -44,24 +44,24 @@ class BirthRateConstant(_BirthRate):
     def period(self, val):
         pass
 
-    def __call__(self, t):
+    def rate(self, t):
         '''Constant birth rate.'''
         return self.mean * numpy.ones_like(t)
 
 
-class BirthRatePeriodic(_BirthRate):
+class BirthPeriodic(_Birth):
     '''Periodic birth rate.'''
 
-    def __call__(self, t):
+    def rate(self, t):
         '''Periodic birth rate.'''
         amplitude = self.variation * numpy.sqrt(2)
         theta = 2 * numpy.pi * t / self.period
         return self.mean * (1 + amplitude * numpy.cos(theta))
 
 
-def BirthRate(parameters, death_rate, maternity_rate):
-    '''Factory function to build the birth rate.'''
+def Birth(parameters, death, maternity):
+    '''Factory function for birth.'''
     if parameters.birth_variation == 0:
-        return BirthRateConstant(parameters, death_rate, maternity_rate)
+        return BirthConstant(parameters, death, maternity)
     else:
-        return BirthRatePeriodic(parameters, death_rate, maternity_rate)
+        return BirthPeriodic(parameters, death, maternity)

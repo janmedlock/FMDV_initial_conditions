@@ -12,10 +12,9 @@ class Model(model.Base):
 
     def __init__(self, **kwds):
         super().__init__(**kwds)
-        self.death_rate_mean = self.death_rate.population_mean(
-            self.birth_rate, self.maternity_rate)
-        self.birth_rate.mean \
-            = self._birth_rate_mean_for_zero_population_growth()
+        self.death_rate_mean = self.death.rate_population_mean(self.birth,
+                                                               self.maternity)
+        self.birth.mean = self._birth_rate_mean_for_zero_population_growth()
 
     def _birth_rate_mean_for_zero_population_growth(self):
         '''For this unstructured model, the mean population growth
@@ -27,27 +26,27 @@ class Model(model.Base):
         (M, S, E, I, R) = y
         N = y.sum(axis=0)
         dM = (
-            self.birth_rate(t) * N
-            - 1 / self.parameters.maternal_immunity_mean * M
+            self.birth.rate(t) * N
+            - 1 / self.waning.mean * M
             - self.death_rate_mean * M
         )
         dS = (
-            1 / self.parameters.maternal_immunity_mean * M
-            - self.parameters.transmission_rate * I * S
+            1 / self.waning.mean * M
+            - self.transmission.rate * I * S
             - self.death_rate_mean * S
         )
         dE = (
-            self.parameters.transmission_rate * I * S
-            - 1 / self.parameters.progression_mean * E
+            self.transmission.rate * I * S
+            - 1 / self.progression.mean * E
             - self.death_rate_mean * E
         )
         dI = (
-            1 / self.parameters.progression_mean * E
-            - 1 / self.parameters.recovery_mean * I
+            1 / self.progression.mean * E
+            - 1 / self.recovery.mean * I
             - self.death_rate_mean * I
         )
         dR = (
-            1 / self.parameters.recovery_mean * I
+            1 / self.recovery.mean * I
             - self.death_rate_mean * R
         )
         return (dM, dS, dE, dI, dR)

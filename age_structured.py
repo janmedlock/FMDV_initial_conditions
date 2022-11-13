@@ -7,7 +7,7 @@ import models.age_structured
 
 if __name__ == '__main__':
     model_constant = models.age_structured.Model(birth_variation=0)
-    print(model_constant.birth_rate.mean)
+    print(model_constant.birth.mean)
 
     model = models.age_structured.Model()
-    print(model.birth_rate.mean)
+    print(model.birth.mean)

@@ -14,13 +14,13 @@ class _Solver:
     model for the population size with age-dependent death and
     maternity rates and periodic time-dependent birth rate.'''
 
-    def __init__(self, birth_rate, death_rate, maternity_rate,
+    def __init__(self, birth, death, maternity,
                  age_step=0.1, age_max=50):
-        self.birth_rate = birth_rate
-        self.death_rate = death_rate
-        self.maternity_rate = maternity_rate
+        self.birth = birth
+        self.death = death
+        self.maternity = maternity
         self.age_step = self.time_step = age_step
-        self.period = self.birth_rate.period
+        self.period = self.birth.period
         if self.period == 0:
             self.period = self.time_step
         self.ages = _utility.arange(0, age_max, self.age_step,
@@ -37,17 +37,17 @@ class _Solver:
         mat_cn = scipy.sparse.lil_matrix((len(self.ages), ) * 2)
         # Midpoints between adjacent ages.
         ages_mid = (self.ages[1:] + self.ages[:-1]) / 2
-        k = self.death_rate(ages_mid) * self.time_step / 2
+        k = self.death.rate(ages_mid) * self.time_step / 2
         # Set the first subdiagonal.
         mat_cn.setdiag((1 - k) / (1 + k), -1)
         # Keep the last age group from ageing out.
-        k_last = self.death_rate(self.ages[-1]) * self.time_step / 2
+        k_last = self.death.rate(self.ages[-1]) * self.time_step / 2
         mat_cn[-1, -1] = (1 - k_last) / (1 + k_last)
         self._mat_cn = _sparse.csr_matrix(mat_cn)
 
     def _init_birth(self):
         '''Build the vector used for the integral step.'''
-        self._vec_birth = self.maternity_rate(self.ages) * self.age_step
+        self._vec_birth = self.maternity(self.ages) * self.age_step
         self._vec_birth[[0, -1]] /= 2
         # Temporary storage for efficiency.
         self._vec_temp = numpy.empty(len(self.ages))
@@ -70,11 +70,11 @@ class _Solver:
     def _step_birth(self, t_curr, birth_scaling):
         '''Do the birth step.'''
         # self._sol_curr[0] = (birth_scaling
-        #                      * self.birth_rate(t_curr)
+        #                      * self.birth.rate(t_curr)
         #                      * self._vec_birth @ self._sol_curr)
         # Avoid building new vectors.
         self._vec_temp[:] = self._vec_birth
-        self._vec_temp *= birth_scaling * self.birth_rate(t_curr)
+        self._vec_temp *= birth_scaling * self.birth.rate(t_curr)
         self._vec_temp.dot(self._sol_curr, out=self._sol_curr[0])
 
     def _step(self, t_curr, birth_scaling):
@@ -115,11 +115,10 @@ class _Solver:
         return (self.ages, v0)
 
 
-def birth_scaling_for_zero_population_growth(birth_rate, death_rate,
-                                             maternity_rate, *args, **kwds):
+def birth_scaling_for_zero_population_growth(birth, death, maternity,
+                                             *args, **kwds):
     '''Find the birth scaling that gives zero population growth rate.'''
-    solver = _Solver(birth_rate, death_rate, maternity_rate,
-                     *args, **kwds)
+    solver = _Solver(birth, death, maternity, *args, **kwds)
     # For a lower limit, we know that birth_scaling = 0 gives
     # `solver.population_growth_rate(0) < 0`,
     # so we need to find an upper limit `upper`
@@ -131,9 +130,7 @@ def birth_scaling_for_zero_population_growth(birth_rate, death_rate,
     return scipy.optimize.brentq(solver.population_growth_rate, lower, upper)
 
 
-def stable_age_density(birth_rate, death_rate, maternity_rate,
-                       *args, **kwds):
+def stable_age_density(birth, death, maternity, *args, **kwds):
     '''Find the stable age distribution.'''
-    solver = _Solver(birth_rate, death_rate, maternity_rate,
-                     *args, **kwds)
+    solver = _Solver(birth, death, maternity, *args, **kwds)
     return solver.stable_age_density()
