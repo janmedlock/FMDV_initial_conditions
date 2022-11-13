@@ -27,14 +27,17 @@ class Model(model.Base):
     def __call__(self, t, y):
         '''The right-hand-side of the model ODEs.'''
         (M, S, E, I, R) = y
-        N = y.sum(axis=0)
+        birth_rate_t = self.birth.rate(t)
+        N_antibodies = y[self._states_have_antibodies].sum(axis=0)
+        N_no_antibodies = y[~self._states_have_antibodies].sum(axis=0)
         dM = (
-            self.birth.rate(t) * N
+            birth_rate_t * N_antibodies
             - 1 / self.waning.mean * M
             - self.death_rate_mean * M
         )
         dS = (
-            1 / self.waning.mean * M
+            birth_rate_t * N_no_antibodies
+            + 1 / self.waning.mean * M
             - self.transmission.rate * I * S
             - self.death_rate_mean * S
         )

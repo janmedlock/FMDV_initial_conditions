@@ -19,10 +19,10 @@ The model is
   \label{model_unstructured}
   \begin{split}
     \frac{\md M}{\md t}(t) &=
-    b(t) N(t) - \omega M(t) - \mu M(t),
+    b(t) R(t) - \omega M(t) - \mu M(t),
     \\
     \frac{\md S}{\md t}(t) &=
-    \omega M(t) - \beta I(t) S(t) - \mu S(t),
+    b(t) \left[N(t) - R(t)\right] + \omega M(t) - \beta I(t) S(t) - \mu S(t),
     \\
     \frac{\md E}{\md t}(t) &=
     \beta I(t) S(t) - \pi E(t) - \mu E(t),
@@ -119,11 +119,12 @@ and
 \begin{equation}
   \vec{f}\left(t^k, \vec{Y}^k\right) =
   \begin{bmatrix}
-    b\left(t^k\right) N^k
+    b\left(t^k\right) R^k
     - \omega M^k
     - \mu M^k
     \\
-    \omega M^k
+    b\left(t^k\right) \left(N^k - R^k\right)
+    + \omega M^k
     - \beta I^k S^k
     - \mu S^k
     \\
