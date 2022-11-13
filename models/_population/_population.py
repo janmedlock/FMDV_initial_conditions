@@ -97,7 +97,7 @@ class _Solver:
             self._step(t_curr, birth_scaling)
         return self._sol_curr
 
-    def get_pop_growth(self, birth_scaling):
+    def population_growth_rate(self, birth_scaling):
         '''Get the population growth rate.'''
         monodromy = self.solve_monodromy(birth_scaling)
         # Get the dominant Floquet multiplier.
@@ -106,7 +106,7 @@ class _Solver:
         # Convert that to the dominant Floquet exponent.
         return numpy.log(rho0) / self.period
 
-    def get_stable_age_density(self):
+    def stable_age_density(self):
         monodromy = self.solve_monodromy()
         (_, v0) = _utility.get_dominant_eigen(monodromy, which='LM',
                                               return_eigenvector=True)
@@ -117,32 +117,21 @@ class _Solver:
                              name='stable age distribution')
 
 
-def get_birth_scaling_for_zero_pop_growth(birth_rate, *args, **kwds):
+def birth_scaling_for_zero_population_growth(birth_rate, *args, **kwds):
     '''Find the birth scaling that gives zero population growth rate.'''
     solver = _Solver(birth_rate, *args, **kwds)
     # For a lower limit, we know that birth_scaling = 0 gives
-    # `solver.get_pop_growth(0) < 0`,
+    # `solver.population_growth_rate(0) < 0`,
     # so we need to find an upper limit `upper`
-    # with `solver.get_pop_growth(upper) > 0`.
+    # with `solver.population_growth_rate(upper) > 0`.
     (lower, upper) = (0, 1)
     MULT = 2
-    while solver.get_pop_growth(upper) <= 0:
+    while solver.population_growth_rate(upper) <= 0:
         (lower, upper) = (upper, MULT * upper)
-    return scipy.optimize.brentq(solver.get_pop_growth, lower, upper)
+    return scipy.optimize.brentq(solver.population_growth_rate, lower, upper)
 
 
-def get_stable_age_density(birth_rate, *args, **kwds):
+def stable_age_density(birth_rate, *args, **kwds):
     '''Find the stable age distribution.'''
     solver = _Solver(birth_rate, *args, **kwds)
-    return solver.get_stable_age_density()
-
-
-def get_death_rate_mean(birth_rate, *args, **kwds):
-    stable_age_density = get_stable_age_density(birth_rate, *args, **kwds)
-    ages = stable_age_density.index
-    death_total = scipy.integrate.trapz(death.rate(ages)
-                                        * stable_age_density,
-                                        ages)
-    density_total = scipy.integrate.trapz(stable_age_density,
-                                          ages)
-    return death_total / density_total
+    return solver.stable_age_density()

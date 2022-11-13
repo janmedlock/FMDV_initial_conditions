@@ -2,6 +2,9 @@
 
 import numpy
 import pandas
+import scipy.integrate
+
+from . import _population
 
 
 # Annual survival in age bands (ages in years).
@@ -27,3 +30,13 @@ def rate(age):
     except AttributeError:
         pass
     return out
+
+
+def rate_population_mean(birth_rate, *args, **kwds):
+    '''Get the mean death rate when the population is at the stable
+    age density.'''
+    population = _population.stable_age_density(birth_rate, *args, **kwds)
+    ages = population.index
+    rate_total = scipy.integrate.trapz(rate(ages) * population, ages)
+    population_total = scipy.integrate.trapz(population, ages)
+    return rate_total / population_total

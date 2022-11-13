@@ -5,8 +5,8 @@ import scipy.integrate
 from . import _equilibrium
 from . import _limit_cycle
 from . import _solver
+from .. import death
 from .. import model
-from .. import _population
 from .. import _utility
 
 
@@ -15,14 +15,14 @@ class Model(model.Base):
 
     def __init__(self, **kwds):
         super().__init__(**kwds)
-        self._set_death_rate_mean()
-        self._set_birth_rate_mean_to_zero_pop_growth()
+        self.death_rate_mean = death.rate_population_mean(self.birth_rate)
+        self.birth_rate.mean \
+            = self._birth_rate_mean_for_zero_population_growth()
 
-    def _set_death_rate_mean(self):
-        self.death_rate_mean = _population.get_death_rate_mean(self.birth_rate)
-
-    def _set_birth_rate_mean_to_zero_pop_growth(self):
-        self.birth_rate.mean = self.death_rate_mean
+    def _birth_rate_mean_for_zero_population_growth(self):
+        '''For this unstructured model, the mean population growth
+        rate is `self.birth_rate.mean - self.death_rate_mean`.'''
+        return self.death_rate_mean
 
     def __call__(self, t, y):
         '''The right-hand-side of the model ODEs.'''
