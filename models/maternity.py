@@ -1,4 +1,4 @@
-'''Maternity rate.'''
+'''Maternity.'''
 
 import numpy
 
