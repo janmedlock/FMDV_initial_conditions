@@ -8,13 +8,22 @@ from . import _population
 class _Birth:
     '''Base for births.'''
 
-    def __init__(self, parameters, death, maternity):
+    def __init__(self, parameters, death):
         self.variation = parameters.birth_variation
         self.period = parameters.birth_period
-        self.mean = self._mean_for_zero_population_growth(death,
-                                                          maternity)
+        self.age_menarche = parameters.birth_age_menarche
+        self.age_menopause = parameters.birth_age_menopause
+        self.mean = self._mean_for_zero_population_growth(death)
 
-    def _mean_for_zero_population_growth(self, death, maternity):
+    def maternity(self, age):
+        '''Maternity.'''
+        # 1 between menarche and menopause,
+        # 0 otherwise.
+        return numpy.where(((self.age_menarche <= age)
+                            & (age < self.age_menopause)),
+                           0, 1)
+
+    def _mean_for_zero_population_growth(self, death):
         '''Get the value for `self.mean` that gives zero population
         growth rate.'''
         # `self.mean` must be set for
@@ -23,8 +32,8 @@ class _Birth:
         # guess, and it will be unset after.
         if mean_unset := not hasattr(self, 'mean'):
             self.mean = 0.5  # Starting guess.
-        scale = _population.birth_scaling_for_zero_population_growth(
-            self, death, maternity)
+        scale = _population.birth_scaling_for_zero_population_growth(self,
+                                                                     death)
         mean_for_zero_population_growth = scale * self.mean
         if mean_unset:
             del self.mean
@@ -59,9 +68,9 @@ class BirthPeriodic(_Birth):
         return self.mean * (1 + amplitude * numpy.cos(theta))
 
 
-def Birth(parameters, death, maternity):
+def Birth(parameters, death):
     '''Factory function for birth.'''
     if parameters.birth_variation == 0:
-        return BirthConstant(parameters, death, maternity)
+        return BirthConstant(parameters, death)
     else:
-        return BirthPeriodic(parameters, death, maternity)
+        return BirthPeriodic(parameters, death)

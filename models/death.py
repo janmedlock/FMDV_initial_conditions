@@ -14,7 +14,7 @@ class Death:
     _annual_survival = {(0, 1): 0.66,
                         (1, 3): 0.79,
                         (3, 12): 0.88,
-                        (12, numpy.inf): 0.66}
+                        (12, numpy.PINF): 0.66}
 
     # Death rate values with units per year.
     _rate = {key: -numpy.log(val)
@@ -33,11 +33,10 @@ class Death:
                     for (left, right) in self._rate.keys()]
         return numpy.select(condlist, self._rate.values(), numpy.nan)
 
-    def rate_population_mean(self, birth, maternity, *args, **kwds):
+    def rate_population_mean(self, birth, *args, **kwds):
         '''Get the mean death rate when the population is at the stable
         age density.'''
         (ages, density) = _population.stable_age_density(birth, self,
-                                                         maternity,
                                                          *args, **kwds)
         rate_total = scipy.integrate.trapz(self.rate(ages) * density, ages)
         density_total = scipy.integrate.trapz(density, ages)

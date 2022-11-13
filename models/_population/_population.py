@@ -11,14 +11,12 @@ from .. import _utility
 
 class _Solver:
     '''Solver for the monodromy matrix of a linear age-structured
-    model for the population size with age-dependent death and
-    maternity rates and periodic time-dependent birth rate.'''
+    model for the population size with age-dependent death rate,
+    age-dependent maternity, and periodic time-dependent birth rate.'''
 
-    def __init__(self, birth, death, maternity,
-                 age_step=0.1, age_max=50):
+    def __init__(self, birth, death, age_step=0.1, age_max=50):
         self.birth = birth
         self.death = death
-        self.maternity = maternity
         self.age_step = self.time_step = age_step
         self.period = self.birth.period
         if self.period == 0:
@@ -47,7 +45,7 @@ class _Solver:
 
     def _init_birth(self):
         '''Build the vector used for the integral step.'''
-        self._vec_birth = self.maternity(self.ages) * self.age_step
+        self._vec_birth = self.birth.maternity(self.ages) * self.age_step
         self._vec_birth[[0, -1]] /= 2
         # Temporary storage for efficiency.
         self._vec_temp = numpy.empty(len(self.ages))
@@ -115,10 +113,9 @@ class _Solver:
         return (self.ages, v0)
 
 
-def birth_scaling_for_zero_population_growth(birth, death, maternity,
-                                             *args, **kwds):
+def birth_scaling_for_zero_population_growth(birth, death, *args, **kwds):
     '''Find the birth scaling that gives zero population growth rate.'''
-    solver = _Solver(birth, death, maternity, *args, **kwds)
+    solver = _Solver(birth, death, *args, **kwds)
     # For a lower limit, we know that birth_scaling = 0 gives
     # `solver.population_growth_rate(0) < 0`,
     # so we need to find an upper limit `upper`
@@ -130,7 +127,7 @@ def birth_scaling_for_zero_population_growth(birth, death, maternity,
     return scipy.optimize.brentq(solver.population_growth_rate, lower, upper)
 
 
-def stable_age_density(birth, death, maternity, *args, **kwds):
+def stable_age_density(birth, death, *args, **kwds):
     '''Find the stable age distribution.'''
-    solver = _Solver(birth, death, maternity, *args, **kwds)
+    solver = _Solver(birth, death, *args, **kwds)
     return solver.stable_age_density()

@@ -2,7 +2,6 @@
 
 from . import birth
 from . import death
-from . import maternity
 from . import parameters
 from . import progression
 from . import recovery
@@ -19,10 +18,8 @@ class Base:
     def __init__(self, **kwds):
         self.parameters = parameters.Parameters(**kwds)
         self.death = death.Death(self.parameters)
-        self.maternity = maternity.Maternity(self.parameters)
         self.birth = birth.Birth(self.parameters,
-                                 self.death,
-                                 self.maternity)
+                                 self.death)
         self.progression = progression.Progression(self.parameters)
         self.recovery = recovery.Recovery(self.parameters)
         self.transmission = transmission.Transmission(self.parameters)

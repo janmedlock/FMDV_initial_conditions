@@ -12,8 +12,11 @@ class Model(model.Base):
 
     def __init__(self, **kwds):
         super().__init__(**kwds)
-        self.death_rate_mean = self.death.rate_population_mean(self.birth,
-                                                               self.maternity)
+        # Use `self.birth` with age-dependent `.mean` to find
+        # `self.death_rate_mean`.
+        self.death_rate_mean = self.death.rate_population_mean(self.birth)
+        # Set `self.birth.mean` so the non-age-dependent model has
+        # zero population growth rate.
         self.birth.mean = self._birth_rate_mean_for_zero_population_growth()
 
     def _birth_rate_mean_for_zero_population_growth(self):
