@@ -1,11 +1,8 @@
 '''Based on our FMDV work, this is an unstructured model.'''
 
-import scipy.integrate
-
 from . import _equilibrium
 from . import _limit_cycle
 from . import _solver
-from .. import death
 from .. import model
 from .. import _utility
 
@@ -15,7 +12,8 @@ class Model(model.Base):
 
     def __init__(self, **kwds):
         super().__init__(**kwds)
-        self.death_rate_mean = death.rate_population_mean(self.birth_rate)
+        self.death_rate_mean = self.death_rate.population_mean(
+            self.birth_rate, self.maternity_rate)
         self.birth_rate.mean \
             = self._birth_rate_mean_for_zero_population_growth()
 
