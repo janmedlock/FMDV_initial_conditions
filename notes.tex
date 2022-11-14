@@ -22,13 +22,13 @@ The model is
     b(t) R(t) - \omega M(t) - \mu M(t),
     \\
     \frac{\md S}{\md t}(t) &=
-    b(t) \left[N(t) - R(t)\right] + \omega M(t) - \beta I(t) S(t) - \mu S(t),
+    b(t) \left[N(t) - R(t)\right] + \omega M(t) - \lambda(t) S(t) - \mu S(t),
     \\
     \frac{\md E}{\md t}(t) &=
-    \beta I(t) S(t) - \pi E(t) - \mu E(t),
+    \lambda(t) S(t) - \rho E(t) - \mu E(t),
     \\
     \frac{\md I}{\md t}(t) &=
-    \pi E(t) - \gamma I(t) - \mu I(t),
+    \rho E(t) - \gamma I(t) - \mu I(t),
     \\
     \frac{\md R}{\md t}(t) &=
     \gamma I(t) - \mu R(t),
@@ -37,8 +37,16 @@ The model is
 with birth rate
 \begin{equation}
   b(t) = \mu \left[
-    1 + \sigma \sqrt{2} \cos\left(2 \pi t\right)
+    1 + \sigma \sqrt{2} \cos\left(2 \pi t / T\right)
   \right],
+\end{equation}
+period
+\begin{equation}
+  T = \unit[1]y,
+\end{equation}
+force of infection
+\begin{equation}
+  \lambda(t) = \beta I(t),
 \end{equation}
 and population size
 \begin{equation}
@@ -51,23 +59,23 @@ The total population follows
     \frac{\md N}{\md t}(t)
     &= b(t) N(t) - \mu N(t)
     \\
-    &= \mu \sigma \sqrt{2} \cos\left(2 \pi t\right) N(t),
+    &= \mu \sigma \sqrt{2} \cos\left(2 \pi t / T\right) N(t),
   \end{split}
 \end{equation}
 so that
 \begin{equation}
   \log N(t) = \log N(0)
-  + \frac{\mu \sigma}{\pi \sqrt{2}}
-  \sin\left(2 \pi t\right),
+  + \frac{\mu \sigma T}{\pi \sqrt{2}}
+  \sin\left(2 \pi t / T\right),
 \end{equation}
 or
 \begin{equation}
   N(t) = N(0) \exp\left[
-    \frac{\mu \sigma}{\pi \sqrt{2}}
-    \sin\left(2 \pi t\right)
+    \frac{\mu \sigma T}{\pi \sqrt{2}}
+    \sin\left(2 \pi t / T\right)
   \right],
 \end{equation}
-i.e.~periodic with period $1$.
+i.e.~periodic with period $T = \unit[1]{y}$.
 
 For the system of differential equations
 \begin{equation}
@@ -129,10 +137,10 @@ and
     - \mu S^k
     \\
     \beta I^k S^k
-    - \pi E^k
+    - \rho E^k
     - \mu E^l
     \\
-    \pi E^k
+    \rho E^k
     - \gamma I^k
     - \mu I^k
     \\
@@ -147,25 +155,39 @@ where
 \end{equation}
 
 
-\section{Age-structured SIR model}
+\section{Age-structured model}
 
 The model is
 \begin{equation}
   \label{model_age_structured}
   \begin{split}
+    m(t, \unit[0]{y})
+    &= b(t) \int_0^{+\infty} m(a) r(t, a) \md a,
+    \\
+    \frac{\partial m}{\partial t}(t, a)
+    + \frac{\partial m}{\partial a}(t, a)
+    &= - \omega m(t, a) - \mu(a) m(t, a),
+    \\
     s(t, \unit[0]{y})
-    &= b(t) \int_0^\infty m(a) n(t, a) \md a,
+    &= b(t) \int_0^{+\infty} m(a) \left[n(t, a) - r(t, a)\right] \md a,
     \\
     \frac{\partial s}{\partial t}(t, a)
     + \frac{\partial s}{\partial a}(t, a)
-    &= - \lambda(t) s(t, a) - \mu(a) s(t, a),
+    &= \omega m(t, a) - \lambda(t) s(t, a) - \mu(a) s(t, a),
+    \\
+    e(t, \unit[0]{y})
+    &= 0,
+    \\
+    \frac{\partial e}{\partial t}(t, a)
+    + \frac{\partial e}{\partial a}(t, a)
+    &= \lambda(t) s(t, a) - \rho e(t, a) - \mu(a) e(t, a),
     \\
     i(t, \unit[0]{y})
     &= 0,
     \\
     \frac{\partial i}{\partial t}(t, a)
     + \frac{\partial i}{\partial a}(t, a)
-    &= \lambda(t) s(t, a) - \gamma i(t, a) - \mu(a) i(t, a),
+    &= \rho e(t, a) - \gamma i(t, a) - \mu(a) i(t, a),
     \\
     r(t, \unit[0]{y})
     &= 0,
@@ -178,16 +200,20 @@ The model is
 with birth rate
 \begin{equation}
   b(t) = \bar{b} \left[
-    1 + \sigma \sqrt{2} \cos\left(2 \pi t\right)
+    1 + \sigma \sqrt{2} \cos\left(2 \pi t / T\right)
   \right],
+\end{equation}
+period
+\begin{equation}
+  T = \unit[1]y,
 \end{equation}
 force of infection
 \begin{equation}
-  \lambda(t) = \int_0^\infty \beta(a) i(t, a) \md a,
+  \lambda(t) = \beta \int_0^{+\infty} i(t, a) \md a,
 \end{equation}
 and population size
 \begin{equation}
-  n(t, a) = s(t, a) + i(t, a) + r(t, a).
+  n(t, a) = m(t, a) + s(t, a) + e(t, a) + i(t, a) + r(t, a).
 \end{equation}
 
 \subsection{Total population}
@@ -196,7 +222,7 @@ The total population follows the linear PDE
 \begin{equation}
   \begin{split}
     n(t, \unit[0]{y})
-    &= b(t) \int_0^\infty m(a) n(t, a) \md a,
+    &= b(t) \int_0^{+\infty} m(a) n(t, a) \md a,
     \\
     \frac{\partial n}{\partial t}(t, a)
     + \frac{\partial n}{\partial a}(t, a)
@@ -211,7 +237,7 @@ requires the fundamental solution $\Phi(t, a, a')$ to
 \begin{equation}
   \begin{split}
     \Phi(t, \unit[0]{y}, a')
-    &= b(t) \int_0^\infty m(a) \Phi(t, a, a') \md a,
+    &= b(t) \int_0^{+\infty} m(a) \Phi(t, a, a') \md a,
     \\
     \frac{\partial \Phi}{\partial t}(t, a, a')
     + \frac{\partial \Phi}{\partial a}(t, a, a')
@@ -338,7 +364,7 @@ forward gives
   \to \rho_0^K \vec{w}_0
   = \me^{r K T} \vec{w}_0
 \end{equation}
-as $K \to \infty$,
+as $K \to +\infty$,
 where $\rho_0$ is the dominant eigenvalue, i.e.~the eigenvalue with
 largest magnitude, of $\mat{\Psi}$;
 the corresponding right eigenvector $\vec{w}_0$ is the stable age
@@ -350,6 +376,152 @@ is the asymptotic population growth rate.
 
 We used a nonlinear solver to search for the mean birth rate $\bar{b}$
 that gives population growth rate $r = 0$.
+
+
+\section{Time-since-entry model}
+
+The model is
+\begin{equation}
+  \label{model_unstructured}
+  \begin{split}
+    m(t, \unit[0]{y}) &=
+    b(t) R(t),
+    \\
+    \frac{\partial m}{\partial t}(t, r)
+    + \frac{\partial m}{\partial r}(t, r) &=
+    - \omega(r) m(t, r) - \mu m(t, r),
+    \\
+    \frac{\md S}{\md t}(t) &=
+    b(t) \left[N(t) - R(t)\right]
+    + \int_0^{+\infty} \omega(r) m(t, r) \md r
+    \\ & \quad {}
+    - \lambda(t) S(t) - \mu S(t),
+    \\
+    e(t, \unit[0]{y}) &=
+    \lambda(t) S(t),
+    \\
+    \frac{\partial e}{\partial t}(t, r)
+    + \frac{\partial e}{\partial r}(t, r) &=
+    - \rho(r) e(t, r) - \mu e(t, r),
+    \\
+    i(t, \unit[0]{y}) &=
+    \int_0^{+\infty} \rho(r) e(t, r) \md r,
+    \\
+    \frac{\partial i}{\partial t}(t, r)
+    + \frac{\partial i}{\partial r}(t, r) &=
+    - \gamma(r) i(t, r) - \mu i(t, r),
+    \\
+    \frac{\md R}{\md t}(t) &=
+    \int_0^{+\infty} \gamma(r) i(t, r) \md r
+    - \mu R(t),
+  \end{split}
+\end{equation}
+with birth rate
+\begin{equation}
+  b(t) = \mu \left[
+    1 + \sigma \sqrt{2} \cos\left(2 \pi t / T\right)
+  \right],
+\end{equation}
+period
+\begin{equation}
+  T = \unit[1]y,
+\end{equation}
+force of infection
+\begin{equation}
+  \lambda(t) = \beta \int_0^{+\infty} i(t, r) \md r,
+\end{equation}
+and population size
+\begin{equation}
+  N(t) =
+  S(t) + R(t)
+  + \int_0^{+\infty} m(t, r) + e(t, r) + i(t, r) \md r.
+\end{equation}
+
+As before, the total population follows
+\begin{equation}
+  \begin{split}
+    \frac{\md N}{\md t}(t)
+    &= \frac{\md S}{\md t}(t)
+    + \frac{\md R}{\md t}(t)
+    + \frac{\md}{\md t} \int_0^{+\infty} m(t, r) + e(t, r) + i(t, r) \md r
+    \\
+    &= \frac{\md S}{\md t}(t)
+    + \frac{\md R}{\md t}(t)
+    + \int_0^{+\infty} \frac{\partial m}{\partial t}(t, r)
+    + \frac{\partial e}{\partial t}(t, r)
+    + \frac{\partial i}{\partial t}(t, r) \md r
+    \\
+    &=
+    b(t) \left[N(t) - R(t)\right]
+    + \int_0^{+\infty} \omega(r) m(t, r) \md r
+    - \lambda(t) S(t) - \mu S(t)
+    \\ & \quad {}
+    + \int_0^{+\infty} \gamma(r) i(t, r) \md r
+    - \mu R(t)
+    \\ & \quad {}
+    - \int_0^{+\infty}
+    \frac{\partial m}{\partial r}(t, r)
+    + \omega(r) m(t, r)
+    + \mu m(t, r)
+    \md r
+    \\ & \quad {}
+    - \int_0^{+\infty}
+    \frac{\partial e}{\partial r}(t, r)
+    + \rho(r) e(t, r)
+    + \mu e(t, r)
+    \md r
+    \\ & \quad {}
+    - \int_0^{+\infty}
+    \frac{\partial i}{\partial r}(t, r)
+    + \gamma(r) i(t, r)
+    + \mu i(t, r)
+    \md r
+    \\
+    &=
+    b(t) \left[N(t) - R(t)\right]
+    \\ & \quad {}
+    - \mu \left[
+      S(t) + R(t)
+      + \int_0^{+\infty}
+      m(t, r) + e(t, r) + i(t, r)
+      \md r
+    \right]
+    \\ & \quad {}
+    - \lambda(t) S(t)
+    - \int_0^{+\infty}
+    \rho(r) e(t, r)
+    \md r
+    \\ & \quad {}
+    - m(t, +\infty) - e(t, +\infty) - i(t, +\infty)
+    + m(t, 0) + e(t, 0) + i(t, 0)
+    \\
+    &=
+    b(t) \left[N(t) - R(t)\right]
+    - \mu N(t)
+    \\ & \quad {}
+    - \lambda(t) S(t)
+    - \int_0^{+\infty}
+    \rho(r) e(t, r)
+    \md r
+    \\ & \quad {}
+    + b(t) R(t)
+    + \lambda(t) S(t)
+    + \int_0^{+\infty} \rho e(t, r) \md r
+    \\
+    &= b(t) N(t) - \mu N(t)
+    \\
+    &= \mu \sigma \sqrt{2} \cos\left(2 \pi t / T\right) N(t),
+  \end{split}
+\end{equation}
+so that
+\begin{equation}
+  N(t) = N(0) \exp\left[
+    \frac{\mu \sigma T}{\pi \sqrt{2}}
+    \sin\left(2 \pi t / T\right)
+  \right],
+\end{equation}
+i.e.~periodic with period $T = \unit[1]{y}$.
+
 
 \printbibliography
 

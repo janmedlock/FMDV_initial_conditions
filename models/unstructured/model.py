@@ -84,6 +84,10 @@ class Model(model.Base):
         _utility.assert_nonnegative(eql)
         return eql
 
+    def get_jacobian(self):
+        '''Get the Jacobian.'''
+        return _utility.jacobian(self)
+
     def get_eigenvalues(self, eql):
         '''Get the eigenvalues of the Jacobian.'''
         return _equilibrium.eigenvalues(self, 0, eql)
