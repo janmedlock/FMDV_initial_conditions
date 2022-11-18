@@ -22,9 +22,8 @@ if __name__ == '__main__':
     model = models.unstructured.Model()
     solution = model.solve(t_start, t_end, t_step)
     solution.solution.plot_solution(ax=ax_solution, legend=False)
-    limit_cycle = model.find_limit_cycle(t_end,
-                                         model.parameters.birth_period,
-                                         t_step,
+    limit_cycle = model.find_limit_cycle(model.parameters.birth_period,
+                                         t_end, t_step,
                                          solution.loc[t_end])
     limit_cycle.solution.plot_state(states=state_states,
                                     ax=ax_state)

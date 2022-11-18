@@ -106,7 +106,7 @@ class CrankNicolson(_ImplicitSolver):
         return y_cur + 0.5 * (t_new - t_cur) * self.func(t_cur, y_cur)
 
 
-def solve(func, t, y_0, **kwds):
+def solve(func, t, y_0, y=None, _solution_wrap=True, **kwds):
     '''Solve the ODE defined by the derivatives in `func`.'''
     solver = Solver.create(func, **kwds)
-    return solver(t, y_0)
+    return solver(t, y_0, y=y, _solution_wrap=_solution_wrap)

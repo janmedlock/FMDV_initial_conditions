@@ -92,11 +92,10 @@ class Model(model.Base):
         '''Get the eigenvalues of the Jacobian.'''
         return _equilibrium.eigenvalues(self, 0, eql)
 
-    def find_limit_cycle(self, t_0, period, t_step, y_0_guess):
+    def find_limit_cycle(self, period_0, t_0, t_step, y_0_guess):
         '''Find a limit cycle of the model.'''
-        lcy = _limit_cycle.find(self, t_0, period, t_step,
-                                y_0_guess,
-                                states=self.states)
+        lcy = _limit_cycle.find_subharmonic(self, period_0, t_0, t_step,
+                                            y_0_guess, states=self.states)
         _utility.assert_nonnegative(lcy)
         return lcy
 
