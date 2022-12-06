@@ -16,10 +16,11 @@ class Death:
                         (3, 12): 0.88,
                         (12, numpy.PINF): 0.66}
 
+    (_left, _right) = numpy.array(list(zip(*_annual_survival.keys())))
+
     # Death rate values with units per year.
-    _rate = {key: -numpy.log(val)
-             for (key, val)
-             in _annual_survival.items()}
+    _rate = - numpy.log(list(_annual_survival.values()))
+
 
     def __init__(self, parameters):
         # Death does not depend on `parameters`.
@@ -27,11 +28,21 @@ class Death:
 
     def rate(self, age):
         '''Death rate.'''
-        # `condlist` is a list of arrays of whether `age` is in each
-        # interval in `self._death_rate`.
-        condlist = [(left <= age) & (age < right)
-                    for (left, right) in self._rate.keys()]
-        return numpy.select(condlist, self._rate.values(), numpy.nan)
+        age = numpy.asarray(age)
+        isin = ((self._left <= age[..., None])
+                & (age[..., None] < self._right))
+        return numpy.select(isin.swapaxes(-1, 0),
+                            self._rate,
+                            numpy.nan)
+
+    def logsurvival(self, age):
+        age = numpy.asarray(age)
+        exposure = (numpy.clip(age[..., None], self._left, self._right)
+                    - self._left)
+        return numpy.sum(- exposure * self._rate, axis=-1)
+
+    def survival(self, age):
+        return numpy.exp(self.logsurvival(age))
 
     def rate_population_mean(self, birth, *args, **kwds):
         '''Get the mean death rate when the population is at the stable
