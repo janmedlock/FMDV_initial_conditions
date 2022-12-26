@@ -21,7 +21,6 @@ class Death:
     # Death rate values with units per year.
     _rate = - numpy.log(list(_annual_survival.values()))
 
-
     def __init__(self, parameters):
         # Death does not depend on `parameters`.
         pass
@@ -39,7 +38,7 @@ class Death:
         age = numpy.asarray(age)
         exposure = (numpy.clip(age[..., None], self._left, self._right)
                     - self._left)
-        return numpy.sum(- exposure * self._rate, axis=-1)
+        return numpy.sum(- self._rate * exposure, axis=-1)
 
     def survival(self, age):
         return numpy.exp(self.logsurvival(age))
