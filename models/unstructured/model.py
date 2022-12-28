@@ -7,22 +7,8 @@ from .. import model
 from .. import _utility
 
 
-class Model(model.Base):
+class Model(model.AgeIndependent):
     '''Unstructured model.'''
-
-    def __init__(self, **kwds):
-        super().__init__(**kwds)
-        # Use `self.birth` with age-dependent `.mean` to find
-        # `self.death_rate_mean`.
-        self.death_rate_mean = self.death.rate_population_mean(self.birth)
-        # Set `self.birth.mean` so the non-age-dependent model has
-        # zero population growth rate.
-        self.birth.mean = self._birth_rate_mean_for_zero_population_growth()
-
-    def _birth_rate_mean_for_zero_population_growth(self):
-        '''For this unstructured model, the mean population growth
-        rate is `self.birth_rate.mean - self.death_rate_mean`.'''
-        return self.death_rate_mean
 
     def __call__(self, t, y):
         '''The right-hand-side of the model ODEs.'''

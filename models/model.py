@@ -30,8 +30,24 @@ class Base:
         self.recovery = recovery.Recovery(self.parameters)
         self.transmission = transmission.Transmission(self.parameters)
         self.waning = waning.Waning(self.parameters)
-        self._states_have_antibodies = self._get_states_have_antibodies()
+        # Whether each state has antibodies.
+        self._states_have_antibodies = numpy.isin(self.states,
+                                                  self.states_with_antibodies)
 
-    def _get_states_have_antibodies(self):
-        '''True or False for whether each state has antibodies.'''
-        return numpy.isin(self.states, self.states_with_antibodies)
+
+class AgeIndependent(Base):
+    '''Base class for age-independent models.'''
+
+    def __init__(self, **kwds):
+        super().__init__(**kwds)
+        # Use `self.birth` with age-dependent `.mean` to find
+        # `self.death_rate_mean`.
+        self.death_rate_mean = self.death.rate_population_mean(self.birth)
+        # Set `self.birth.mean` so this age-independent model has
+        # zero population growth rate.
+        self.birth.mean = self._birth_rate_mean_for_zero_population_growth()
+
+    def _birth_rate_mean_for_zero_population_growth(self):
+        '''For this unstructured model, the mean population growth
+        rate is `self.birth_rate.mean - self.death_rate_mean`.'''
+        return self.death_rate_mean
