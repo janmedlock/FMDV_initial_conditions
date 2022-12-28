@@ -12,63 +12,77 @@
 
 \maketitle
 
+
+All of the models will use the periodic birth rate
+\begin{equation}
+  b(t) = \bar{b} \left[
+    1 + \sigma \sqrt{2} \cos\left(2 \pi t / T\right)
+  \right],
+\end{equation}
+with period
+\begin{equation}
+  T = \unit[1]{y}.
+\end{equation}
+As we will show for each model, the mean birth rate $\bar{b}$
+was chosen so that the total population is periodic in time.
+
+
 \section{Unstructured model}
 
 The model is
 \begin{equation}
   \label{model_unstructured}
   \begin{split}
-    \frac{\md M}{\md t}(t) &=
+    \frac{\md}{\md t} M(t) &=
     b(t) R(t) - \omega M(t) - \mu M(t),
     \\
-    \frac{\md S}{\md t}(t) &=
+    \frac{\md}{\md t} S(t) &=
     b(t) \left[N(t) - R(t)\right] + \omega M(t) - \lambda(t) S(t) - \mu S(t),
     \\
-    \frac{\md E}{\md t}(t) &=
+    \frac{\md}{\md t} E(t) &=
     \lambda(t) S(t) - \rho E(t) - \mu E(t),
     \\
-    \frac{\md I}{\md t}(t) &=
+    \frac{\md}{\md t} I(t) &=
     \rho E(t) - \gamma I(t) - \mu I(t),
     \\
-    \frac{\md R}{\md t}(t) &=
+    \frac{\md}{\md t} R(t) &=
     \gamma I(t) - \mu R(t),
   \end{split}
 \end{equation}
-with birth rate
+with force of infection
 \begin{equation}
-  b(t) = \mu \left[
-    1 + \sigma \sqrt{2} \cos\left(2 \pi t / T\right)
-  \right],
-\end{equation}
-period
-\begin{equation}
-  T = \unit[1]y,
-\end{equation}
-force of infection
-\begin{equation}
-  \lambda(t) = \beta I(t),
+  \lambda(t) = \beta I(t)
 \end{equation}
 and population size
 \begin{equation}
   N(t) = M(t) + S(t) + E(t) + I(t) + R(t).
 \end{equation}
 
+
+\subsection{Total population}
+
 The total population follows
 \begin{equation}
   \begin{split}
-    \frac{\md N}{\md t}(t)
+    \frac{\md}{\md t} N(t)
     &= b(t) N(t) - \mu N(t)
     \\
-    &= \mu \sigma \sqrt{2} \cos\left(2 \pi t / T\right) N(t),
+    &= \left[
+      \bar{b} - \mu
+      + \bar{b} \sigma \sqrt{2} \cos\left(2 \pi t / T\right)
+    \right]
+    N(t),
   \end{split}
 \end{equation}
 so that
 \begin{equation}
-  \log N(t) = \log N(0)
-  + \frac{\mu \sigma T}{\pi \sqrt{2}}
-  \sin\left(2 \pi t / T\right),
+  N(t) = N(0) \exp\left[
+    \left(\bar{b} - \mu\right) t
+    + \frac{\bar{b} \sigma T}{\pi \sqrt{2}}
+    \sin\left(2 \pi t / T\right)
+  \right].
 \end{equation}
-or
+We chose $\bar{b} = \mu$ so that
 \begin{equation}
   N(t) = N(0) \exp\left[
     \frac{\mu \sigma T}{\pi \sqrt{2}}
@@ -77,10 +91,13 @@ or
 \end{equation}
 i.e.~periodic with period $T = \unit[1]{y}$.
 
+
+\subsection{Numerical method}
+
 For the system of differential equations
 \begin{equation}
   \begin{split}
-    \frac{\md \vec{Y}}{\md t}(t)
+    \frac{\md}{\md t} \vec{Y}(t)
     &= \vec{f}\left(t, \vec{Y}(t)\right),
     \\
     \vec{Y}(0) &= \vec{Y}^0,
@@ -155,6 +172,150 @@ where
 \end{equation}
 
 
+\section{Time-since-entry-structured model}
+
+The model is
+\begin{equation}
+  \label{model_time_since_entry_structured}
+  \begin{split}
+    m(t, 0) &=
+    b(t) R(t),
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial z}\right)
+    m(t, z) &=
+    - \omega(z) m(t, z) - \mu m(t, z),
+    \\
+    \frac{\md}{\md t} S(t) &=
+    b(t) \left[N(t) - R(t)\right]
+    + \int_0^{+\infty} \omega(z) m(t, z) \md z
+    \\ & \quad {}
+    - \lambda(t) S(t) - \mu S(t),
+    \\
+    e(t, 0) &=
+    \lambda(t) S(t),
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial z}\right)
+    e(t, z) &=
+    - \rho(z) e(t, z) - \mu e(t, z),
+    \\
+    i(t, 0) &=
+    \int_0^{+\infty} \rho(z) e(t, z) \md z,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial z}\right)
+    i(t, z) &=
+    - \gamma(z) i(t, z) - \mu i(t, z),
+    \\
+    \frac{\md}{\md t} R(t) &=
+    \int_0^{+\infty} \gamma(z) i(t, z) \md z
+    - \mu R(t),
+  \end{split}
+\end{equation}
+with force of infection
+\begin{equation}
+  \lambda(t) = \beta \int_0^{+\infty} i(t, z) \md z
+\end{equation}
+and population size
+\begin{equation}
+  N(t) =
+  S(t) + R(t)
+  + \int_0^{+\infty} m(t, z) + e(t, z) + i(t, z) \md z.
+\end{equation}
+
+
+\subsection{Total population}
+
+\textbf{TODO: Simplify.}
+
+As before, the total population follows
+\begin{equation}
+  \begin{split}
+    \frac{\md}{\md t} N(t)
+    &= \frac{\md}{\md t} S(t)
+    + \frac{\md}{\md t} R(t)
+    + \frac{\md}{\md t} \int_0^{+\infty} m(t, z) + e(t, z) + i(t, z) \md z
+    \\
+    &= \frac{\md}{\md t} S(t)
+    + \frac{\md}{\md t} R(t)
+    + \int_0^{+\infty} \frac{\partial}{\partial t} m(t, z)
+    + \frac{\partial}{\partial t} e(t, z)
+    + \frac{\partial}{\partial t} i(t, z) \md z
+    \\
+    &=
+    b(t) \left[N(t) - R(t)\right]
+    + \int_0^{+\infty} \omega(z) m(t, z) \md z
+    - \lambda(t) S(t) - \mu S(t)
+    \\ & \quad {}
+    + \int_0^{+\infty} \gamma(z) i(t, z) \md z
+    - \mu R(t)
+    \\ & \quad {}
+    - \int_0^{+\infty}
+    \frac{\partial}{\partial z} m(t, z)
+    + \omega(z) m(t, z)
+    + \mu m(t, z)
+    \md z
+    \\ & \quad {}
+    - \int_0^{+\infty}
+    \frac{\partial}{\partial z} e(t, z)
+    + \rho(z) e(t, z)
+    + \mu e(t, z)
+    \md z
+    \\ & \quad {}
+    - \int_0^{+\infty}
+    \frac{\partial}{\partial z} i(t, z)
+    + \gamma(z) i(t, z)
+    + \mu i(t, z)
+    \md z
+    \\
+    &=
+    b(t) \left[N(t) - R(t)\right]
+    \\ & \quad {}
+    - \mu \left[
+      S(t) + R(t)
+      + \int_0^{+\infty}
+      m(t, z) + e(t, z) + i(t, z)
+      \md z
+    \right]
+    \\ & \quad {}
+    - \lambda(t) S(t)
+    - \int_0^{+\infty}
+    \rho(z) e(t, z)
+    \md z
+    \\ & \quad {}
+    - m(t, +\infty) - e(t, +\infty) - i(t, +\infty)
+    + m(t, 0) + e(t, 0) + i(t, 0)
+    \\
+    &=
+    b(t) \left[N(t) - R(t)\right]
+    - \mu N(t)
+    \\ & \quad {}
+    - \lambda(t) S(t)
+    - \int_0^{+\infty}
+    \rho(z) e(t, z)
+    \md z
+    \\ & \quad {}
+    + b(t) R(t)
+    + \lambda(t) S(t)
+    + \int_0^{+\infty} \rho(z) e(t, z) \md z
+    \\
+    &= b(t) N(t) - \mu N(t)
+    \\
+    &= \left[
+      \bar{b} - \mu
+      + \bar{b} \sigma \sqrt{2} \cos\left(2 \pi t / T\right)
+    \right] N(t).
+  \end{split}
+\end{equation}
+This is the same ODE for total population as in the unstructured
+model: as we did for that model, we chose $\bar{b} = \mu$ so that
+$N(t)$ is periodic.
+
+
+\subsection{Numerical method}
+
+
 \section{Age-structured model}
 
 The model is
@@ -164,57 +325,53 @@ The model is
     M(t, 0)
     &= b(t) \int_0^{+\infty} m(a) R(t, a) \md a,
     \\
-    \frac{\partial M}{\partial t}(t, a)
-    + \frac{\partial M}{\partial a}(t, a)
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    M(t, a)
     &= - \omega M(t, a) - \mu(a) M(t, a),
     \\
     S(t, 0)
     &= b(t) \int_0^{+\infty} m(a) \left[N(t, a) - R(t, a)\right] \md a,
     \\
-    \frac{\partial S}{\partial t}(t, a)
-    + \frac{\partial S}{\partial a}(t, a)
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    S(t, a)
     &= \omega M(t, a) - \lambda(t) S(t, a) - \mu(a) S(t, a),
     \\
     E(t, 0)
     &= 0,
     \\
-    \frac{\partial E}{\partial t}(t, a)
-    + \frac{\partial E}{\partial a}(t, a)
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    E(t, a)
     &= \lambda(t) S(t, a) - \rho E(t, a) - \mu(a) E(t, a),
     \\
     I(t, 0)
     &= 0,
     \\
-    \frac{\partial I}{\partial t}(t, a)
-    + \frac{\partial I}{\partial a}(t, a)
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    I(t, a)
     &= \rho E(t, a) - \gamma I(t, a) - \mu(a) I(t, a),
     \\
     R(t, 0)
     &= 0,
     \\
-    \frac{\partial R}{\partial t}(t, a)
-    + \frac{\partial R}{\partial a}(t, a)
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    R(t, a)
     &= \gamma I(t, a) - \mu(a) R(t, a),
   \end{split}
 \end{equation}
-with birth rate
+with force of infection
 \begin{equation}
-  b(t) = \bar{b} \left[
-    1 + \sigma \sqrt{2} \cos\left(2 \pi t / T\right)
-  \right],
-\end{equation}
-period
-\begin{equation}
-  T = \unit[1]y,
-\end{equation}
-force of infection
-\begin{equation}
-  \lambda(t) = \beta \int_0^{+\infty} I(t, a) \md a,
+  \lambda(t) = \beta \int_0^{+\infty} I(t, a) \md a
 \end{equation}
 and population size
 \begin{equation}
   N(t, a) = M(t, a) + S(t, a) + E(t, a) + I(t, a) + R(t, a).
 \end{equation}
+
 
 \subsection{Total population}
 
@@ -224,8 +381,9 @@ The total population follows the linear PDE
     N(t, 0)
     &= b(t) \int_0^{+\infty} m(a) N(t, a) \md a,
     \\
-    \frac{\partial N}{\partial t}(t, a)
-    + \frac{\partial N}{\partial a}(t, a)
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    N(t, a)
     &= - \mu(a) N(t, a).
   \end{split}
 \end{equation}
@@ -239,8 +397,9 @@ requires the fundamental solution $\Phi(t, a, a')$ to
     \Phi(t, 0, a')
     &= b(t) \int_0^{+\infty} m(a) \Phi(t, a, a') \md a,
     \\
-    \frac{\partial \Phi}{\partial t}(t, a, a')
-    + \frac{\partial \Phi}{\partial a}(t, a, a')
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    \Phi(t, a, a')
     &= - \mu(a) \Phi(t, a, a'),
     \\
     \Phi(t_0, a, a')
@@ -378,149 +537,7 @@ We used a nonlinear solver to search for the mean birth rate $\bar{b}$
 that gives population growth rate $r = 0$.
 
 
-\section{Time-since-entry-structured model}
-
-The model is
-\begin{equation}
-  \label{model_time_since_entry_structured}
-  \begin{split}
-    m(t, 0) &=
-    b(t) R(t),
-    \\
-    \frac{\partial m}{\partial t}(t, z)
-    + \frac{\partial m}{\partial z}(t, z) &=
-    - \omega(z) m(t, z) - \mu m(t, z),
-    \\
-    \frac{\md S}{\md t}(t) &=
-    b(t) \left[N(t) - R(t)\right]
-    + \int_0^{+\infty} \omega(z) m(t, z) \md z
-    \\ & \quad {}
-    - \lambda(t) S(t) - \mu S(t),
-    \\
-    e(t, 0) &=
-    \lambda(t) S(t),
-    \\
-    \frac{\partial e}{\partial t}(t, z)
-    + \frac{\partial e}{\partial z}(t, z) &=
-    - \rho(z) e(t, z) - \mu e(t, z),
-    \\
-    i(t, 0) &=
-    \int_0^{+\infty} \rho(z) e(t, z) \md z,
-    \\
-    \frac{\partial i}{\partial t}(t, z)
-    + \frac{\partial i}{\partial z}(t, z) &=
-    - \gamma(z) i(t, z) - \mu i(t, z),
-    \\
-    \frac{\md R}{\md t}(t) &=
-    \int_0^{+\infty} \gamma(z) i(t, z) \md z
-    - \mu R(t),
-  \end{split}
-\end{equation}
-with birth rate
-\begin{equation}
-  b(t) = \mu \left[
-    1 + \sigma \sqrt{2} \cos\left(2 \pi t / T\right)
-  \right],
-\end{equation}
-period
-\begin{equation}
-  T = \unit[1]y,
-\end{equation}
-force of infection
-\begin{equation}
-  \lambda(t) = \beta \int_0^{+\infty} i(t, z) \md z,
-\end{equation}
-and population size
-\begin{equation}
-  N(t) =
-  S(t) + R(t)
-  + \int_0^{+\infty} m(t, z) + e(t, z) + i(t, z) \md z.
-\end{equation}
-
-As before, the total population follows
-\begin{equation}
-  \begin{split}
-    \frac{\md N}{\md t}(t)
-    &= \frac{\md S}{\md t}(t)
-    + \frac{\md R}{\md t}(t)
-    + \frac{\md}{\md t} \int_0^{+\infty} m(t, z) + e(t, z) + i(t, z) \md z
-    \\
-    &= \frac{\md S}{\md t}(t)
-    + \frac{\md R}{\md t}(t)
-    + \int_0^{+\infty} \frac{\partial m}{\partial t}(t, z)
-    + \frac{\partial e}{\partial t}(t, z)
-    + \frac{\partial i}{\partial t}(t, z) \md z
-    \\
-    &=
-    b(t) \left[N(t) - R(t)\right]
-    + \int_0^{+\infty} \omega(z) m(t, z) \md z
-    - \lambda(t) S(t) - \mu S(t)
-    \\ & \quad {}
-    + \int_0^{+\infty} \gamma(z) i(t, z) \md z
-    - \mu R(t)
-    \\ & \quad {}
-    - \int_0^{+\infty}
-    \frac{\partial m}{\partial z}(t, z)
-    + \omega(z) m(t, z)
-    + \mu m(t, z)
-    \md z
-    \\ & \quad {}
-    - \int_0^{+\infty}
-    \frac{\partial e}{\partial z}(t, z)
-    + \rho(z) e(t, z)
-    + \mu e(t, z)
-    \md z
-    \\ & \quad {}
-    - \int_0^{+\infty}
-    \frac{\partial i}{\partial z}(t, z)
-    + \gamma(z) i(t, z)
-    + \mu i(t, z)
-    \md z
-    \\
-    &=
-    b(t) \left[N(t) - R(t)\right]
-    \\ & \quad {}
-    - \mu \left[
-      S(t) + R(t)
-      + \int_0^{+\infty}
-      m(t, z) + e(t, z) + i(t, z)
-      \md z
-    \right]
-    \\ & \quad {}
-    - \lambda(t) S(t)
-    - \int_0^{+\infty}
-    \rho(z) e(t, z)
-    \md z
-    \\ & \quad {}
-    - m(t, +\infty) - e(t, +\infty) - i(t, +\infty)
-    + m(t, 0) + e(t, 0) + i(t, 0)
-    \\
-    &=
-    b(t) \left[N(t) - R(t)\right]
-    - \mu N(t)
-    \\ & \quad {}
-    - \lambda(t) S(t)
-    - \int_0^{+\infty}
-    \rho(z) e(t, z)
-    \md z
-    \\ & \quad {}
-    + b(t) R(t)
-    + \lambda(t) S(t)
-    + \int_0^{+\infty} \rho(z) e(t, z) \md z
-    \\
-    &= b(t) N(t) - \mu N(t)
-    \\
-    &= \mu \sigma \sqrt{2} \cos\left(2 \pi t / T\right) N(t),
-  \end{split}
-\end{equation}
-so that
-\begin{equation}
-  N(t) = N(0) \exp\left[
-    \frac{\mu \sigma T}{\pi \sqrt{2}}
-    \sin\left(2 \pi t / T\right)
-  \right],
-\end{equation}
-i.e.~periodic with period $T = \unit[1]{y}$.
+\subsection{Numerical method}
 
 
 \section{Age- and time-since-entry-structured model}
@@ -538,17 +555,18 @@ The model is
     m(t, a, 0) &=
     0,
     \\
-    \frac{\partial m}{\partial t}(t, a, z)
-    + \frac{\partial m}{\partial a}(t, a, z)
-    + \frac{\partial m}{\partial z}(t, a, z) &=
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}
+      + \frac{\partial}{\partial z}\right)
+    m(t, a, z) &=
     - \omega(z) m(t, a, z) - \mu(a) m(t, a, z),
     \\
     S(t, 0) &=
     b(t) \int_0^{+\infty} m(a) \left[N(t, a) - R(t, a)\right] \md a,
     \\
-    \frac{\partial S}{\partial t}(t, a)
-    + \frac{\partial S}{\partial a}(t, a)
-    &=
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    S(t, a) &=
     \int_0^{+\infty} \omega(z) m(t, a, z) \md z
     \\ & \quad {}
     - \lambda(t) S(t, a) - \mu(a) S(t, a),
@@ -562,9 +580,10 @@ The model is
     e(t, a, 0) &=
     \lambda(t) S(t, a),
     \\
-    \frac{\partial e}{\partial t}(t, a, z)
-    + \frac{\partial e}{\partial a}(t, a, z)
-    + \frac{\partial e}{\partial z}(t, a, z) &=
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}
+      + \frac{\partial}{\partial z}\right)
+    e(t, a, z) &=
     - \rho(z) e(t, a, z) - \mu(a) e(t, a, z),
     \\
     i(t, 0, 0) &=
@@ -576,36 +595,29 @@ The model is
     i(t, a, 0) &=
     \int_0^{+\infty} \rho(z) e(t, a, z) \md z,
     \\
-    \frac{\partial i}{\partial t}(t, a, z)
-    + \frac{\partial i}{\partial a}(t, a, z)
-    + \frac{\partial i}{\partial z}(t, a, z) &=
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}
+      + \frac{\partial}{\partial z}\right)
+    i(t, a, z) &=
     - \gamma(z) i(t, a, z) - \mu(a) i(t, a, z),
     \\
     R(t, 0) &=
     0,
     \\
-    \frac{\partial R}{\partial t}(t, a)
-    + \frac{\partial R}{\partial a}(t, a) &=
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    R(t, a) &=
     \int_0^{+\infty} \gamma(z) i(t, a, z) \md z
-    \\ & \quad {}
     - \mu(a) R(t, a),
   \end{split}
 \end{equation}
-with birth rate
+with force of infection
 \begin{equation}
-  b(t) = \mu \left[
-    1 + \sigma \sqrt{2} \cos\left(2 \pi t / T\right)
-  \right],
-\end{equation}
-period
-\begin{equation}
-  T = \unit[1]y,
-\end{equation}
-force of infection
-\begin{equation}
-  \lambda(t) = \beta \int_0^{+\infty} \int_0^{+\infty}
+  \lambda(t) =
+  \beta
+  \int_0^{+\infty} \int_0^{+\infty}
   i(t, a, z)
-  \md a \md z,
+  \md a \md z
 \end{equation}
 and population size
 \begin{equation}
@@ -615,32 +627,27 @@ and population size
 \end{equation}
 
 
+\subsection{Total population}
 
-As before, the total population follows the linear PDE
+The total population follows the linear PDE
 \begin{equation}
   \begin{split}
     N(t, 0) &=
-    S(t, 0) + R(t, 0)
-    \\ & \quad {}
-    + \int_0^{+\infty} m(t, 0, z) + e(t, 0, z) + i(t, 0, z) \md z
-    \\
-    &=
     b(t) \int_0^{+\infty} m(a) N(t, a) \md a,
     \\
-    \frac{\partial N}{\partial t}(t, a)
-    + \frac{\partial N}{\partial a}(t, a)
-    &=
     \left(\frac{\partial}{\partial t}
       + \frac{\partial}{\partial a}\right)
-    \left[S(t, a) + R(t, a)\right]
-    \\ & \quad {}
-    + \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial a}\right)
-    \int_0^{+\infty} m(t, a, z) + e(t, a, z) + i(t, a, z) \md z
-    \\
-    &= - \mu(a) N(t, a).
+    N(t, a) &=
+    - \mu(a) N(t, a).
   \end{split}
 \end{equation}
+This is the same PDE for total population as in the age-structured
+model: as we did for that model, we used Floquet theory and a
+nonlinear solver to find the value of the mean birth rate $\bar{b}$
+that gives population growth rate $r = 0$.
+
+
+\subsection{Numerical method}
 
 
 \printbibliography
