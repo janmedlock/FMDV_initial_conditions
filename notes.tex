@@ -5,6 +5,8 @@
 \usepackage[style=vancouver]{biblatex}
 \addbibresource{notes.bib}
 
+\renewcommand{\vec}[1]{\boldsymbol{\mathrm{#1}}}
+
 \title{Crank--Nicolson for some SIR models}
 \author{Jan Medlock}
 
@@ -97,52 +99,52 @@ i.e.~periodic with period $T = \unit[1]{y}$.
 For the system of differential equations
 \begin{equation}
   \begin{split}
-    \frac{\md}{\md t} \vec{Y}(t)
-    &= \vec{f}\left(t, \vec{Y}(t)\right),
+    \frac{\md}{\md t} \vec{X}(t)
+    &= \vec{f}\left(t, \vec{X}(t)\right),
     \\
-    \vec{Y}(0) &= \vec{Y}^0,
+    \vec{X}(0) &= \vec{X}^0,
   \end{split}
 \end{equation}
 and time step $\Delta t$, let $t^k = k \Delta t$ for
 $k \in \{0, 1, \ldots, K - 1\}$ and
 \begin{equation}
-  \vec{Y}^k \approx \vec{Y}(t^k).
+  \vec{X}^k \approx \vec{X}(t^k).
 \end{equation}
 The Crank--Nicolson scheme is
 \begin{equation}
-  \frac{\vec{Y}^k - \vec{Y}^{k - 1}}{\Delta t}
+  \frac{\vec{X}^k - \vec{X}^{k - 1}}{\Delta t}
   = \frac{
-    \vec{f}\left(t^k, \vec{Y}^k\right)
-    + \vec{f}\left(t^{k - 1}, \vec{Y}^{k - 1}\right)
+    \vec{f}\left(t^k, \vec{X}^k\right)
+    + \vec{f}\left(t^{k - 1}, \vec{X}^{k - 1}\right)
   }{2}
 \end{equation}
 for $k \in \{1, \ldots, K - 1\}$.
-That is, we must find $\vec{Y}^k$ such that
+That is, we must find $\vec{X}^k$ such that
 \begin{equation}
   \label{cn_unstructured}
-  \vec{Y}^k
+  \vec{X}^k
   - \frac{\Delta t}{2}
-  \vec{f}\left(t^k, \vec{Y}^k\right)
-  - \vec{Y}^{k - 1}
+  \vec{f}\left(t^k, \vec{X}^k\right)
+  - \vec{X}^{k - 1}
   - \frac{\Delta t}{2}
-  \vec{f}\left(t^{k - 1}, \vec{Y}^{k - 1}\right)
+  \vec{f}\left(t^{k - 1}, \vec{X}^{k - 1}\right)
   = \vec{0}.
 \end{equation}
-If $\vec{f}\left(t^k, \vec{Y}^k\right)$ is linear in $\vec{Y}^k$
+If $\vec{f}\left(t^k, \vec{X}^k\right)$ is linear in $\vec{X}^k$
 then equation \eqref{cn_unstructured} may be solved efficiently for
-$\vec{Y}^k$ using matrix algebra, but generally we must use a
+$\vec{X}^k$ using matrix algebra, but generally we must use a
 nonlinear solver.
 
 For model \eqref{model_unstructured},
 \begin{equation}
-  \vec{Y}^k =
+  \vec{X}^k =
   \begin{bmatrix}
     M^k \\ S^k \\ E^k \\ I^k \\ R^k
   \end{bmatrix}
 \end{equation}
 and
 \begin{equation}
-  \vec{f}\left(t^k, \vec{Y}^k\right) =
+  \vec{f}\left(t^k, \vec{X}^k\right) =
   \begin{bmatrix}
     b\left(t^k\right) R^k
     - \omega M^k
@@ -315,6 +317,464 @@ $N(t)$ is periodic.
 
 \subsection{Numerical method}
 
+To numerically solve the system
+\eqref{model_time_since_entry_structured}, we used the Crank--Nicolson
+method on characteristics and the composite trapezoid rule for the birth
+integral \autocite{milner_1992}.  Given the time step $\Delta t$,
+let $z_j = j \Delta t$ for $j \in \{0, 1, 2, \ldots, J - 1\}$;
+$t^k = t_0 + k \Delta t$ for $k \in \{0, 1, \ldots, K - 1\}$;
+$X^k \approx X(t^k)$ for $X \in \{S, R\}$;
+and $y_j^k \approx y(t^k, z_j)$ for $y \in \{m, e, i\}$.
+For each $j$ and each $k \geq 1$, the Crank--Nicolson method on
+characteristics is
+\begin{equation}
+  \begin{split}
+    m_0^k &=
+    b(t^{k - 1 / 2}) \frac{R^k + R^{k - 1}}{2},
+    \\
+    \frac{m_j^k - m_{j - 1}^{k - 1}}{\Delta t} &=
+    - \frac{\omega(z_j) m_j^k + \omega(z_{j - 1}) m_{j - 1}^{k - 1}}{2}
+    - \mu \frac{m_j^k + m_{j - 1}^{k - 1}}{2},
+    \\
+    \frac{S^k - S^{k - 1}}{\Delta t} &=
+    b(t^{k - 1 / 2}) \left(\frac{N^k + N^{k - 1}}{2}
+      - \frac{R^k + R^{k - 1}}{2}\right)
+    \\ & \quad {}
+    + \frac{1}{2} \sum_{j = 1}^{J - 1}
+    \frac{\omega(z_j) m_j^k + \omega(z_{j - 1}) m_{j - 1}^k}{2}
+    \Delta t
+    \\ & \quad {}
+    + \frac{1}{2} \sum_{j = 1}^{J - 1}
+    \frac{\omega(z_j) m_j^{k - 1} + \omega(z_{j - 1}) m_{j - 1}^{k - 1}}{2}
+    \Delta t
+    \\ & \quad {}
+    - \frac{\lambda^k S^k + \lambda^{k - 1} S^{k - 1}}{2}
+    - \mu \frac{S^k + S^{k - 1}}{2},
+    \\
+    e_0^k &=
+    \frac{\lambda^k S^k + \lambda^{k - 1}S^{k - 1}}{2},
+    \\
+    \frac{e_j^k - e_{j - 1}^{k - 1}}{\Delta t} &=
+    - \frac{\rho(z_j) e_j^k + \rho(z_{j - 1}) e_{j - 1}^{k - 1}}{2}
+    - \mu \frac{e_j^k + e_{j - 1}^{k - 1}}{2},
+    \\
+    i_0^k &=
+    \frac{1}{2} \sum_{j = 1}^{J - 1}
+    \frac{\rho(z_j) e_j^k + \rho(z_{j - 1}) e_{j - 1}^k}{2}
+    \Delta t
+    \\ & \quad {}
+    + \frac{1}{2} \sum_{j = 1}^{J - 1}
+    \frac{\rho(z_j) e_j^{k - 1} + \rho(z_{j - 1}) e_{j - 1}^{k - 1}}{2}
+    \Delta t,
+    \\
+    \frac{i_j^k - i_{j - 1}^{k - 1}}{\Delta t} &=
+    - \frac{\gamma(z_j) i_j^k + \gamma(z_{j - 1}) i_{j - 1}^{k - 1}}{2}
+    - \mu \frac{i_j^k + i_{j - 1}^{k - 1}}{2},
+    \\
+    \frac{R^k - R^{k - 1}}{\Delta t} &=
+    \frac{1}{2} \sum_{j = 1}^{J - 1}
+    \frac{\gamma(z_j) i_j^k + \gamma(z_{j - 1}) i_{j - 1}^k}{2}
+    \Delta t
+    \\ & \quad {}
+    + \frac{1}{2} \sum_{j = 1}^{J - 1}
+    \frac{\gamma(z_j) i_j^{k - 1} + \gamma(z_{j - 1}) i_{j - 1}^{k - 1}}{2}
+    \Delta t,
+    \\ & \quad {}
+    - \mu \frac{R^k + R^{k - 1}}{2},
+  \end{split}
+\end{equation}
+with force of infection
+\begin{equation}
+  \lambda^k =
+  \beta \sum_{j = 1}^{J - 1}
+  \frac{i_j^k + i_{j - 1}^k}{2}
+  \Delta t
+\end{equation}
+and population size
+\begin{equation}
+  N^k =
+  S^k + R^k
+  + \sum_{j = 1}^{J - 1}
+  \frac{m_j^k + e_j^k + i_j^k + m_{j - 1}^k + e_{j - 1}^k + i_{j - 1}^k}{2}
+  \Delta t.
+\end{equation}
+
+Let
+\begin{align}
+  \vec{m}^k &=
+  \begin{bmatrix}
+    m_0^k \\ \vdots \\ m_{J - 1}^k
+  \end{bmatrix},
+  &
+  \vec{e}^k &=
+  \begin{bmatrix}
+    e_0^k \\ \vdots \\ e_{J - 1}^k
+  \end{bmatrix},
+  &
+  \vec{i}^k &=
+  \begin{bmatrix}
+    i_0^k \\ \vdots \\ i_{J - 1}^k
+  \end{bmatrix},
+\end{align}
+\begin{equation}
+  \vec{x}^k =
+  \begin{bmatrix}
+    m_0^k \\ \vdots \\ m_{J - 1}^k \\
+    S^k \\
+    e_0^k \\ \vdots \\ e_{J - 1}^k \\
+    i_0^k \\ \vdots \\ i_{J - 1}^k \\
+    R^k
+  \end{bmatrix},
+\end{equation}
+\begin{equation}
+  \begin{split}
+    \vec{v} &=
+    \Delta t
+    \begin{bmatrix}
+      \frac{1}{2} & 1 & \cdots & 1 & \frac{1}{2}
+    \end{bmatrix},
+    \\
+    \vec{\beta} &=
+    \begin{bmatrix}
+      \vec{0} & 0 & \vec{0} & \beta \vec{v} & 0
+    \end{bmatrix}
+    \\
+    \lambda^k &=
+    \vec{\beta} \vec{x}^k,
+    \\
+    \vec{\omega} &=
+    \begin{bmatrix}
+      \omega(z_0) & \cdots & \omega(z_{J - 1})
+    \end{bmatrix},
+    \\
+    \vec{\gamma} &=
+    \begin{bmatrix}
+      \gamma(z_0) & \cdots & \gamma(z_{J - 1})
+    \end{bmatrix},
+    \\
+    \vec{\rho} &=
+    \begin{bmatrix}
+      \rho(z_0) & \cdots & \rho(z_{J - 1})
+    \end{bmatrix},
+  \end{split}
+\end{equation}
+\begin{equation}
+  \begin{split}
+    \mat{A}_{mm}^{\text{constant}} &=
+    \begin{bmatrix}
+      1 & 0 & \cdots & 0
+      \\
+      0 & 1 + \frac{\Delta t}{2} \left[\omega(z_1) + \mu\right] &
+      \ddots & \vdots
+      \\
+      \vdots & \ddots & \ddots & 0
+      \\
+      0 & \cdots & 0 &
+      1 + \frac{\Delta t}{2} \left[\omega(z_{J - 1}) + \mu\right]
+    \end{bmatrix},
+    \\
+    \mat{B}_{mm}^{\text{constant}} &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & \cdots & 0
+      \\
+      1 - \frac{\Delta t}{2} \left[\omega(z_0) + \mu\right] & \ddots &
+      & & \vdots
+      \\
+      0 & \ddots & \ddots & & \vdots
+      \\
+      \vdots & \ddots & \ddots & \ddots & \vdots
+      \\
+      0 & \cdots & 0 &
+      1 - \frac{\Delta t}{2} \left[\omega(z_{J - 2}) + \mu\right] & 0
+    \end{bmatrix},
+  \end{split}
+\end{equation}
+\begin{equation}
+  \begin{split}
+    \vec{a}_{Sm}^{\text{constant}} &=
+    - \frac{\Delta t}{2} \vec{v} \circ \vec{\omega},
+    \\
+    \vec{b}_{Sm}^{\text{constant}} &=
+    \frac{\Delta t}{2} \vec{v} \circ \vec{\omega},
+    \\
+    a_{SS}^{\text{constant}} &=
+    1 + \frac{\Delta t}{2} \mu,
+    \\
+    b_{SS}^{\text{constant}} &=
+    1 - \frac{\Delta t}{2} \mu,
+  \end{split}
+\end{equation}
+\begin{equation}
+  \begin{split}
+    \mat{A}_{ee}^{\text{constant}} &=
+    \begin{bmatrix}
+      1 & 0 & \cdots & 0
+      \\
+      0 & 1 + \frac{\Delta t}{2} \left[\rho(z_1) + \mu\right] &
+      \ddots & \vdots
+      \\
+      \vdots & \ddots & \ddots & 0
+      \\
+      0 & \cdots & 0 &
+      1 + \frac{\Delta t}{2} \left[\rho(z_{J - 1}) + \mu\right]
+    \end{bmatrix},
+    \\
+    \mat{B}_{ee}^{\text{constant}} &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & \cdots & 0
+      \\
+      1 - \frac{\Delta t}{2} \left[\rho(z_0) + \mu\right] & \ddots &
+      & & \vdots
+      \\
+      0 & \ddots & \ddots & & \vdots
+      \\
+      \vdots & \ddots & \ddots & \ddots & \vdots
+      \\
+      0 & \cdots & 0 &
+      1 - \frac{\Delta t}{2} \left[\rho(z_{J - 2}) + \mu\right] & 0
+    \end{bmatrix},
+  \end{split}
+\end{equation}
+\begin{equation}
+  \begin{split}
+    \mat{A}_{ie}^{\text{constant}} &=
+    \begin{bmatrix}
+      - \frac{1}{2} \left(\vec{v} \circ \vec{\rho}\right)
+      \\
+      \vec{0}
+      \\
+      \vdots
+      \\
+      \vec{0}
+    \end{bmatrix},
+    \\
+    \mat{B}_{ie}^{\text{constant}} &=
+    \begin{bmatrix}
+      \frac{1}{2} \left(\vec{v} \circ \vec{\rho}\right)
+      \\
+      \vec{0}
+      \\
+      \vdots
+      \\
+      \vec{0}
+    \end{bmatrix},
+    \\
+    \mat{A}_{ii}^{\text{constant}} &=
+    \begin{bmatrix}
+      1 & 0 & \cdots & 0
+      \\
+      0 & 1 + \frac{\Delta t}{2} \left[\gamma(z_1) + \mu\right] &
+      \ddots & \vdots
+      \\
+      \vdots & \ddots & \ddots & 0
+      \\
+      0 & \cdots & 0 &
+      1 + \frac{\Delta t}{2} \left[\gamma(z_{J - 1}) + \mu\right]
+    \end{bmatrix},
+    \\
+    \mat{B}_{ii}^{\text{constant}} &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & \cdots & 0
+      \\
+      1 - \frac{\Delta t}{2} \left[\gamma(z_0) + \mu\right] & \ddots &
+      & & \vdots
+      \\
+      0 & \ddots & \ddots & & \vdots
+      \\
+      \vdots & \ddots & \ddots & \ddots & \vdots
+      \\
+      0 & \cdots & 0 &
+      1 - \frac{\Delta t}{2} \left[\gamma(z_{J - 2}) + \mu\right] & 0
+    \end{bmatrix},
+  \end{split}
+\end{equation}
+\begin{equation}
+  \begin{split}
+    \vec{a}_{Ri}^{\text{constant}} &=
+    - \frac{\Delta t}{2} \vec{v} \circ \vec{\gamma},
+    \\
+    \vec{b}_{Ri}^{\text{constant}} &=
+    \frac{\Delta t}{2} \vec{v} \circ \vec{\gamma},
+    \\
+    a_{RR}^{\text{constant}} &=
+    1 + \mu \frac{\Delta t}{2},
+    \\
+    b_{RR}^{\text{constant}} &=
+    1 - \mu \frac{\Delta t}{2}.
+  \end{split}
+\end{equation}
+\begin{equation}
+  \begin{split}
+    \mat{A}^{\text{constant}} &=
+    \begin{bmatrix}
+      \mat{A}_{mm}^{\text{constant}} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \\
+      \vec{a}_{Sm}^{\text{constant}} & a_{SS}^{\text{constant}} &
+      \vec{0} & \vec{0} & 0
+      \\
+      \mat{0} & \vec{0} & \mat{A}_{ee}^{\text{constant}} & \mat{0} & \vec{0}
+      \\
+      \mat{0} & \vec{0} & \mat{A}_{ie}^{\text{constant}} &
+      \mat{A}_{ii}^{\text{constant}} & \vec{0}
+      \\
+      \vec{0} & 0 & \vec{0} & \vec{a}_{Ri}^{\text{constant}} &
+      a_{RR}^{\text{constant}}
+    \end{bmatrix},
+    \\
+    \mat{B}^{\text{constant}} &=
+    \begin{bmatrix}
+      \mat{B}_{mm}^{\text{constant}} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \\
+      \vec{b}_{Sm}^{\text{constant}} & b_{SS}^{\text{constant}} &
+      \vec{0} & \vec{0} & 0
+      \\
+      \mat{0} & \vec{0} & \mat{B}_{ee}^{\text{constant}} & \mat{0} & \vec{0}
+      \\
+      \mat{0} & \vec{0} & \mat{B}_{ie}^{\text{constant}} &
+      \mat{B}_{ii}^{\text{constant}} & \vec{0}
+      \\
+      \vec{0} & 0 & \vec{0} & \vec{b}_{Ri}^{\text{constant}} &
+      b_{RR}^{\text{constant}}
+    \end{bmatrix},
+  \end{split}
+\end{equation}
+\begin{equation}
+  \begin{split}
+    \vec{a}_{mR}^{\text{birth}} &=
+    \begin{bmatrix}
+      - \frac{1}{2} \\ 0 \\ \vdots \\ 0
+    \end{bmatrix},
+    \\
+    \vec{b}_{mR}^{\text{birth}} &=
+    \begin{bmatrix}
+      \frac{1}{2} \\ 0 \\ \vdots \\ 0
+    \end{bmatrix},
+    \\
+    \vec{a}_{Sm}^{\text{birth}} &=
+    - \frac{\Delta t}{2} \vec{v},
+    \\
+    \vec{b}_{Sm}^{\text{birth}} &=
+    \frac{\Delta t}{2} \vec{v},
+    \\
+    a_{SS}^{\text{birth}} &=
+    - \frac{\Delta t}{2},
+    \\
+    b_{SS}^{\text{birth}} &=
+    \frac{\Delta t}{2},
+    \\
+    \vec{a}_{Se}^{\text{birth}} &= - \frac{\Delta t}{2} \vec{v},
+    \\
+    \vec{b}_{Se}^{\text{birth}} &= \frac{\Delta t}{2} \vec{v},
+    \\
+    \vec{a}_{Si}^{\text{birth}} &= - \frac{\Delta t}{2} \vec{v},
+    \\
+    \vec{b}_{Si}^{\text{birth}} &= \frac{\Delta t}{2} \vec{v},
+  \end{split}
+\end{equation}
+\begin{equation}
+  \begin{split}
+    \mat{A}^{\text{birth}} &=
+    \begin{bmatrix}
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{a}_{mR}^{\text{birth}}
+      \\
+      \vec{a}_{Sm}^{\text{birth}} & a_{SS}^{\text{birth}} &
+      \vec{a}_{Se}^{\text{birth}} & \vec{a}_{Si}^{\text{birth}} & 0
+      \\
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \\
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \\
+      \vec{0} & 0 & \vec{0} & \vec{0} & 0
+    \end{bmatrix},
+    \\
+    \mat{B}^{\text{birth}} &=
+    \begin{bmatrix}
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{b}_{mR}^{\text{birth}}
+      \\
+      \vec{b}_{Sm}^{\text{birth}} & b_{SS}^{\text{birth}} &
+      \vec{b}_{Se}^{\text{birth}} & \vec{b}_{Si}^{\text{birth}} & 0
+      \\
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \\
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \\
+      \vec{0} & 0 & \vec{0} & \vec{0} & 0
+    \end{bmatrix},
+  \end{split}
+\end{equation}
+\begin{equation}
+  \begin{split}
+    a_{SS}^{\text{infection}} &=
+    \frac{\Delta t}{2},
+    \\
+    b_{SS}^{\text{infection}} &=
+    - \frac{\Delta t}{2},
+    \\
+    \vec{a}_{eS}^{\text{infection}} &=
+    \begin{bmatrix}
+      - \frac{1}{2} \\ 0 \\ \vdots \\ 0
+    \end{bmatrix},
+    \\
+    \vec{b}_{eS}^{\text{infection}} &=
+    \begin{bmatrix}
+      \frac{1}{2} \\ 0 \\ \vdots \\ 0
+    \end{bmatrix},
+  \end{split}
+\end{equation}
+\begin{equation}
+  \begin{split}
+    \mat{A}^{\text{infection}} &=
+    \begin{bmatrix}
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \\
+      \vec{0} & a_{SS}^{\text{infection}} & \vec{0} & \vec{0} & 0
+      \\
+      \mat{0} & \vec{a}_{eS}^{\text{infection}} & \mat{0} & \mat{0} & \vec{0}
+      \\
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \\
+      \vec{0} & 0 & \vec{0} & \vec{0} & 0
+    \end{bmatrix},
+    \\
+    \mat{B}^{\text{infection}} &=
+    \begin{bmatrix}
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \\
+      \vec{0} & b_{SS}^{\text{infection}} & \vec{0} & \vec{0} & 0
+      \\
+      \mat{0} & \vec{b}_{eS}^{\text{infection}} & \mat{0} & \mat{0} & \vec{0}
+      \\
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \\
+      \vec{0} & 0 & \vec{0} & \vec{0} & 0
+    \end{bmatrix},
+  \end{split}
+\end{equation}
+\begin{equation}
+  \begin{split}
+    \mat{A}^k &=
+    \mat{A}^{\text{constant}}
+    + b(t^{k - 1 / 2}) \mat{A}^{\text{birth}},
+    \\
+    \vec{c}^k &=
+    \left[
+      \mat{B}^{\text{constant}}
+      + b(t^{k - 1 / 2}) \mat{B}^{\text{birth}}
+      + \vec{\beta} \vec{x}^{k - 1} \mat{B}^{\text{infection}}
+    \right] \vec{x}^{k - 1}.
+  \end{split}
+\end{equation}
+Then, for each $k \in \{1, 2, \ldots, K - 1\}$,
+we use a nonlinear solver to find $\vec{x}^k$ that satisfies
+\begin{equation}
+  \left[
+    \mat{A}^k
+    + \vec{\beta} \vec{x}^k \mat{A}^{\text{infection}}
+  \right] \vec{x}^k
+  - \vec{c}^k
+  = \vec{0}.
+\end{equation}
+
 
 \section{Age-structured model}
 
@@ -408,17 +868,15 @@ requires the fundamental solution $\Phi(t, a, a')$ to
 \end{equation}
 where $\delta(x)$ is the Dirac delta.
 
-To solve this numerically, we used the Crank--Nicolson method on
-characteristics and the composite trapezoid rule for the birth
-integral \autocite{milner_1992}.  Given the time step $\Delta t$,
-let $a_i = i \Delta t$
-and $a'_j = j \Delta t$
-for $i, j \in \{0, 1, 2, \ldots, I - 1\}$;
-$t^k = t_0 + k \Delta t$
-for $k \in \{0, 1, \ldots, K - 1\}$;
+To numerically solve the PDE for the fundamental solution, we used the
+Crank--Nicolson method on characteristics and the composite trapezoid
+rule for the birth integral \autocite{milner_1992}.  Given the time
+step $\Delta t$, let $a_i = i \Delta t$ and $a'_j = j \Delta t$ for
+$i, j \in \{0, 1, 2, \ldots, I - 1\}$;
+$t^k = t_0 + k \Delta t$ for $k \in \{0, 1, \ldots, K - 1\}$;
 and $\Phi_{i, j}^k \approx \Phi(t^k, a_i, a'_j)$.
-For each $j$
-and each $k \geq 1$, the Crank--Nicolson method on characteristics is
+For each $j$ and each $k \geq 1$, the Crank--Nicolson method on
+characteristics is
 \begin{equation}
   \label{CN_step}
   \frac{\Phi_{i, j}^k - \Phi_{i - 1, j}^{k - 1}}{\Delta t}
