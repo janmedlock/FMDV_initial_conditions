@@ -1000,6 +1000,29 @@ that gives population growth rate $r = 0$.
 
 \section{Age- and time-since-entry-structured model}
 
+\textbf{The units for the first equation,}
+\begin{displaymath}
+  m(t, 0, 0) &=
+  b(t) \int_0^{+\infty} m(a) R(t, a) \md a,
+\end{displaymath}
+\textbf{are inconsistent:}
+\begin{displaymath}
+  \mathrm{b} \mathrm{t}^{-2} \neq
+  \mathrm{t}^{-1} \cdot 1 \cdot \mathrm{b} \mathrm{t}^{-1} \cdot
+  \mathrm{t}
+  = \mathrm{b} \mathrm{t}^{-1}.
+\end{displaymath}
+\textbf{How about something like}
+\begin{displaymath}
+  \int_0^{+\infty} m(t, 0, z) \delta(z) \md z =
+  b(t) \int_0^{+\infty} m(a) R(t, a) \md a?
+\end{displaymath}
+\textbf{If I extend $R(t, a)$ to $r(t, a, z)$, the units are still inconsistent:}
+\begin{displaymath}
+  m(t, 0, 0) &=
+  b(t) \int_0^{+\infty} \int_0^{+\infty} m(a) r(t, a, z) \md a \md z.
+\end{displaymath}
+
 The model is
 \begin{equation}
   \label{model_age_and_time_since_entry_structured}
