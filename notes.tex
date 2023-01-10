@@ -15,6 +15,9 @@
 \maketitle
 
 
+\textbf{TO DO:} $(i, j, k) \to (j, k, \ell)$
+
+
 All of the models will use the periodic birth rate
 \begin{equation}
   b(t) = \bar{b} \left[
@@ -229,8 +232,6 @@ and population size
 
 \subsection{Total population}
 
-\textbf{TODO: Simplify.}
-
 As before, the total population follows
 \begin{equation}
   \begin{split}
@@ -319,14 +320,18 @@ $N(t)$ is periodic.
 
 To numerically solve the system
 \eqref{model_time_since_entry_structured}, we used the Crank--Nicolson
-method on characteristics and the composite trapezoid rule for the birth
-integral \autocite{milner_1992}.  Given the time step $\Delta t$,
-let $z_j = j \Delta t$ for $j \in \{0, 1, 2, \ldots, J - 1\}$;
-$t^k = t_0 + k \Delta t$ for $k \in \{0, 1, \ldots, K - 1\}$;
-$X^k \approx X(t^k)$ for $X \in \{S, R\}$;
-and $y_j^k \approx y(t^k, z_j)$ for $y \in \{m, e, i\}$.
-For each $j$ and each $k \geq 1$, the Crank--Nicolson method on
-characteristics is
+method on characteristics and the composite trapezoid rule for the
+integrals \autocite{milner_1992}.  Given the time step $\Delta t$,
+let $z_j = j \Delta t$
+for $j \in \{0, 1, 2, \ldots, J - 1\}$;
+$t^k = t_0 + k \Delta t$
+for $k \in \{0, 1, \ldots, K - 1\}$;
+$X^k \approx X(t^k)$
+for $X \in \{S, R\}$;
+and $y_j^k \approx y(t^k, z_j)$
+for $y \in \{m, e, i\}$.
+For each $j$
+and each $k \geq 1$, the Crank--Nicolson method on characteristics is
 \begin{equation}
   \begin{split}
     m_0^k &=
@@ -352,7 +357,7 @@ characteristics is
     - \mu \frac{S^k + S^{k - 1}}{2},
     \\
     e_0^k &=
-    \frac{\lambda^k S^k + \lambda^{k - 1}S^{k - 1}}{2},
+    \frac{\lambda^k S^k + \lambda^{k - 1} S^{k - 1}}{2},
     \\
     \frac{e_j^k - e_{j - 1}^{k - 1}}{\Delta t} &=
     - \frac{\rho(z_j) e_j^k + \rho(z_{j - 1}) e_{j - 1}^{k - 1}}{2}
@@ -996,6 +1001,92 @@ that gives population growth rate $r = 0$.
 
 
 \subsection{Numerical method}
+
+To numerically solve the system
+\eqref{model_age_structured}, we used the Crank--Nicolson
+method on characteristics and the composite trapezoid rule for the
+integrals \autocite{milner_1992}.  Given the time step $\Delta t$,
+let $a_i = i \Delta t$ for $i \in \{0, 1, 2, \ldots, I - 1\}$;
+$t^k = t_0 + k \Delta t$ for $k \in \{0, 1, \ldots, K - 1\}$;
+and $X_i^k \approx X(t^k, a_i)$ for $X \in \{M, S, E, I, R\}$.
+For each $i$ and each $k \geq 1$, the Crank--Nicolson method on
+characteristics is
+\begin{equation}
+  \begin{split}
+    M_0^k &=
+    b(t^{k - 1 / 2})
+    \frac{1}{2}
+    \Bigg[
+    \sum_{i = 1}^{I - 1}
+    \frac{\nu(a_i) R_i^k + \nu(a_{i - 1}) R_{i - 1}^k}{2}
+    \Delta t
+    \\ & \quad\quad\quad\quad\quad\quad\quad {}
+    + \sum_{i = 1}^{I - 1}
+    \frac{\nu(a_i) R_i^{k - 1} + \nu(a_{i - 1}) R_{i - 1}^{k - 1}}{2}
+    \Delta t
+    \Bigg],
+    \\
+    \frac{M_i^k - M_{i - 1}^{k - 1}}{\Delta t} &=
+    - \omega \frac{M_i^k + M_{i - 1}^{k - 1}}{2}
+    - \frac{\mu(a_i) M_i^k + \mu(a_{i - 1}) M_{i - 1}^{k - 1}}{2},
+    \\
+    S_0^k &=
+    b(t^{k - 1 / 2})
+    \frac{1}{2}
+    \Bigg[
+    \sum_{i = 1}^{I - 1}
+    \frac{\nu(a_i) (N_i^k - R_i^k)
+      + \nu(a_{i - 1}) (N_{i - 1}^k - R_{i - 1}^k)}
+    {2}
+    \Delta t
+    \\ & \quad\quad\quad\quad\quad\quad\quad {}
+    + \sum_{i = 1}^{I - 1}
+    \frac{\nu(a_i) (N_i^{k - 1} - R_i^{k - 1})
+      + \nu(a_{i - 1}) (N_{i - 1}^{k - 1} - R_{i - 1}^{k - 1})}
+    {2}
+    \Delta t
+    \Bigg],
+    \\
+    \frac{S_i^k - S_i^{k - 1}}{\Delta t} &=
+    \omega \frac{M_i^k + M_{i - 1}^k}{2}
+    - \frac{\lambda^k S_i^k + \lambda^{k - 1} S_{i - 1}^{k - 1}}{2}
+    \\ & \quad {}
+    - \frac{\mu(a_i) S_i^k + \mu(a_{i - 1}) S_{i - 1}^{k - 1}}{2},
+    \\
+    E_0^k &= 0,
+    \\
+    \frac{E_i^k - E_{i - 1}^{k - 1}}{\Delta t} &=
+    \frac{\lambda^k S_i^k + \lambda^{k - 1} S_{i - 1}^{k - 1}}{2}
+    - \rho \frac{E_i^k + E_{i - 1}^{k - 1}}{2}
+    \\ & \quad {}
+    - \frac{\mu(a_i) E_i^k + \mu(a_{i - 1}) E_{i - 1}^{k - 1}}{2},
+    \\
+    I_0^k &= 0,
+    \\
+    \frac{I_i^k - I_{i - 1}^{k - 1}}{\Delta t} &=
+    \rho \frac{E_i^k + E_{i - 1}^k}{2}
+    - \gamma \frac{I_i^k + I_{i - 1}^{k - 1}}{2}
+    - \frac{\mu(a_i) I_i^k + \mu(a_{i - 1}) I_{i - 1}^{k - 1}}{2},
+    \\
+    R_0^k &= 0,
+    \\
+    \frac{R_i^k - R_i^{k - 1}}{\Delta t} &=
+    \gamma \frac{I_i^k + I_{i - 1}^k}{2}
+    - \frac{\mu(a_i) R_i^k + \mu(a_{i - 1}) R_{i - 1}^{k - 1}}{2},
+  \end{split}
+\end{equation}
+with force of infection
+\begin{equation}
+  \lambda^k =
+  \beta \sum_{i = 1}^{I - 1}
+  \frac{I_i^k + I_{i - 1}^k}{2}
+  \Delta t
+\end{equation}
+and population size
+\begin{equation}
+  N_i^k =
+  M_i^k + S_i^k + E_i^k + I_i^k + R_i^k.
+\end{equation}
 
 
 \section{Age- and time-since-entry-structured model}
