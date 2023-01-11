@@ -15,10 +15,10 @@ def _poincaré_map_transform(x, poincaré_map, transform, y):
     return transform(y[-1])
 
 
-def find_with_period(func, period, t_0, t_step, y_0_guess,
-                     _solution_wrap=True, **kwds):
+def find_with_period(model, period, t_0, t_step, y_0_guess,
+                     _solution_wrap=True):
     '''Find a limit cycle with period `period`.'''
-    poincaré_map = _poincaré.Map(func, period, t_0, t_step, **kwds)
+    poincaré_map = _poincaré.Map(model, period, t_0, t_step)
     # Storage for intermediate y values.
     y = poincaré_map.build_y(y_0_guess)
     # Find the `y_0` value that is a fixed point of the Poincaré map,
@@ -33,31 +33,30 @@ def find_with_period(func, period, t_0, t_step, y_0_guess,
     return poincaré_map.solve(y_0, y=y, _solution_wrap=_solution_wrap)
 
 
-def find_subharmonic(func, period_0, t_0, t_step, y_0_guess,
-                     order_max=10, _solution_wrap=True, **kwds):
+def find_subharmonic(model, period_0, t_0, t_step, y_0_guess,
+                     order_max=10, _solution_wrap=True):
     '''Find a subharmonic limit cycle for a system with forcing period
     `period_0`.'''
     for order in numpy.arange(1, order_max + 1):
         try:
-            return find_with_period(func, order * period_0,
+            return find_with_period(model, order * period_0,
                                     t_0, t_step, y_0_guess,
-                                    _solution_wrap=_solution_wrap,
-                                    **kwds)
+                                    _solution_wrap=_solution_wrap)
         except RuntimeError:
             pass
     msg = f'No subharmonic limit cycle found with order <= {order_max}'
     raise RuntimeError(msg)
 
 
-def monodromy_matrix(func, limit_cycle, **kwds):
+def monodromy_matrix(model, limit_cycle):
     '''Get the monodromy matrix.'''
-    phi = _fundamental.solution(func, limit_cycle, **kwds)
+    phi = _fundamental.solution(model, limit_cycle)
     return phi[-1]
 
 
-def characteristic_multipliers(func, limit_cycle, **kwds):
+def characteristic_multipliers(model, limit_cycle):
     '''Get the characteristic multipliers of `limit_cycle`.'''
-    psi = monodromy_matrix(func, limit_cycle, **kwds)
+    psi = monodromy_matrix(model, limit_cycle)
     mlts = numpy.linalg.eigvals(psi)
     # Drop the one closest to 1.
     drop = numpy.abs(mlts - 1).argmin()
@@ -66,9 +65,9 @@ def characteristic_multipliers(func, limit_cycle, **kwds):
     return _utility.sort_by_abs(mlts)
 
 
-def characteristic_exponents(func, limit_cycle, **kwds):
+def characteristic_exponents(model, limit_cycle):
     '''Get the characteristic exponents of `limit_cycle`.'''
-    mlts = characteristic_multipliers(func, limit_cycle, **kwds)
+    mlts = characteristic_multipliers(model, limit_cycle)
     t = limit_cycle.index
     period = t[-1] - t[0]
     exps = numpy.log(mlts) / period

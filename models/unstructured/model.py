@@ -58,15 +58,13 @@ class Model(model.AgeIndependent):
         t = _utility.arange(t_start, t_end, t_step)
         if y_start is None:
             y_start = self.build_initial_conditions()
-        sol = _solver.solve(self, t, y_start,
-                            states=self.states)
+        sol = _solver.solve(self, t, y_start)
         _utility.assert_nonnegative(sol)
         return sol
 
     def find_equilibrium(self, y_0_guess):
         '''Find an equilibrium of the model.'''
-        eql = _equilibrium.find(self, 0, y_0_guess,
-                                states=self.states)
+        eql = _equilibrium.find(self, 0, y_0_guess)
         _utility.assert_nonnegative(eql)
         return eql
 
@@ -81,7 +79,7 @@ class Model(model.AgeIndependent):
     def find_limit_cycle(self, period_0, t_0, t_step, y_0_guess):
         '''Find a limit cycle of the model.'''
         lcy = _limit_cycle.find_subharmonic(self, period_0, t_0, t_step,
-                                            y_0_guess, states=self.states)
+                                            y_0_guess)
         _utility.assert_nonnegative(lcy)
         return lcy
 

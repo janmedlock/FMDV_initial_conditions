@@ -9,8 +9,8 @@ from .. import _utility
 class _VariationalSolver:
     '''Crank–Nicolson solver for the variational equation.'''
 
-    def __init__(self, func, y):
-        self._jacobian = _utility.jacobian(func)
+    def __init__(self, model, y):
+        self._jacobian = _utility.jacobian(model)
         self.y = y
 
     def jacobian(self, t):
@@ -52,6 +52,6 @@ class _VariationalSolver:
         return phi
 
 
-def solution(func, y, **kwds):
+def solution(model, y):
     '''Solve for the fundamental solution.'''
-    return _VariationalSolver(func, y).solve()
+    return _VariationalSolver(model, y).solve()

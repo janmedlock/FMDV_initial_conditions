@@ -10,8 +10,8 @@ from .. import _utility
 class Map:
     '''A Poincaré map.'''
 
-    def __init__(self, func, period, t_0, t_step, **kwds):
-        self.solver = _solver.Solver.create(func, **kwds)
+    def __init__(self, model, period, t_0, t_step):
+        self.solver = _solver.Solver(model)
         self.t = _utility.arange(t_0, t_0 + period, t_step)
 
     def build_y(self, y_0):
