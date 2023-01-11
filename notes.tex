@@ -114,8 +114,8 @@ For each $\ell \geq 1$, the Crank--Nicolson scheme is
 \begin{equation}
   \frac{\vec{X}^{\ell} - \vec{X}^{\ell - 1}}{\Delta t}
   = \frac{
-    \vec{f}\left(t^{\ell}, \vec{X}^{\ell}\right)
-    + \vec{f}\left(t^{\ell - 1}, \vec{X}^{\ell - 1}\right)
+    \vec{f}\left(t^{\ell - 1 / 2}, \vec{X}^{\ell}\right)
+    + \vec{f}\left(t^{\ell - 1 / 2}, \vec{X}^{\ell - 1}\right)
   }{2}.
 \end{equation}
 That is, we must find $\vec{X}^{\ell}$ such that
@@ -123,14 +123,14 @@ That is, we must find $\vec{X}^{\ell}$ such that
   \label{cn_unstructured}
   \vec{X}^{\ell}
   - \frac{\Delta t}{2}
-  \vec{f}\left(t^{\ell}, \vec{X}^{\ell}\right)
+  \vec{f}\left(t^{\ell - 1 / 2}, \vec{X}^{\ell}\right)
   - \vec{X}^{\ell - 1}
   - \frac{\Delta t}{2}
-  \vec{f}\left(t^{\ell - 1}, \vec{X}^{\ell - 1}\right)
+  \vec{f}\left(t^{\ell - 1 / 2}, \vec{X}^{\ell - 1}\right)
   = \vec{0}.
 \end{equation}
-If $\vec{f}\left(t^{\ell}, \vec{X}^{\ell}\right)$ is linear in
-$\vec{X}^{\ell}$ then equation \eqref{cn_unstructured} may be solved
+If $\vec{f}\left(t, \vec{X}\right)$ is linear in
+$\vec{X}$ then equation \eqref{cn_unstructured} may be solved
 efficiently for $\vec{X}^{\ell}$ using matrix algebra, but generally
 we must use a nonlinear solver.
 
@@ -143,18 +143,18 @@ For model \eqref{model_unstructured},
 \end{equation}
 and
 \begin{equation}
-  \vec{f}\left(t^{\ell}, \vec{X}^{\ell}\right) =
+  \vec{f}\left(t^{\ell - 1 / 2}, \vec{X}^{\ell}\right) =
   \begin{bmatrix}
-    b\left(t^{\ell}\right) R^{\ell}
+    b\left(t^{\ell - 1 / 2}\right) R^{\ell}
     - \omega M^{\ell}
     - \mu M^{\ell}
     \\
-    b\left(t^{\ell}\right) \left(N^{\ell} - R^{\ell}\right)
+    b\left(t^{\ell - 1 / 2}\right) \left(N^{\ell} - R^{\ell}\right)
     + \omega M^{\ell}
-    - \beta I^{\ell} S^{\ell}
+    - \lambda^{\ell} S^{\ell}
     - \mu S^{\ell}
     \\
-    \beta I^{\ell} S^{\ell}
+    \lambda^{\ell} S^{\ell}
     - \rho E^{\ell}
     - \mu E^{\ell}
     \\
@@ -166,9 +166,12 @@ and
     - \mu R^{\ell}
   \end{bmatrix},
 \end{equation}
-where
+with force of infection
 \begin{equation}
-  \label{eq:1}
+  \lambda^{\ell} = \beta I^{\ell}
+\end{equation}
+and population size
+\begin{equation}
   N^{\ell} = M^{\ell} + S^{\ell} + E^{\ell} + I^{\ell} + R^{\ell}.
 \end{equation}
 

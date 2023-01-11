@@ -63,23 +63,19 @@ class Euler(Solver):
 
 
 class _ImplicitSolver(Solver):
-    @property
     @abc.abstractmethod
-    def _a(self):
-        '''Coefficient in `_objective`.'''
-
-    @abc.abstractmethod
-    def _b(self, t_cur, y_cur, t_new):
+    def _const(self, t_cur, y_cur, t_new):
         '''Compute the term in `_objective()` that is independent of
         `y_new`.'''
 
-    def _objective(self, y_new, t_cur, t_new, b):
-        return y_new - self._a * (t_new - t_cur) * self.func(t_new, y_new) - b
+    @abc.abstractmethod
+    def _objective(self, y_new, t_cur, t_new, const):
+        '''The objective function for `scipy.optimize.root()` in `_step()`.'''
 
     def _step(self, t_cur, y_cur, t_new, y_new):
-        b = self._b(t_cur, y_cur, t_new)
+        const = self._const(t_cur, y_cur, t_new)
         result = scipy.optimize.root(self._objective, y_cur,
-                                     args=(t_cur, t_new, b))
+                                     args=(t_cur, t_new, const))
         assert result.success, f't={t_new}: {result}'
         y_new[:] = result.x
 
@@ -87,23 +83,31 @@ class _ImplicitSolver(Solver):
 class ImplicitEuler(_ImplicitSolver):
     method = 'Implicit Euler'
 
-    _a = 1
-
-    def _b(self, t_cur, y_cur, t_new):
+    def _const(self, t_cur, y_cur, t_new):
         '''Compute the term in `_objective()` that is independent of
         `y_new`.'''
         return y_cur
+
+    def _objective(self, y_new, t_cur, t_new, const):
+        return y_new - (t_new - t_cur) * self.func(t_new, y_new) - const
 
 
 class CrankNicolson(_ImplicitSolver):
     method = 'Crank–Nicolson'
 
-    _a = 0.5
+    @staticmethod
+    def _t_mid(t_cur, t_new):
+        return 0.5 * (t_new + t_cur)
 
-    def _b(self, t_cur, y_cur, t_new):
+    def _const(self, t_cur, y_cur, t_new):
         '''Compute the term in `_objective()` that is independent of
         `y_new`.'''
-        return y_cur + 0.5 * (t_new - t_cur) * self.func(t_cur, y_cur)
+        t_mid = self._t_mid(t_cur, t_new)
+        return y_cur + 0.5 * (t_new - t_cur) * self.func(t_mid, y_cur)
+
+    def _objective(self, y_new, t_cur, t_new, const):
+        t_mid = self._t_mid(t_cur, t_new)
+        return y_new - 0.5 * (t_new - t_cur) * self.func(t_mid, y_new) - const
 
 
 def solve(func, t, y_0, y=None, _solution_wrap=True, **kwds):
