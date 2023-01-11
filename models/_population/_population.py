@@ -67,12 +67,13 @@ class _Solver:
 
     def _step_birth(self, t_curr, birth_scaling):
         '''Do the birth step.'''
+        t_mid = t_curr + self.time_step / 2
         # self._sol_curr[0] = (birth_scaling
-        #                      * self.birth.rate(t_curr)
+        #                      * self.birth.rate(t_mid)
         #                      * self._vec_birth @ self._sol_curr)
         # Avoid building new vectors.
         self._vec_temp[:] = self._vec_birth
-        self._vec_temp *= birth_scaling * self.birth.rate(t_curr)
+        self._vec_temp *= birth_scaling * self.birth.rate(t_mid)
         self._vec_temp.dot(self._sol_curr, out=self._sol_curr[0])
 
     def _step(self, t_curr, birth_scaling):

@@ -918,7 +918,7 @@ rule,
 \begin{equation}
   \label{birth_step}
   \Phi_{0, k}^{\ell} =
-  b(t^{\ell})
+  b(t^{\ell - 1 / 2})
   \sum_{j = 1}^{J - 1}
   \frac{\nu(a_j) \Phi_{j, k}^{\ell}
     + \nu(a_{j - 1}) \Phi_{j - 1, k}^{\ell}}{2}
@@ -926,7 +926,7 @@ rule,
 \end{equation}
 or
 \begin{equation}
-  \mat{\Phi}_0^{\ell} = b(t^{\ell}) \vec{v} \mat{\Phi}^{\ell},
+  \mat{\Phi}_0^{\ell} = b(t^{\ell - 1 / 2}) \vec{v} \mat{\Phi}^{\ell},
 \end{equation}
 with the vector $\vec{v} = [v_j]$ for
 \begin{equation}
