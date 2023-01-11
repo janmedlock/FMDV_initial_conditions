@@ -15,9 +15,6 @@
 \maketitle
 
 
-\textbf{TO DO:} $(i, j, k) \to (j, k, \ell)$
-
-
 All of the models will use the periodic birth rate
 \begin{equation}
   b(t) = \bar{b} \left[
@@ -108,72 +105,71 @@ For the system of differential equations
     \vec{X}(0) &= \vec{X}^0,
   \end{split}
 \end{equation}
-and time step $\Delta t$, let $t^k = k \Delta t$ for
-$k \in \{0, 1, \ldots, K - 1\}$ and
+and time step $\Delta t$, let $t^{\ell} = \ell \Delta t$ for
+$\ell \in \{0, 1, \ldots, L - 1\}$ and
 \begin{equation}
-  \vec{X}^k \approx \vec{X}(t^k).
+  \vec{X}^{\ell} \approx \vec{X}(t^{\ell}).
 \end{equation}
-The Crank--Nicolson scheme is
+For each $\ell \geq 1$, the Crank--Nicolson scheme is
 \begin{equation}
-  \frac{\vec{X}^k - \vec{X}^{k - 1}}{\Delta t}
+  \frac{\vec{X}^{\ell} - \vec{X}^{\ell - 1}}{\Delta t}
   = \frac{
-    \vec{f}\left(t^k, \vec{X}^k\right)
-    + \vec{f}\left(t^{k - 1}, \vec{X}^{k - 1}\right)
-  }{2}
+    \vec{f}\left(t^{\ell}, \vec{X}^{\ell}\right)
+    + \vec{f}\left(t^{\ell - 1}, \vec{X}^{\ell - 1}\right)
+  }{2}.
 \end{equation}
-for $k \in \{1, \ldots, K - 1\}$.
-That is, we must find $\vec{X}^k$ such that
+That is, we must find $\vec{X}^{\ell}$ such that
 \begin{equation}
   \label{cn_unstructured}
-  \vec{X}^k
+  \vec{X}^{\ell}
   - \frac{\Delta t}{2}
-  \vec{f}\left(t^k, \vec{X}^k\right)
-  - \vec{X}^{k - 1}
+  \vec{f}\left(t^{\ell}, \vec{X}^{\ell}\right)
+  - \vec{X}^{\ell - 1}
   - \frac{\Delta t}{2}
-  \vec{f}\left(t^{k - 1}, \vec{X}^{k - 1}\right)
+  \vec{f}\left(t^{\ell - 1}, \vec{X}^{\ell - 1}\right)
   = \vec{0}.
 \end{equation}
-If $\vec{f}\left(t^k, \vec{X}^k\right)$ is linear in $\vec{X}^k$
-then equation \eqref{cn_unstructured} may be solved efficiently for
-$\vec{X}^k$ using matrix algebra, but generally we must use a
-nonlinear solver.
+If $\vec{f}\left(t^{\ell}, \vec{X}^{\ell}\right)$ is linear in
+$\vec{X}^{\ell}$ then equation \eqref{cn_unstructured} may be solved
+efficiently for $\vec{X}^{\ell}$ using matrix algebra, but generally
+we must use a nonlinear solver.
 
 For model \eqref{model_unstructured},
 \begin{equation}
-  \vec{X}^k =
+  \vec{X}^{\ell} =
   \begin{bmatrix}
-    M^k \\ S^k \\ E^k \\ I^k \\ R^k
+    M^{\ell} \\ S^{\ell} \\ E^{\ell} \\ I^{\ell} \\ R^{\ell}
   \end{bmatrix}
 \end{equation}
 and
 \begin{equation}
-  \vec{f}\left(t^k, \vec{X}^k\right) =
+  \vec{f}\left(t^{\ell}, \vec{X}^{\ell}\right) =
   \begin{bmatrix}
-    b\left(t^k\right) R^k
-    - \omega M^k
-    - \mu M^k
+    b\left(t^{\ell}\right) R^{\ell}
+    - \omega M^{\ell}
+    - \mu M^{\ell}
     \\
-    b\left(t^k\right) \left(N^k - R^k\right)
-    + \omega M^k
-    - \beta I^k S^k
-    - \mu S^k
+    b\left(t^{\ell}\right) \left(N^{\ell} - R^{\ell}\right)
+    + \omega M^{\ell}
+    - \beta I^{\ell} S^{\ell}
+    - \mu S^{\ell}
     \\
-    \beta I^k S^k
-    - \rho E^k
-    - \mu E^l
+    \beta I^{\ell} S^{\ell}
+    - \rho E^{\ell}
+    - \mu E^{\ell}
     \\
-    \rho E^k
-    - \gamma I^k
-    - \mu I^k
+    \rho E^{\ell}
+    - \gamma I^{\ell}
+    - \mu I^{\ell}
     \\
-    \gamma I^k
-    - \mu R^k
+    \gamma I^{\ell}
+    - \mu R^{\ell}
   \end{bmatrix},
 \end{equation}
 where
 \begin{equation}
   \label{eq:1}
-  N^k = M^k + S^k + E^k + I^k + R^k.
+  N^{\ell} = M^{\ell} + S^{\ell} + E^{\ell} + I^{\ell} + R^{\ell}.
 \end{equation}
 
 
@@ -322,113 +318,115 @@ To numerically solve the system
 \eqref{model_time_since_entry_structured}, we used the Crank--Nicolson
 method on characteristics and the composite trapezoid rule for the
 integrals \autocite{milner_1992}.  Given the time step $\Delta t$,
-let $z_j = j \Delta t$
-for $j \in \{0, 1, 2, \ldots, J - 1\}$;
-$t^k = t_0 + k \Delta t$
-for $k \in \{0, 1, \ldots, K - 1\}$;
-$X^k \approx X(t^k)$
+let $z_k = k \Delta t$
+for $k \in \{0, 1, 2, \ldots, K - 1\}$;
+$t^{\ell} = t_0 + \ell \Delta t$
+for $\ell \in \{0, 1, \ldots, L - 1\}$;
+$X^{\ell} \approx X(t^{\ell})$
 for $X \in \{S, R\}$;
-and $y_j^k \approx y(t^k, z_j)$
+and $y_k^{\ell} \approx y(t^{\ell}, z_k)$
 for $y \in \{m, e, i\}$.
-For each $j$
-and each $k \geq 1$, the Crank--Nicolson method on characteristics is
+For each $k$ and each $\ell \geq 1$, the Crank--Nicolson method on
+characteristics is
 \begin{equation}
   \begin{split}
-    m_0^k &=
-    b(t^{k - 1 / 2}) \frac{R^k + R^{k - 1}}{2},
+    m_0^{\ell} &=
+    b(t^{\ell - 1 / 2}) \frac{R^{\ell} + R^{\ell - 1}}{2},
     \\
-    \frac{m_j^k - m_{j - 1}^{k - 1}}{\Delta t} &=
-    - \frac{\omega(z_j) m_j^k + \omega(z_{j - 1}) m_{j - 1}^{k - 1}}{2}
-    - \mu \frac{m_j^k + m_{j - 1}^{k - 1}}{2},
+    \frac{m_k^{\ell} - m_{k - 1}^{\ell - 1}}{\Delta t} &=
+    - \frac{\omega(z_k) m_k^{\ell} + \omega(z_{k - 1}) m_{k - 1}^{\ell - 1}}{2}
+    - \mu \frac{m_k^{\ell} + m_{k - 1}^{\ell - 1}}{2},
     \\
-    \frac{S^k - S^{k - 1}}{\Delta t} &=
-    b(t^{k - 1 / 2}) \left(\frac{N^k + N^{k - 1}}{2}
-      - \frac{R^k + R^{k - 1}}{2}\right)
+    \frac{S^{\ell} - S^{\ell - 1}}{\Delta t} &=
+    b(t^{\ell - 1 / 2}) \left(\frac{N^{\ell} + N^{\ell - 1}}{2}
+      - \frac{R^{\ell} + R^{\ell - 1}}{2}\right)
     \\ & \quad {}
-    + \frac{1}{2} \sum_{j = 1}^{J - 1}
-    \frac{\omega(z_j) m_j^k + \omega(z_{j - 1}) m_{j - 1}^k}{2}
+    + \frac{1}{2} \sum_{k = 1}^{K - 1}
+    \frac{\omega(z_k) m_k^{\ell} + \omega(z_{k - 1}) m_{k - 1}^{\ell}}{2}
     \Delta t
     \\ & \quad {}
-    + \frac{1}{2} \sum_{j = 1}^{J - 1}
-    \frac{\omega(z_j) m_j^{k - 1} + \omega(z_{j - 1}) m_{j - 1}^{k - 1}}{2}
+    + \frac{1}{2} \sum_{k = 1}^{K - 1}
+    \frac{\omega(z_k) m_k^{\ell - 1} + \omega(z_{k - 1}) m_{k - 1}^{\ell - 1}}{2}
     \Delta t
     \\ & \quad {}
-    - \frac{\lambda^k S^k + \lambda^{k - 1} S^{k - 1}}{2}
-    - \mu \frac{S^k + S^{k - 1}}{2},
+    - \frac{\lambda^{\ell} S^{\ell} + \lambda^{\ell - 1} S^{\ell - 1}}{2}
+    - \mu \frac{S^{\ell} + S^{\ell - 1}}{2},
     \\
-    e_0^k &=
-    \frac{\lambda^k S^k + \lambda^{k - 1} S^{k - 1}}{2},
+    e_0^{\ell} &=
+    \frac{\lambda^{\ell} S^{\ell} + \lambda^{\ell - 1} S^{\ell - 1}}{2},
     \\
-    \frac{e_j^k - e_{j - 1}^{k - 1}}{\Delta t} &=
-    - \frac{\rho(z_j) e_j^k + \rho(z_{j - 1}) e_{j - 1}^{k - 1}}{2}
-    - \mu \frac{e_j^k + e_{j - 1}^{k - 1}}{2},
+    \frac{e_k^{\ell} - e_{k - 1}^{\ell - 1}}{\Delta t} &=
+    - \frac{\rho(z_k) e_k^{\ell} + \rho(z_{k - 1}) e_{k - 1}^{\ell - 1}}{2}
+    - \mu \frac{e_k^{\ell} + e_{k - 1}^{\ell - 1}}{2},
     \\
-    i_0^k &=
-    \frac{1}{2} \sum_{j = 1}^{J - 1}
-    \frac{\rho(z_j) e_j^k + \rho(z_{j - 1}) e_{j - 1}^k}{2}
+    i_0^{\ell} &=
+    \frac{1}{2} \sum_{k = 1}^{K - 1}
+    \frac{\rho(z_k) e_k^{\ell} + \rho(z_{k - 1}) e_{k - 1}^{\ell}}{2}
     \Delta t
     \\ & \quad {}
-    + \frac{1}{2} \sum_{j = 1}^{J - 1}
-    \frac{\rho(z_j) e_j^{k - 1} + \rho(z_{j - 1}) e_{j - 1}^{k - 1}}{2}
+    + \frac{1}{2} \sum_{k = 1}^{K - 1}
+    \frac{\rho(z_k) e_k^{\ell - 1} + \rho(z_{k - 1}) e_{k - 1}^{\ell - 1}}{2}
     \Delta t,
     \\
-    \frac{i_j^k - i_{j - 1}^{k - 1}}{\Delta t} &=
-    - \frac{\gamma(z_j) i_j^k + \gamma(z_{j - 1}) i_{j - 1}^{k - 1}}{2}
-    - \mu \frac{i_j^k + i_{j - 1}^{k - 1}}{2},
+    \frac{i_k^{\ell} - i_{k - 1}^{\ell - 1}}{\Delta t} &=
+    - \frac{\gamma(z_k) i_k^{\ell} + \gamma(z_{k - 1}) i_{k - 1}^{\ell - 1}}{2}
+    - \mu \frac{i_k^{\ell} + i_{k - 1}^{\ell - 1}}{2},
     \\
-    \frac{R^k - R^{k - 1}}{\Delta t} &=
-    \frac{1}{2} \sum_{j = 1}^{J - 1}
-    \frac{\gamma(z_j) i_j^k + \gamma(z_{j - 1}) i_{j - 1}^k}{2}
+    \frac{R^{\ell} - R^{\ell - 1}}{\Delta t} &=
+    \frac{1}{2} \sum_{k = 1}^{K - 1}
+    \frac{\gamma(z_k) i_k^{\ell} + \gamma(z_{k - 1}) i_{k - 1}^{\ell}}{2}
     \Delta t
     \\ & \quad {}
-    + \frac{1}{2} \sum_{j = 1}^{J - 1}
-    \frac{\gamma(z_j) i_j^{k - 1} + \gamma(z_{j - 1}) i_{j - 1}^{k - 1}}{2}
+    + \frac{1}{2} \sum_{k = 1}^{K - 1}
+    \frac{\gamma(z_k) i_k^{\ell - 1} + \gamma(z_{k - 1}) i_{k - 1}^{\ell - 1}}{2}
     \Delta t,
     \\ & \quad {}
-    - \mu \frac{R^k + R^{k - 1}}{2},
+    - \mu \frac{R^{\ell} + R^{\ell - 1}}{2},
   \end{split}
 \end{equation}
 with force of infection
 \begin{equation}
-  \lambda^k =
-  \beta \sum_{j = 1}^{J - 1}
-  \frac{i_j^k + i_{j - 1}^k}{2}
+  \lambda^{\ell} =
+  \beta \sum_{k = 1}^{K - 1}
+  \frac{i_k^{\ell} + i_{k - 1}^{\ell}}{2}
   \Delta t
 \end{equation}
 and population size
 \begin{equation}
-  N^k =
-  S^k + R^k
-  + \sum_{j = 1}^{J - 1}
-  \frac{m_j^k + e_j^k + i_j^k + m_{j - 1}^k + e_{j - 1}^k + i_{j - 1}^k}{2}
+  N^{\ell} =
+  S^{\ell} + R^{\ell}
+  + \sum_{k = 1}^{K - 1}
+  \frac{m_k^{\ell} + e_k^{\ell} + i_k^{\ell} + m_{k - 1}^{\ell}
+    + e_{k - 1}^{\ell} + i_{k - 1}^{\ell}}
+  {2}
   \Delta t.
 \end{equation}
 
 Let
 \begin{align}
-  \vec{m}^k &=
+  \vec{m}^{\ell} &=
   \begin{bmatrix}
-    m_0^k \\ \vdots \\ m_{J - 1}^k
+    m_0^{\ell} \\ \vdots \\ m_{K - 1}^{\ell}
   \end{bmatrix},
   &
-  \vec{e}^k &=
+  \vec{e}^{\ell} &=
   \begin{bmatrix}
-    e_0^k \\ \vdots \\ e_{J - 1}^k
+    e_0^{\ell} \\ \vdots \\ e_{K - 1}^{\ell}
   \end{bmatrix},
   &
-  \vec{i}^k &=
+  \vec{i}^{\ell} &=
   \begin{bmatrix}
-    i_0^k \\ \vdots \\ i_{J - 1}^k
+    i_0^{\ell} \\ \vdots \\ i_{K - 1}^{\ell}
   \end{bmatrix},
 \end{align}
 \begin{equation}
-  \vec{x}^k =
+  \vec{x}^{\ell} =
   \begin{bmatrix}
-    m_0^k \\ \vdots \\ m_{J - 1}^k \\
-    S^k \\
-    e_0^k \\ \vdots \\ e_{J - 1}^k \\
-    i_0^k \\ \vdots \\ i_{J - 1}^k \\
-    R^k
+    m_0^{\ell} \\ \vdots \\ m_{K - 1}^{\ell} \\
+    S^{\ell} \\
+    e_0^{\ell} \\ \vdots \\ e_{K - 1}^{\ell} \\
+    i_0^{\ell} \\ \vdots \\ i_{K - 1}^{\ell} \\
+    R^{\ell}
   \end{bmatrix},
 \end{equation}
 \begin{equation}
@@ -444,22 +442,22 @@ Let
       \vec{0} & 0 & \vec{0} & \beta \vec{v} & 0
     \end{bmatrix}
     \\
-    \lambda^k &=
-    \vec{\beta} \vec{x}^k,
+    \lambda^{\ell} &=
+    \vec{\beta} \vec{x}^{\ell},
     \\
     \vec{\omega} &=
     \begin{bmatrix}
-      \omega(z_0) & \cdots & \omega(z_{J - 1})
+      \omega(z_0) & \cdots & \omega(z_{K - 1})
     \end{bmatrix},
     \\
     \vec{\gamma} &=
     \begin{bmatrix}
-      \gamma(z_0) & \cdots & \gamma(z_{J - 1})
+      \gamma(z_0) & \cdots & \gamma(z_{K - 1})
     \end{bmatrix},
     \\
     \vec{\rho} &=
     \begin{bmatrix}
-      \rho(z_0) & \cdots & \rho(z_{J - 1})
+      \rho(z_0) & \cdots & \rho(z_{K - 1})
     \end{bmatrix},
   \end{split}
 \end{equation}
@@ -475,7 +473,7 @@ Let
       \vdots & \ddots & \ddots & 0
       \\
       0 & \cdots & 0 &
-      1 + \frac{\Delta t}{2} \left[\omega(z_{J - 1}) + \mu\right]
+      1 + \frac{\Delta t}{2} \left[\omega(z_{K - 1}) + \mu\right]
     \end{bmatrix},
     \\
     \mat{B}_{mm}^{\text{constant}} &=
@@ -490,7 +488,7 @@ Let
       \vdots & \ddots & \ddots & \ddots & \vdots
       \\
       0 & \cdots & 0 &
-      1 - \frac{\Delta t}{2} \left[\omega(z_{J - 2}) + \mu\right] & 0
+      1 - \frac{\Delta t}{2} \left[\omega(z_{K - 2}) + \mu\right] & 0
     \end{bmatrix},
   \end{split}
 \end{equation}
@@ -521,7 +519,7 @@ Let
       \vdots & \ddots & \ddots & 0
       \\
       0 & \cdots & 0 &
-      1 + \frac{\Delta t}{2} \left[\rho(z_{J - 1}) + \mu\right]
+      1 + \frac{\Delta t}{2} \left[\rho(z_{K - 1}) + \mu\right]
     \end{bmatrix},
     \\
     \mat{B}_{ee}^{\text{constant}} &=
@@ -536,7 +534,7 @@ Let
       \vdots & \ddots & \ddots & \ddots & \vdots
       \\
       0 & \cdots & 0 &
-      1 - \frac{\Delta t}{2} \left[\rho(z_{J - 2}) + \mu\right] & 0
+      1 - \frac{\Delta t}{2} \left[\rho(z_{K - 2}) + \mu\right] & 0
     \end{bmatrix},
   \end{split}
 \end{equation}
@@ -574,7 +572,7 @@ Let
       \vdots & \ddots & \ddots & 0
       \\
       0 & \cdots & 0 &
-      1 + \frac{\Delta t}{2} \left[\gamma(z_{J - 1}) + \mu\right]
+      1 + \frac{\Delta t}{2} \left[\gamma(z_{K - 1}) + \mu\right]
     \end{bmatrix},
     \\
     \mat{B}_{ii}^{\text{constant}} &=
@@ -589,7 +587,7 @@ Let
       \vdots & \ddots & \ddots & \ddots & \vdots
       \\
       0 & \cdots & 0 &
-      1 - \frac{\Delta t}{2} \left[\gamma(z_{J - 2}) + \mu\right] & 0
+      1 - \frac{\Delta t}{2} \left[\gamma(z_{K - 2}) + \mu\right] & 0
     \end{bmatrix},
   \end{split}
 \end{equation}
@@ -757,26 +755,26 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}^k &=
+    \mat{A}^{\ell} &=
     \mat{A}^{\text{constant}}
-    + b(t^{k - 1 / 2}) \mat{A}^{\text{birth}},
+    + b(t^{\ell - 1 / 2}) \mat{A}^{\text{birth}},
     \\
-    \vec{c}^k &=
+    \vec{c}^{\ell} &=
     \left[
       \mat{B}^{\text{constant}}
-      + b(t^{k - 1 / 2}) \mat{B}^{\text{birth}}
-      + \vec{\beta} \vec{x}^{k - 1} \mat{B}^{\text{infection}}
-    \right] \vec{x}^{k - 1}.
+      + b(t^{\ell - 1 / 2}) \mat{B}^{\text{birth}}
+      + \vec{\beta} \vec{x}^{\ell - 1} \mat{B}^{\text{infection}}
+    \right] \vec{x}^{\ell - 1}.
   \end{split}
 \end{equation}
-Then, for each $k \in \{1, 2, \ldots, K - 1\}$,
-we use a nonlinear solver to find $\vec{x}^k$ that satisfies
+Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
+we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
 \begin{equation}
   \left[
-    \mat{A}^k
-    + \vec{\beta} \vec{x}^k \mat{A}^{\text{infection}}
-  \right] \vec{x}^k
-  - \vec{c}^k
+    \mat{A}^{\ell}
+    + \vec{\beta} \vec{x}^{\ell} \mat{A}^{\text{infection}}
+  \right] \vec{x}^{\ell}
+  - \vec{c}^{\ell}
   = \vec{0}.
 \end{equation}
 
@@ -876,89 +874,91 @@ where $\delta(x)$ is the Dirac delta.
 To numerically solve the PDE for the fundamental solution, we used the
 Crank--Nicolson method on characteristics and the composite trapezoid
 rule for the birth integral \autocite{milner_1992}.  Given the time
-step $\Delta t$, let $a_i = i \Delta t$ and $a'_j = j \Delta t$ for
-$i, j \in \{0, 1, 2, \ldots, I - 1\}$;
-$t^k = t_0 + k \Delta t$ for $k \in \{0, 1, \ldots, K - 1\}$;
-and $\Phi_{i, j}^k \approx \Phi(t^k, a_i, a'_j)$.
-For each $j$ and each $k \geq 1$, the Crank--Nicolson method on
-characteristics is
+step $\Delta t$, let $a_j = j \Delta t$ and $a'_k = k \Delta t$ for
+$j, k \in \{0, 1, 2, \ldots, J - 1\}$;
+$t^{\ell} = t_0 + \ell \Delta t$ for
+$\ell \in \{0, 1, \ldots, L - 1\}$;
+and $\Phi_{j, k}^{\ell} \approx \Phi(t^{\ell}, a_j, a'_k)$.
+For each $k$ and each $\ell \geq 1$, the Crank--Nicolson
+method on characteristics is
 \begin{equation}
   \label{CN_step}
-  \frac{\Phi_{i, j}^k - \Phi_{i - 1, j}^{k - 1}}{\Delta t}
-  = - \mu(a_{i - 1 / 2})
-  \frac{\Phi_{i, j}^k + \Phi_{i - 1, j}^{k - 1}}{2},
+  \frac{\Phi_{j, k}^{\ell} - \Phi_{j - 1, k}^{\ell - 1}}{\Delta t}
+  = - \mu(a_{j - 1 / 2})
+  \frac{\Phi_{j, k}^{\ell} + \Phi_{j - 1, k}^{\ell - 1}}{2},
 \end{equation}
 or
 \begin{equation}
-  \Phi_{i, j}^k
-  = \frac{1 - C_{i - 1 / 2}}{1 + C_{i - 1 / 2}}
-  \Phi_{i - 1, j}^{k - 1},
+  \Phi_{j, k}^{\ell}
+  = \frac{1 - C_{j - 1 / 2}}{1 + C_{j - 1 / 2}}
+  \Phi_{j - 1, k}^{\ell - 1},
 \end{equation}
 with
 \begin{equation}
-  C_{i - 1 / 2}
-  = \frac{1}{2} \mu(a_{i - 1 / 2}) \Delta t,
+  C_{j - 1 / 2}
+  = \frac{1}{2} \mu(a_{j - 1 / 2}) \Delta t,
 \end{equation}
-for $i \in \{1, 2, \ldots, I - 2\}$.  For $i = I - 1$,
+for $j \in \{1, 2, \ldots, J - 2\}$.  For $j = J - 1$,
 a term was added to prevent aging out of this
 last age group:
 \begin{equation}
-  \Phi_{I - 1, j}^k
-  = \frac{1 - C_{I - 3 / 2}}{1 + C_{I - 3 / 2}}
-  \Phi_{I - 2, j}^{k - 1}
-  + \frac{1 - C_{I - 1}}{1 + C_{I - 1}}
-  \Phi_{I - 1, j}^{k - 1},
+  \Phi_{J - 1, k}^{\ell}
+  = \frac{1 - C_{J - 3 / 2}}{1 + C_{J - 3 / 2}}
+  \Phi_{J - 2, k}^{\ell - 1}
+  + \frac{1 - C_{J - 1}}{1 + C_{J - 1}}
+  \Phi_{J - 1, k}^{\ell - 1},
 \end{equation}
 with
 \begin{equation}
-  C_{I - 1}
-  = \frac{1}{2} \mu(a_{I - 1}) \Delta t.
+  C_{J - 1}
+  = \frac{1}{2} \mu(a_{J - 1}) \Delta t.
 \end{equation}
-For $i = 0$, the birth integral is given by the composite trapezoid rule,
+For $j = 0$, the birth integral is given by the composite trapezoid
+rule,
 \begin{equation}
   \label{birth_step}
-  \Phi_{0, j}^k =
-  b(t^k)
-  \sum_{i = 1}^{I - 1}
-  \frac{m(a_i) \Phi_{i, j}^k
-    + m(a_{i - 1}) \Phi_{i - 1, j}^k}{2}
+  \Phi_{0, k}^{\ell} =
+  b(t^{\ell})
+  \sum_{j = 1}^{J - 1}
+  \frac{\nu(a_j) \Phi_{j, k}^{\ell}
+    + \nu(a_{j - 1}) \Phi_{j - 1, k}^{\ell}}{2}
   \Delta t,
 \end{equation}
 or
 \begin{equation}
-  \mat{\Phi}_0^k = b(t^k) \vec{v} \mat{\Phi}^k,
+  \mat{\Phi}_0^{\ell} = b(t^{\ell}) \vec{v} \mat{\Phi}^{\ell},
 \end{equation}
-with the vector $\vec{v} = [v_i]$ for
+with the vector $\vec{v} = [v_j]$ for
 \begin{equation}
-  v_i =
+  v_j =
   \begin{cases}
-    \frac{1}{2} m(a_i) \Delta t
-    & \text{if $i = 0$ or $i = I - 1$}, \\
-    m(a_i) \Delta t
+    \frac{1}{2} \nu(a_j) \Delta t
+    & \text{if $j = 0$ or $j = J - 1$}, \\
+    \nu(a_j) \Delta t
     & \text{otherwise}.
   \end{cases}
 \end{equation}
 The initial condition is
 \begin{equation}
-  \Phi_{i, j}^0 =
+  \Phi_{j, k}^0 =
   \begin{cases}
-    1 & \text{if $i = j$}, \\
+    1 & \text{if $j = k$}, \\
     0 & \text{otherwise}.
   \end{cases}
 \end{equation}
-Considering $\mat{\Phi}^k = [\Phi_{i, j}^k]$ as a matrix that
-evolves in time, the method is easily implemented with matrix algebra:
-the Crank--Nicolson step \eqref{CN_step} is
+Considering $\mat{\Phi}^{\ell} = [\Phi_{j, k}^{\ell}]$ as a matrix
+that evolves in time, the method is easily implemented with matrix
+algebra: the Crank--Nicolson step \eqref{CN_step} is
 \begin{equation}
-  \mat{\Phi}^k = \mat{M} \mat{\Phi}^{k - 1},
+  \mat{\Phi}^{\ell} = \mat{M} \mat{\Phi}^{\ell - 1},
 \end{equation}
-with the matrix $\mat{M} = [M_{i, j}]$ where
+with the matrix $\mat{M} = [M_{j, k}]$ where
 \begin{equation}
-  M_{i, j} =
+  M_{j, k} =
   \begin{cases}
-    \frac{1 - C_{i - 1 / 2}}{1 + C_{i - 1 / 2}}
-    & \text{if $i = j + 1$}, \\
-    \frac{1 - C_{I - 1}}{1 + C_{I - 1}} & \text{if $i = j = I - 1$}, \\
+    \frac{1 - C_{j - 1 / 2}}{1 + C_{j - 1 / 2}}
+    & \text{if $j = k + 1$}, \\
+    \frac{1 - C_{J - 1}}{1 + C_{J - 1}} & \text{if $j = k = J - 1$}, \\
     0 & \text{otherwise}.
   \end{cases}
 \end{equation}
@@ -966,29 +966,28 @@ The initial condition is
 \begin{equation}
   \mat{\Phi}^0 = \mat{I},
 \end{equation}
-where $\mat{I}$ is the $I \times I$ identity matrix.
+where $\mat{I}$ is the $J \times J$ identity matrix.
 
 Using this numerical scheme, we solved for the monodromy matrix, the
 fundamental solution after one period:
 \begin{equation}
-  \mat{\Psi} = [\Psi_{i, j}] \approx [\Phi(t_0 + T, a_i, a'_j)].
+  \mat{\Psi} = [\Psi_{j, k}] \approx [\Phi(t_0 + T, a_j, a'_k)].
 \end{equation}
 The monodromy matrix projects the population forward at by one period,
 \begin{equation}
   \vec{n}(t_0 + T) = \mat{\Psi} \vec{n}(t_0),
 \end{equation}
-where $\vec{n}(t) = [N(t, a_i)]$.
+where $\vec{n}(t) = [N(t, a_j)]$.
 Using the monodromy matrix to repeatedly project the population
 forward gives
 \begin{equation}
-  \vec{n}(t_0 + K T)
-  = \mat{\Psi}^K \vec{n}(t_0)
-  \to \rho_0^K \vec{w}_0
-  = \me^{r K T} \vec{w}_0
+  \vec{n}(t_0 + m T)
+  = \mat{\Psi}^m \vec{n}(t_0)
+  \to \rho_0^m \vec{w}_0
+  = \me^{r m T} \vec{w}_0
 \end{equation}
-as $K \to +\infty$,
-where $\rho_0$ is the dominant eigenvalue, i.e.~the eigenvalue with
-largest magnitude, of $\mat{\Psi}$;
+as $m \to +\infty$, where $\rho_0$ is the dominant eigenvalue,
+i.e.~the eigenvalue with largest magnitude, of $\mat{\Psi}$;
 the corresponding right eigenvector $\vec{w}_0$ is the stable age
 distribution; and
 \begin{equation}
@@ -1006,86 +1005,87 @@ To numerically solve the system
 \eqref{model_age_structured}, we used the Crank--Nicolson
 method on characteristics and the composite trapezoid rule for the
 integrals \autocite{milner_1992}.  Given the time step $\Delta t$,
-let $a_i = i \Delta t$ for $i \in \{0, 1, 2, \ldots, I - 1\}$;
-$t^k = t_0 + k \Delta t$ for $k \in \{0, 1, \ldots, K - 1\}$;
-and $X_i^k \approx X(t^k, a_i)$ for $X \in \{M, S, E, I, R\}$.
-For each $i$ and each $k \geq 1$, the Crank--Nicolson method on
+let $a_j = j \Delta t$ for $j \in \{0, 1, 2, \ldots, J - 1\}$;
+$t^{\ell} = t_0 + \ell \Delta t$ for
+$\ell \in \{0, 1, \ldots, L - 1\}$; and
+$X_j^{\ell} \approx X(t^{\ell}, a_j)$ for $X \in \{M, S, E, I, R\}$.
+For each $j$ and each $\ell \geq 1$, the Crank--Nicolson method on
 characteristics is
 \begin{equation}
   \begin{split}
-    M_0^k &=
-    b(t^{k - 1 / 2})
+    M_0^{\ell} &=
+    b(t^{\ell - 1 / 2})
     \frac{1}{2}
     \Bigg[
-    \sum_{i = 1}^{I - 1}
-    \frac{\nu(a_i) R_i^k + \nu(a_{i - 1}) R_{i - 1}^k}{2}
+    \sum_{j = 1}^{J - 1}
+    \frac{\nu(a_j) R_j^{\ell} + \nu(a_{j - 1}) R_{j - 1}^{\ell}}{2}
     \Delta t
     \\ & \quad\quad\quad\quad\quad\quad\quad {}
-    + \sum_{i = 1}^{I - 1}
-    \frac{\nu(a_i) R_i^{k - 1} + \nu(a_{i - 1}) R_{i - 1}^{k - 1}}{2}
+    + \sum_{j = 1}^{J - 1}
+    \frac{\nu(a_j) R_j^{\ell - 1} + \nu(a_{j - 1}) R_{j - 1}^{\ell - 1}}{2}
     \Delta t
     \Bigg],
     \\
-    \frac{M_i^k - M_{i - 1}^{k - 1}}{\Delta t} &=
-    - \omega \frac{M_i^k + M_{i - 1}^{k - 1}}{2}
-    - \frac{\mu(a_i) M_i^k + \mu(a_{i - 1}) M_{i - 1}^{k - 1}}{2},
+    \frac{M_j^{\ell} - M_{j - 1}^{\ell - 1}}{\Delta t} &=
+    - \omega \frac{M_j^{\ell} + M_{j - 1}^{\ell - 1}}{2}
+    - \frac{\mu(a_j) M_j^{\ell} + \mu(a_{j - 1}) M_{j - 1}^{\ell - 1}}{2},
     \\
-    S_0^k &=
-    b(t^{k - 1 / 2})
+    S_0^{\ell} &=
+    b(t^{\ell - 1 / 2})
     \frac{1}{2}
     \Bigg[
-    \sum_{i = 1}^{I - 1}
-    \frac{\nu(a_i) (N_i^k - R_i^k)
-      + \nu(a_{i - 1}) (N_{i - 1}^k - R_{i - 1}^k)}
+    \sum_{j = 1}^{J - 1}
+    \frac{\nu(a_j) (N_j^{\ell} - R_j^{\ell})
+      + \nu(a_{j - 1}) (N_{j - 1}^{\ell} - R_{j - 1}^{\ell})}
     {2}
     \Delta t
     \\ & \quad\quad\quad\quad\quad\quad\quad {}
-    + \sum_{i = 1}^{I - 1}
-    \frac{\nu(a_i) (N_i^{k - 1} - R_i^{k - 1})
-      + \nu(a_{i - 1}) (N_{i - 1}^{k - 1} - R_{i - 1}^{k - 1})}
+    + \sum_{j = 1}^{J - 1}
+    \frac{\nu(a_j) (N_j^{\ell - 1} - R_j^{\ell - 1})
+      + \nu(a_{j - 1}) (N_{j - 1}^{\ell - 1} - R_{j - 1}^{\ell - 1})}
     {2}
     \Delta t
     \Bigg],
     \\
-    \frac{S_i^k - S_i^{k - 1}}{\Delta t} &=
-    \omega \frac{M_i^k + M_{i - 1}^k}{2}
-    - \frac{\lambda^k S_i^k + \lambda^{k - 1} S_{i - 1}^{k - 1}}{2}
+    \frac{S_j^{\ell} - S_j^{\ell - 1}}{\Delta t} &=
+    \omega \frac{M_j^{\ell} + M_{j - 1}^{\ell}}{2}
+    - \frac{\lambda^{\ell} S_j^{\ell} + \lambda^{\ell - 1} S_{j - 1}^{\ell - 1}}{2}
     \\ & \quad {}
-    - \frac{\mu(a_i) S_i^k + \mu(a_{i - 1}) S_{i - 1}^{k - 1}}{2},
+    - \frac{\mu(a_j) S_j^{\ell} + \mu(a_{j - 1}) S_{j - 1}^{\ell - 1}}{2},
     \\
-    E_0^k &= 0,
+    E_0^{\ell} &= 0,
     \\
-    \frac{E_i^k - E_{i - 1}^{k - 1}}{\Delta t} &=
-    \frac{\lambda^k S_i^k + \lambda^{k - 1} S_{i - 1}^{k - 1}}{2}
-    - \rho \frac{E_i^k + E_{i - 1}^{k - 1}}{2}
+    \frac{E_j^{\ell} - E_{j - 1}^{\ell - 1}}{\Delta t} &=
+    \frac{\lambda^{\ell} S_j^{\ell} + \lambda^{\ell - 1} S_{j - 1}^{\ell - 1}}{2}
+    - \rho \frac{E_j^{\ell} + E_{j - 1}^{\ell - 1}}{2}
     \\ & \quad {}
-    - \frac{\mu(a_i) E_i^k + \mu(a_{i - 1}) E_{i - 1}^{k - 1}}{2},
+    - \frac{\mu(a_j) E_j^{\ell} + \mu(a_{j - 1}) E_{j - 1}^{\ell - 1}}{2},
     \\
-    I_0^k &= 0,
+    I_0^{\ell} &= 0,
     \\
-    \frac{I_i^k - I_{i - 1}^{k - 1}}{\Delta t} &=
-    \rho \frac{E_i^k + E_{i - 1}^k}{2}
-    - \gamma \frac{I_i^k + I_{i - 1}^{k - 1}}{2}
-    - \frac{\mu(a_i) I_i^k + \mu(a_{i - 1}) I_{i - 1}^{k - 1}}{2},
+    \frac{I_j^{\ell} - I_{j - 1}^{\ell - 1}}{\Delta t} &=
+    \rho \frac{E_j^{\ell} + E_{j - 1}^{\ell}}{2}
+    - \gamma \frac{I_j^{\ell} + I_{j - 1}^{\ell - 1}}{2}
+    - \frac{\mu(a_j) I_j^{\ell} + \mu(a_{j - 1}) I_{j - 1}^{\ell - 1}}{2},
     \\
-    R_0^k &= 0,
+    R_0^{\ell} &= 0,
     \\
-    \frac{R_i^k - R_i^{k - 1}}{\Delta t} &=
-    \gamma \frac{I_i^k + I_{i - 1}^k}{2}
-    - \frac{\mu(a_i) R_i^k + \mu(a_{i - 1}) R_{i - 1}^{k - 1}}{2},
+    \frac{R_j^{\ell} - R_j^{\ell - 1}}{\Delta t} &=
+    \gamma \frac{I_j^{\ell} + I_{j - 1}^{\ell}}{2}
+    - \frac{\mu(a_j) R_j^{\ell} + \mu(a_{j - 1}) R_{j - 1}^{\ell - 1}}{2},
   \end{split}
 \end{equation}
 with force of infection
 \begin{equation}
-  \lambda^k =
-  \beta \sum_{i = 1}^{I - 1}
-  \frac{I_i^k + I_{i - 1}^k}{2}
+  \lambda^{\ell} =
+  \beta \sum_{j = 1}^{J - 1}
+  \frac{I_j^{\ell} + I_{j - 1}^{\ell}}{2}
   \Delta t
 \end{equation}
 and population size
 \begin{equation}
-  N_i^k =
-  M_i^k + S_i^k + E_i^k + I_i^k + R_i^k.
+  N_j^{\ell} =
+  M_j^{\ell} + S_j^{\ell} + E_j^{\ell} + I_j^{\ell} + R_j^{\ell}.
 \end{equation}
 
 
@@ -1112,8 +1112,7 @@ The model is
     \omega(a) M(t, a) - \lambda(t) S(t, a) - \mu(a) S(t, a),
     \\
     e(t, 0, 0) &=
-    \lambda(t) S(t, 0)
-    \text{ [or $0$?]},
+    \lambda(t) S(t, 0),
     \\
     e(t, 0, z) &=
     0,
@@ -1189,6 +1188,193 @@ that gives population growth rate $r = 0$.
 
 
 \subsection{Numerical method}
+
+To numerically solve the system
+\eqref{model_age_and_time_since_entry_structured}, we used the
+Crank--Nicolson method on characteristics and the composite trapezoid
+rule for the integrals \autocite{milner_1992}.  Given the time step
+$\Delta t$, let $a_j = j \Delta t$ for
+$j \in \{0, 1, 2, \ldots, J - 1\}$;
+$z_k = k \Delta t$
+for $k \in \{0, 1, 2, \ldots, J - 1\}$;
+$t^{\ell} = t_0 + \ell \Delta t$ for
+$\ell \in \{0, 1, \ldots, L - 1\}$;
+$X_j^{\ell} \approx X(t^{\ell}, a_j)$
+for $X \in \{M, S, R\}$;
+and $y_{j, k}^{\ell} \approx y(t^{\ell}, a_j, z_k)$
+for $y \in \{E, I\}$.
+For each $j$, each $k$, and each $\ell \geq 1$, the Crank--Nicolson
+method on characteristics is
+\begin{equation}
+  \begin{split}
+    M_0^{\ell}
+    &=
+    b(t^{\ell - 1 / 2})
+    \frac{1}{2}
+    \Bigg[
+    \sum_{j = 1}^{J - 1}
+    \frac{\nu(a_j) R_j^{\ell} + \nu(a_{j - 1}) R_{j - 1}^{\ell}}{2}
+    \Delta t
+    \\ & \quad\quad\quad\quad\quad\quad\quad {}
+    + \sum_{j = 1}^{J - 1}
+    \frac{\nu(a_j) R_j^{\ell - 1} + \nu(a_{j - 1}) R_{j - 1}^{\ell - 1}}{2}
+    \Delta t
+    \Bigg],
+    \\
+    \frac{M_j^{\ell} - M_{j - 1}^{\ell - 1}}{\Delta t}
+    &=
+    - \frac{\omega(a_j) M_j^{\ell}
+      + \omega(a_{j - 1}) M_{j - 1}^{\ell - 1}}
+    {2}
+    \\ & \quad {}
+    - \frac{\mu(a_j) M_j^{\ell}
+      + \mu(a_{j - 1}) M_{j - 1}^{\ell - 1}}
+    {2},
+  \end{split}
+\end{equation}
+\begin{equation}
+  \begin{split}
+    S_0^{\ell}
+    &=
+    b(t^{\ell - 1 / 2})
+    \frac{1}{2}
+    \Bigg[
+    \sum_{j = 1}^{J - 1}
+    \frac{\nu(a_j) (N_j^{\ell} - R_j^{\ell})
+      + \nu(a_{j - 1}) (N_{j - 1}^{\ell} - R_{j - 1}^{\ell})}
+    {2}
+    \Delta t
+    \\ & \quad\quad\quad\quad\quad\quad\quad {}
+    + \sum_{j = 1}^{J - 1}
+    \frac{\nu(a_j) (N_j^{\ell - 1} - R_j^{\ell - 1})
+      + \nu(a_{j - 1}) (N_{j - 1}^{\ell - 1} - R_{j - 1}^{\ell - 1})}
+    {2}
+    \Delta t
+    \Bigg],
+    \\
+    \frac{S_j^{\ell} - S_{j - 1}^{\ell - 1}}{\Delta t}
+    &=
+    \frac{\omega(a_j) M_j^{\ell}
+      + \omega(a_{j - 1}) M_{j - 1}^{\ell - 1}}
+    {2}
+    \\ & \quad {}
+    - \frac{\lambda^{\ell} S_j^{\ell}
+      + \lambda^{\ell - 1} S_{j - 1}^{\ell - 1}}
+    {2}
+    \\ & \quad {}
+    - \frac{\mu(a_j) S_j^{\ell}
+      + \mu(a_{j - 1}) S_{j - 1}^{\ell - 1}}
+    {2},
+  \end{split}
+\end{equation}
+\begin{equation}
+  \begin{split}
+    e_{0, 0}^{\ell}
+    &=
+    \frac{\lambda^{\ell} S_0^{\ell}}
+    {2},
+    \\
+    e_{0, k}^{\ell}
+    &= 0,
+    \\
+    e_{j, 0}^{\ell}
+    &=
+    \frac{\lambda^{\ell} S_j^{\ell}
+      + \lambda^{\ell - 1} S_{j - 1}^{\ell - 1}}
+    {2},
+    \\
+    \frac{e_{j, k}^{\ell} - e_{j - 1, k - 1}^{\ell - 1}}{\Delta t}
+    &=
+    - \frac{\rho(z_k) e_{j, k}^{\ell}
+      + \rho(z_{k - 1}) e_{j - 1, k - 1}^{\ell - 1}}
+    {2}
+    \\ & \quad {}
+    - \frac{\mu(a_j) e_{j, k}^{\ell}
+      + \mu(a_{j - 1}) e_{j - 1, k - 1}^{\ell - 1}}
+    {2},
+  \end{split}
+\end{equation}
+\begin{equation}
+  \begin{split}
+    i_{0, 0}^{\ell}
+    &= 0,
+    \\
+    i_{0, k}^{\ell}
+    &= 0,
+    \\
+    i_{j, 0}^{\ell}
+    &=
+    \frac{1}{2} \sum_{k = 1}^{J - 1}
+    \frac{\rho(z_k) e_{j, k}^{\ell}
+      + \rho(z_{k - 1}) e_{j, k - 1}^{\ell}}
+    {2}
+    \Delta t
+    \\ & \quad {}
+    + \frac{1}{2} \sum_{k = 1}^{J - 1}
+    \frac{\rho(z_k) e_{j - 1, k}^{\ell - 1}
+      + \rho(z_{k - 1}) e_{j - 1, k - 1}^{\ell - 1}}
+    {2}
+    \Delta t
+    ,
+    \\
+    \frac{i_{j, k}^{\ell} - i_{j - 1, k - 1}^{\ell - 1}}{\Delta t}
+    &=
+    - \frac{\gamma(z_k) i_{j, k}^{\ell}
+      + \gamma(z_{k - 1}) i_{j - 1, k - 1}^{\ell - 1}}
+    {2}
+    \\ & \quad {}
+    - \frac{\mu(a_j) i_{j, k}^{\ell}
+      + \mu(a_{j - 1}) i_{j - 1, k - 1}^{\ell - 1}}
+    {2},
+  \end{split}
+\end{equation}
+\begin{equation}
+  \begin{split}
+    R_0^{\ell}
+    &= 0,
+    \\
+    \frac{R_j^{\ell} - R_{j - 1}^{\ell - 1}}{\Delta t}
+    &=
+    \frac{1}{2} \sum_{k = 1}^{J - 1}
+    \frac{\gamma(z_k) i_{j, k}^{\ell}
+      + \gamma(z_{k - 1}) i_{j, k - 1}^{\ell}}
+    {2}
+    \Delta t
+    \\ & \quad {}
+    + \frac{1}{2} \sum_{k = 1}^{J - 1}
+    \frac{\gamma(z_k) i_{j - 1, k}^{\ell - 1}
+      + \gamma(z_{k - 1}) i_{j - 1, k - 1}^{\ell - 1}}
+    {2}
+    \Delta t,
+    \\ & \quad {}
+    - \frac{\mu(a_j) R_j^{\ell}
+      + \mu(a_{j - 1})R_{j - 1}^{\ell - 1}}
+    {2},
+  \end{split}
+\end{equation}
+with force of infection
+\begin{equation}
+  \lambda^l =
+  \beta
+  \sum_{j = 1}^{J - 1}
+  \sum_{k = 1}^{J - 1}
+  \frac{i_{j, k}^{\ell}
+    + i_{j, k - 1}^{\ell}
+    + i_{j - 1, k}^{\ell}
+    + i_{j - 1, k - 1}^{\ell}}
+  {4}
+  (\Delta t)^2,
+\end{equation}
+and population size
+\begin{equation}
+  N_j^{\ell} =
+  M_j^{\ell} + S_j^{\ell} + R_j^{\ell}
+  + \sum_{k = 1}^{J - 1}
+  \frac{e_{j, k}^{\ell} + i_{j, k}^{\ell}
+    + e_{j, k - 1}^{\ell} + i_{j, k - 1}^{\ell}}
+  {2}
+  \Delta t.
+\end{equation}
 
 
 \printbibliography
