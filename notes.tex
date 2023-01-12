@@ -160,8 +160,9 @@ Let
 \begin{equation}
   \begin{split}
     \vec{\beta} &=
+    \beta
     \begin{bmatrix}
-      0 & 0 & 0 & \beta & 0
+      0 & 0 & 0 & 1 & 0
     \end{bmatrix},
     \\
     \lambda^{\ell} &=
@@ -210,10 +211,7 @@ Let
       \\
       0 & 0 & 0 & 0 & 0
     \end{bmatrix},
-  \end{split}
-\end{equation}
-\begin{equation}
-  \begin{split}
+    \\
     \mat{A}^{\text{constant}} &=
     \mat{I}
     - \mat{M}^{\text{constant}},
@@ -229,7 +227,7 @@ Let
     \mat{A}^{\text{constant}}
     - b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}},
     \\
-    \vec{c}^{\ell} &=
+    \vec{c}^{\ell - 1} &=
     \left[
       \mat{B}^{\text{constant}}
       + b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}}
@@ -244,7 +242,7 @@ we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
     \mat{A}^{\ell}
     - \vec{\beta} \vec{x}^{\ell} \mat{M}^{\text{infection}}
   \right] \vec{x}^{\ell}
-  - \vec{c}^{\ell}
+  - \vec{c}^{\ell - 1}
   = \vec{0}.
 \end{equation}
 
@@ -498,8 +496,9 @@ Let
     \end{bmatrix},
     \\
     \vec{\beta} &=
+    \beta
     \begin{bmatrix}
-      \vec{0} & 0 & \vec{0} & \beta \vec{v} & 0
+      \vec{0} & 0 & \vec{0} & \vec{v} & 0
     \end{bmatrix}
     \\
     \lambda^{\ell} &=
@@ -746,7 +745,7 @@ Let
     \mat{A}^{\text{constant}}
     - b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}},
     \\
-    \vec{c}^{\ell} &=
+    \vec{c}^{\ell - 1} &=
     \left[
       \mat{B}^{\text{constant}}
       + b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}}
@@ -761,7 +760,7 @@ we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
     \mat{A}^{\ell}
     - \vec{\beta} \vec{x}^{\ell} \mat{M}^{\text{infection}}
   \right] \vec{x}^{\ell}
-  - \vec{c}^{\ell}
+  - \vec{c}^{\ell - 1}
   = \vec{0}.
 \end{equation}
 
@@ -1095,17 +1094,13 @@ Let
     \end{bmatrix},
     \\
     \vec{\beta} &=
+    \beta
     \begin{bmatrix}
-      \vec{0} & \vec{0} & \vec{0} & \beta \vec{v} & \vec{0}
+      \vec{0} & \vec{0} & \vec{0} & \vec{v} & \vec{0}
     \end{bmatrix}
     \\
     \lambda^{\ell} &=
     \vec{\beta} \vec{x}^{\ell},
-    \\
-    \vec{\mu} &=
-    \begin{bmatrix}
-      \mu(a_0) & \cdots & \mu(a_{J - 1})
-    \end{bmatrix},
     \\
     \vec{\nu} &=
     \begin{bmatrix}
@@ -1367,7 +1362,7 @@ Let
     \mat{A}^{\text{constant}}
     - b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}},
     \\
-    \vec{c}^{\ell} &=
+    \vec{c}^{\ell - 1} &=
     \left[
       \mat{B}^{\text{constant}}
       + b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}}
@@ -1382,7 +1377,7 @@ we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
     \mat{A}^{\ell}
     - \vec{\beta} \vec{x}^{\ell} \mat{M}^{\text{infection}}
   \right] \vec{x}^{\ell}
-  - \vec{c}^{\ell}
+  - \vec{c}^{\ell - 1}
   = \vec{0}.
 \end{equation}
 

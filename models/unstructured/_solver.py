@@ -2,7 +2,6 @@
 
 import numpy
 import scipy.optimize
-import scipy.sparse
 
 from . import _solution
 from .. import _utility
@@ -14,25 +13,79 @@ class Solver:
     def __init__(self, model, t_step):
         self.model = model
         self.t_step = t_step
+        self._build_matrices_constant()
+        self._build_matrix_birth()
+        self._build_matrix_infection()
+        self._build_force_of_infection()
+        self._build_scratch()
 
-    def func(self, t, y):
-        '''The result of `self.model(t, y)` as a `numpy.array()`.'''
-        return numpy.asarray(self.model(t, y))
+    def _build_matrices_constant(self):
+        M_MM = - (1 / self.model.waning.mean
+                  + self.model.death_rate_mean)
+        M_SM = 1 / self.model.waning.mean
+        M_SS = - self.model.death_rate_mean
+        M_EE = - (1 / self.model.progression.mean
+                  + self.model.death_rate_mean)
+        M_IE = 1 / self.model.progression.mean
+        M_II = - (1 / self.model.recovery.mean
+                  + self.model.death_rate_mean)
+        M_RI = 1 / self.model.recovery.mean
+        M_RR = - self.model.death_rate_mean
+        M = numpy.array(((M_MM, 0, 0, 0, 0),
+                         (M_SM, M_SS, 0, 0, 0),
+                         (0, 0, M_EE, 0, 0),
+                         (0, 0, M_IE, M_II, 0),
+                         (0, 0, 0, M_RI, M_RR)))
+        M_constant = self.t_step / 2 * M
+        I = numpy.eye(*M_constant.shape)
+        self._A_constant = I - M_constant
+        self._B_constant = I + M_constant
 
-    def _const(self, t_cur, y_cur, t_mid):
-        '''Compute the term in `_objective()` that is independent of
-        `y_new`.'''
-        return y_cur + 0.5 * self.t_step * self.func(t_mid, y_cur)
+    def _build_matrix_birth(self):
+        M = numpy.array(((0, 0, 0, 0, 1),
+                         (1, 1, 1, 1, 0),
+                         (0, 0, 0, 0, 0),
+                         (0, 0, 0, 0, 0),
+                         (0, 0, 0, 0, 0)))
+        self._M_birth = self.t_step / 2 * M
 
-    def _objective(self, y_new, t_cur, t_mid, const):
-        return y_new - 0.5 * self.t_step * self.func(t_mid, y_new) - const
+    def _build_matrix_infection(self):
+        M = numpy.array(((0, 0, 0, 0, 0),
+                         (0, -1, 0, 0, 0),
+                         (0, 1, 0, 0, 0),
+                         (0, 0, 0, 0, 0),
+                         (0, 0, 0, 0, 0)))
+        self._M_infection = self.t_step / 2 * M
+
+    def _build_force_of_infection(self):
+        beta = numpy.array((0, 0, 0, 1, 0))
+        self._force_of_infection = self.model.transmission.rate * beta
+
+    def _build_scratch(self):
+        n = len(self.model.states)
+        self._A_new = numpy.empty((n, n))
+        self._A_constant_birth_new = numpy.empty((n, n))
+        self._B_cur = numpy.empty((n, n))
+        self._c_cur = numpy.empty(n)
+
+    def _objective(self, y_new):
+        self._A_new[:] = (self._A_constant_birth_new
+                          - ((self._force_of_infection @ y_new)
+                             * self._M_infection))
+        return self._A_new @ y_new - self._c_cur
 
     def _step(self, t_cur, y_cur, y_new):
         '''Do a step.'''
         t_mid = t_cur + 0.5 * self.t_step
-        const = self._const(t_cur, y_cur, t_mid)
-        result = scipy.optimize.root(self._objective, y_cur,
-                                     args=(t_cur, t_mid, const))
+        b_mid = self.model.birth.rate(t_mid)
+        self._A_constant_birth_new[:] = (self._A_constant
+                                         - b_mid * self._M_birth)
+        self._B_cur[:] = (self._B_constant
+                          + b_mid * self._M_birth
+                          + ((self._force_of_infection @ y_cur)
+                             * self._M_infection))
+        self._c_cur[:] = self._B_cur @ y_cur
+        result = scipy.optimize.root(self._objective, y_cur)
         assert result.success, f't={t_cur}: {result}'
         y_new[:] = result.x
 
