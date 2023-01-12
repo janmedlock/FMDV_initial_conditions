@@ -12,6 +12,13 @@ def arange(start, stop, step, endpoint=True, dtype=None):
     return arr
 
 
+def build_t(start, stop, step):
+    '''Increase `stop` if needed so that the interval is divided into
+    a whole number of steps of width `step`.'''
+    stop = start + numpy.ceil((stop - start) / step) * step
+    return arange(start, stop, step)
+
+
 def _sort_by(arr, fcn):
     order = fcn(arr).argsort()
     return arr[order]

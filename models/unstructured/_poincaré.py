@@ -3,7 +3,6 @@
 import numpy
 
 from . import _solution
-from . import _solver
 from .. import _utility
 
 
@@ -11,8 +10,12 @@ class Map:
     '''A Poincaré map.'''
 
     def __init__(self, model, period, t_0, t_step):
-        self.solver = _solver.Solver(model)
-        self.t = _utility.arange(t_0, t_0 + period, t_step)
+        self.model = model
+        self.t_0 = t_0
+        self.t_step = t_step
+        self.t_span = (self.t_0, self.t_0 + period)
+        self.t = _utility.build_t(*self.t_span, self.t_step)
+        self.solver = self.model.solver(self.t_step)
 
     def build_y(self, y_0):
         '''Build storage for intermediate y values.'''
@@ -20,7 +23,9 @@ class Map:
 
     def solve(self, y_0, y=None, _solution_wrap=True):
         '''Get the solution y(t) over one period.'''
-        return self.solver(self.t, y_0, y=y, _solution_wrap=_solution_wrap)
+        return self.solver(self.t_span, y_0,
+                           t=self.t, y=y,
+                           _solution_wrap=_solution_wrap)
 
     def __call__(self, y_0, y=None, _solution_wrap=True):
         '''Get the solution one period later.'''
@@ -29,6 +34,6 @@ class Map:
         self.solve(y_0, y=y, _solution_wrap=False)
         y_period = y[-1]
         if _solution_wrap:
-            return _solution.Solution(y_period, states=self.solver.states)
+            return _solution.Solution(y_period, states=self.model.states)
         else:
             return y_period

@@ -12,7 +12,7 @@ if __name__ == '__main__':
     state_states = ['susceptible', 'infectious', 'recovered']
 
     model_constant = models.unstructured.Model(birth_variation=0)
-    solution_constant = model_constant.solve(t_start, t_end, t_step)
+    solution_constant = model_constant.solve((t_start, t_end), t_step)
     ax_solution = solution_constant.solution.plot_solution()
     equilibrium = model_constant.find_equilibrium(solution_constant.loc[t_end])
     ax_state = equilibrium.solution.plot_state(states=state_states)
@@ -20,7 +20,7 @@ if __name__ == '__main__':
     print(equilibrium_eigvals)
 
     model = models.unstructured.Model()
-    solution = model.solve(t_start, t_end, t_step)
+    solution = model.solve((t_start, t_end), t_step)
     solution.solution.plot_solution(ax=ax_solution, legend=False)
     limit_cycle = model.find_limit_cycle(model.parameters.birth_period,
                                          t_end, t_step,

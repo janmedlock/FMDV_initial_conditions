@@ -170,199 +170,70 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    a_{MM}^{\text{constant}} &=
-    1 + \frac{\Delta t}{2} (\omega + \mu),
+    \mat{M}^{\text{constant}} &=
+    \frac{\Delta t}{2}
+    \begin{bmatrix}
+      - (\omega + \mu) & 0 & 0 & 0 & 0
+      \\
+      \omega & - \mu & 0 & 0 & 0
+      \\
+      0 & 0 & - (\rho + \mu) & 0 & 0 \\
+      0 & 0 & \rho & - (\gamma + \mu) & 0
+      \\
+      0 & 0 & 0 & \gamma & - \mu
+    \end{bmatrix},
     \\
-    b_{MM}^{\text{constant}} &=
-    1 - \frac{\Delta t}{2} (\omega + \mu),
-  \end{split}
-\end{equation}
-\begin{equation}
-  \begin{split}
-    a_{SM}^{\text{constant}} &=
-    - \frac{\Delta t}{2} \omega,
+    \mat{M}^{\text{birth}} &=
+    \frac{\Delta t}{2}
+    \begin{bmatrix}
+      0 & 0 & 0 & 0 & 1
+      \\
+      1 & 1 & 1 & 1 & 0
+      \\
+      0 & 0 & 0 & 0 & 0
+      \\
+      0 & 0 & 0 & 0 & 0
+      \\
+      0 & 0 & 0 & 0 & 0
+    \end{bmatrix},
     \\
-    b_{SM}^{\text{constant}} &=
-    \frac{\Delta t}{2} \omega,
-    \\
-    a_{SS}^{\text{constant}} &=
-    1 + \frac{\Delta t}{2} \mu,
-    \\
-    b_{SS}^{\text{constant}} &=
-    1 - \frac{\Delta t}{2} \mu,
-  \end{split}
-\end{equation}
-\begin{equation}
-  \begin{split}
-    a_{EE}^{\text{constant}} &=
-    1 + \frac{\Delta t}{2} (\rho + \mu),
-    \\
-    b_{EE}^{\text{constant}} &=
-    1 - \frac{\Delta t}{2} (\rho + \mu),
-  \end{split}
-\end{equation}
-\begin{equation}
-  \begin{split}
-    a_{IE}^{\text{constant}} &=
-    - \frac{\Delta t}{2} \rho,
-    \\
-    b_{IE}^{\text{constant}} &=
-    \frac{\Delta t}{2} \rho,
-    \\
-    a_{II}^{\text{constant}} &=
-    1 + \frac{\Delta t}{2} (\gamma + \mu),
-    \\
-    b_{II}^{\text{constant}} &=
-    1 - \frac{\Delta t}{2} (\gamma + \mu),
-  \end{split}
-\end{equation}
-\begin{equation}
-  \begin{split}
-    a_{RI}^{\text{constant}} &=
-    - \frac{\Delta t}{2} \gamma,
-    \\
-    b_{RI}^{\text{constant}} &=
-    \frac{\Delta t}{2} \gamma,
-    \\
-    a_{RR}^{\text{constant}} &=
-    1 + \frac{\Delta t}{2} \mu,
-    \\
-    b_{RR}^{\text{constant}} &=
-    1 - \frac{\Delta t}{2} \mu,
+    \mat{M}^{\text{infection}} &=
+    \frac{\Delta t}{2}
+    \begin{bmatrix}
+      0 & 0 & 0 & 0 & 0
+      \\
+      0 & - 1 & 0 & 0 & 0
+      \\
+      0 & 1 & 0 & 0 & 0
+      \\
+      0 & 0 & 0 & 0 & 0
+      \\
+      0 & 0 & 0 & 0 & 0
+    \end{bmatrix},
   \end{split}
 \end{equation}
 \begin{equation}
   \begin{split}
     \mat{A}^{\text{constant}} &=
-    \begin{bmatrix}
-      a_{MM}^{\text{constant}} & 0 & 0 & 0 & 0
-      \\
-      a_{SM}^{\text{constant}} & a_{SS}^{\text{constant}} & 0 & 0 & 0
-      \\
-      0 & 0 & a_{EE}^{\text{constant}} & 0 & 0
-      \\
-      0 & 0 & a_{IE}^{\text{constant}} & a_{II}^{\text{constant}} & 0
-      \\
-      0 & 0 & 0 & a_{RI}^{\text{constant}} & a_{RR}^{\text{constant}}
-    \end{bmatrix},
+    \mat{I}
+    - \mat{M}^{\text{constant}},
     \\
     \mat{B}^{\text{constant}} &=
-    \begin{bmatrix}
-      b_{MM}^{\text{constant}} & 0 & 0 & 0 & 0
-      \\
-      b_{SM}^{\text{constant}} & b_{SS}^{\text{constant}} & 0 & 0 & 0
-      \\
-      0 & 0 & b_{EE}^{\text{constant}} & 0 & 0 \\
-      0 & 0 & b_{IE}^{\text{constant}} & b_{II}^{\text{constant}} & 0
-      \\
-      0 & 0 & 0 & b_{RI}^{\text{constant}} & b_{RR}^{\text{constant}}
-    \end{bmatrix},
-  \end{split}
-\end{equation}
-\begin{equation}
-  \begin{split}
-    a_{MR}^{\text{birth}} =
-    a_{SM}^{\text{birth}} =
-    a_{SS}^{\text{birth}} =
-    a_{SE}^{\text{birth}} =
-    a_{SI}^{\text{birth}} &=
-    - \frac{\Delta t}{2},
-    \\
-    b_{MR}^{\text{birth}} =
-    b_{SM}^{\text{birth}} =
-    b_{SS}^{\text{birth}} =
-    b_{SE}^{\text{birth}} =
-    b_{SI}^{\text{birth}} &=
-    \frac{\Delta t}{2},
-  \end{split}
-\end{equation}
-\begin{equation}
-  \begin{split}
-    \mat{A}^{\text{birth}} &=
-    \begin{bmatrix}
-      0 & 0 & 0 & 0 & a_{MR}^{\text{birth}}
-      \\
-      a_{SM}^{\text{birth}} & a_{SS}^{\text{birth}} &
-      a_{SE}^{\text{birth}} &
-      a_{SI}^{\text{birth}} & 0
-      \\
-      0 & 0 & 0 & 0 & 0
-      \\
-      0 & 0 & 0 & 0 & 0
-      \\
-      0 & 0 & 0 & 0 & 0
-    \end{bmatrix},
-    \\
-    \mat{B}^{\text{birth}} &=
-    \begin{bmatrix}
-      0 & 0 & 0 & 0 & b_{MR}^{\text{birth}}
-      \\
-      b_{SM}^{\text{birth}} & b_{SS}^{\text{birth}} &
-      b_{SE}^{\text{birth}} & b_{SI}^{\text{birth}} & 0
-      \\
-      0 & 0 & 0 & 0 & 0
-      \\
-      0 & 0 & 0 & 0 & 0
-      \\
-      0 & 0 & 0 & 0 & 0
-    \end{bmatrix},
-  \end{split}
-\end{equation}
-\begin{equation}
-  \begin{split}
-    a_{SS}^{\text{infection}} &=
-    \frac{\Delta t}{2},
-    \\
-    b_{SS}^{\text{infection}} &=
-    - \frac{\Delta t}{2},
-    \\
-    a_{ES}^{\text{infection}} &=
-    - \frac{\Delta t}{2},
-    \\
-    b_{ES}^{\text{infection}} &=
-    \frac{\Delta t}{2},
-  \end{split}
-\end{equation}
-\begin{equation}
-  \begin{split}
-    \mat{A}^{\text{infection}} &=
-    \begin{bmatrix}
-      0 & 0 & 0 & 0 & 0
-      \\
-      0 & a_{SS}^{\text{infection}} & 0 & 0 & 0
-      \\
-      0 & a_{ES}^{\text{infection}} & 0 & 0 & 0
-      \\
-      0 & 0 & 0 & 0 & 0
-      \\
-      0 & 0 & 0 & 0 & 0
-    \end{bmatrix},
-    \\
-    \mat{B}^{\text{infection}} &=
-    \begin{bmatrix}
-      0 & 0 & 0 & 0 & 0
-      \\
-      0 & b_{SS}^{\text{infection}} & 0 & 0 & 0
-      \\
-      0 & b_{ES}^{\text{infection}} & 0 & 0 & 0
-      \\
-      0 & 0 & 0 & 0 & 0
-      \\
-      0 & 0 & 0 & 0 & 0
-    \end{bmatrix},
+    \mat{I}
+    + \mat{M}^{\text{constant}},
   \end{split}
 \end{equation}
 \begin{equation}
   \begin{split}
     \mat{A}^{\ell} &=
     \mat{A}^{\text{constant}}
-    + b(t^{\ell - 1 / 2}) \mat{A}^{\text{birth}},
+    - b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}},
     \\
     \vec{c}^{\ell} &=
     \left[
       \mat{B}^{\text{constant}}
-      + b(t^{\ell - 1 / 2}) \mat{B}^{\text{birth}}
-      + \vec{\beta} \vec{x}^{\ell - 1} \mat{B}^{\text{infection}}
+      + b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}}
+      + \vec{\beta} \vec{x}^{\ell - 1} \mat{M}^{\text{infection}}
     \right] \vec{x}^{\ell - 1}.
   \end{split}
 \end{equation}
@@ -371,7 +242,7 @@ we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
 \begin{equation}
   \left[
     \mat{A}^{\ell}
-    + \vec{\beta} \vec{x}^{\ell} \mat{A}^{\text{infection}}
+    - \vec{\beta} \vec{x}^{\ell} \mat{M}^{\text{infection}}
   \right] \vec{x}^{\ell}
   - \vec{c}^{\ell}
   = \vec{0}.
@@ -683,17 +554,10 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \vec{a}_{Sm}^{\text{constant}} &=
-    - \frac{\Delta t}{2} \vec{v} \circ \vec{\omega},
-    \\
-    \vec{b}_{Sm}^{\text{constant}} &=
+    \vec{m}_{Sm}^{\text{constant}} &=
     \frac{\Delta t}{2} \vec{v} \circ \vec{\omega},
     \\
-    a_{SS}^{\text{constant}} &=
-    1 + \frac{\Delta t}{2} \mu,
-    \\
-    b_{SS}^{\text{constant}} &=
-    1 - \frac{\Delta t}{2} \mu,
+    m_{SS}^{\text{constant}} &= - \frac{\Delta t}{2} \mu,
   \end{split}
 \end{equation}
 \begin{equation}
@@ -729,19 +593,7 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}_{ie}^{\text{constant}} &=
-    - \frac{1}{2}
-    \begin{bmatrix}
-      \vec{v} \circ \vec{\rho}
-      \\
-      \vec{0}
-      \\
-      \vdots
-      \\
-      \vec{0}
-    \end{bmatrix},
-    \\
-    \mat{B}_{ie}^{\text{constant}} &=
+    \mat{M}_{ie}^{\text{constant}} &=
     \frac{1}{2}
     \begin{bmatrix}
       \vec{v} \circ \vec{\rho}
@@ -784,17 +636,11 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \vec{a}_{Ri}^{\text{constant}} &=
-    - \frac{\Delta t}{2} \vec{v} \circ \vec{\gamma},
-    \\
-    \vec{b}_{Ri}^{\text{constant}} &=
+    \vec{m}_{Ri}^{\text{constant}} &=
     \frac{\Delta t}{2} \vec{v} \circ \vec{\gamma},
     \\
-    a_{RR}^{\text{constant}} &=
-    1 + \mu \frac{\Delta t}{2},
-    \\
-    b_{RR}^{\text{constant}} &=
-    1 - \mu \frac{\Delta t}{2}.
+    m_{RR}^{\text{constant}} &=
+    - \frac{\Delta t}{2} \mu.
   \end{split}
 \end{equation}
 \begin{equation}
@@ -803,88 +649,60 @@ Let
     \begin{bmatrix}
       \mat{A}_{mm}^{\text{constant}} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
-      \vec{a}_{Sm}^{\text{constant}} & a_{SS}^{\text{constant}} &
+      - \vec{m}_{Sm}^{\text{constant}} & 1 - m_{SS}^{\text{constant}} &
       \vec{0} & \vec{0} & 0
       \\
       \mat{0} & \vec{0} & \mat{A}_{ee}^{\text{constant}} & \mat{0} & \vec{0}
       \\
-      \mat{0} & \vec{0} & \mat{A}_{ie}^{\text{constant}} &
+      \mat{0} & \vec{0} & - \mat{M}_{ie}^{\text{constant}} &
       \mat{A}_{ii}^{\text{constant}} & \vec{0}
       \\
-      \vec{0} & 0 & \vec{0} & \vec{a}_{Ri}^{\text{constant}} &
-      a_{RR}^{\text{constant}}
+      \vec{0} & 0 & \vec{0} & - \vec{m}_{Ri}^{\text{constant}} &
+      1 - m_{RR}^{\text{constant}}
     \end{bmatrix},
     \\
     \mat{B}^{\text{constant}} &=
     \begin{bmatrix}
       \mat{B}_{mm}^{\text{constant}} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
-      \vec{b}_{Sm}^{\text{constant}} & b_{SS}^{\text{constant}} &
+      \vec{m}_{Sm}^{\text{constant}} & 1 + m_{SS}^{\text{constant}} &
       \vec{0} & \vec{0} & 0
       \\
       \mat{0} & \vec{0} & \mat{B}_{ee}^{\text{constant}} & \mat{0} & \vec{0}
       \\
-      \mat{0} & \vec{0} & \mat{B}_{ie}^{\text{constant}} &
+      \mat{0} & \vec{0} & \mat{M}_{ie}^{\text{constant}} &
       \mat{B}_{ii}^{\text{constant}} & \vec{0}
       \\
-      \vec{0} & 0 & \vec{0} & \vec{b}_{Ri}^{\text{constant}} &
-      b_{RR}^{\text{constant}}
+      \vec{0} & 0 & \vec{0} & \vec{m}_{Ri}^{\text{constant}} &
+      1 + m_{RR}^{\text{constant}}
     \end{bmatrix},
   \end{split}
 \end{equation}
 \begin{equation}
   \begin{split}
-    \vec{a}_{mR}^{\text{birth}} &=
-    - \frac{1}{2}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix},
-    \\
-    \vec{b}_{mR}^{\text{birth}} &=
+    \vec{m}_{mR}^{\text{birth}} &=
     \frac{1}{2}
     \begin{bmatrix}
       1 \\ 0 \\ \vdots \\ 0
     \end{bmatrix},
     \\
-    \vec{a}_{Sm}^{\text{birth}} =
-    \vec{a}_{Se}^{\text{birth}} =
-    \vec{a}_{Si}^{\text{birth}} &=
-    - \frac{\Delta t}{2} \vec{v},
-    \\
-    \vec{b}_{Sm}^{\text{birth}} =
-    \vec{b}_{Se}^{\text{birth}} =
-    \vec{b}_{Si}^{\text{birth}} &=
+    \vec{m}_{Sm}^{\text{birth}} =
+    \vec{m}_{Se}^{\text{birth}} =
+    \vec{m}_{Si}^{\text{birth}} &=
     \frac{\Delta t}{2} \vec{v},
     \\
-    a_{SS}^{\text{birth}} &=
-    - \frac{\Delta t}{2},
-    \\
-    b_{SS}^{\text{birth}} &=
+    m_{SS}^{\text{birth}} &=
     \frac{\Delta t}{2},
   \end{split}
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}^{\text{birth}} &=
+    \mat{M}^{\text{birth}} &=
     \begin{bmatrix}
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{a}_{mR}^{\text{birth}}
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{m}_{mR}^{\text{birth}}
       \\
-      \vec{a}_{Sm}^{\text{birth}} & a_{SS}^{\text{birth}} &
-      \vec{a}_{Se}^{\text{birth}} & \vec{a}_{Si}^{\text{birth}} & 0
-      \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
-      \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
-      \\
-      \vec{0} & 0 & \vec{0} & \vec{0} & 0
-    \end{bmatrix},
-    \\
-    \mat{B}^{\text{birth}} &=
-    \begin{bmatrix}
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{b}_{mR}^{\text{birth}}
-      \\
-      \vec{b}_{Sm}^{\text{birth}} & b_{SS}^{\text{birth}} &
-      \vec{b}_{Se}^{\text{birth}} & \vec{b}_{Si}^{\text{birth}} & 0
+      \vec{m}_{Sm}^{\text{birth}} & m_{SS}^{\text{birth}} &
+      \vec{m}_{Se}^{\text{birth}} & \vec{m}_{Si}^{\text{birth}} & 0
       \\
       \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
@@ -896,19 +714,10 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    a_{SS}^{\text{infection}} &=
-    \frac{\Delta t}{2},
-    \\
-    b_{SS}^{\text{infection}} &=
+    m_{SS}^{\text{infection}} &=
     - \frac{\Delta t}{2},
     \\
-    \vec{a}_{eS}^{\text{infection}} &=
-    - \frac{1}{2}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix},
-    \\
-    \vec{b}_{eS}^{\text{infection}} &=
+    \vec{m}_{eS}^{\text{infection}} &=
     \frac{1}{2}
     \begin{bmatrix}
       1 \\ 0 \\ \vdots \\ 0
@@ -917,26 +726,13 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}^{\text{infection}} &=
+    \mat{M}^{\text{infection}} &=
     \begin{bmatrix}
       \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
-      \vec{0} & a_{SS}^{\text{infection}} & \vec{0} & \vec{0} & 0
+      \vec{0} & m_{SS}^{\text{infection}} & \vec{0} & \vec{0} & 0
       \\
-      \mat{0} & \vec{a}_{eS}^{\text{infection}} & \mat{0} & \mat{0} & \vec{0}
-      \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
-      \\
-      \vec{0} & 0 & \vec{0} & \vec{0} & 0
-    \end{bmatrix},
-    \\
-    \mat{B}^{\text{infection}} &=
-    \begin{bmatrix}
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
-      \\
-      \vec{0} & b_{SS}^{\text{infection}} & \vec{0} & \vec{0} & 0
-      \\
-      \mat{0} & \vec{b}_{eS}^{\text{infection}} & \mat{0} & \mat{0} & \vec{0}
+      \mat{0} & \vec{m}_{eS}^{\text{infection}} & \mat{0} & \mat{0} & \vec{0}
       \\
       \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
@@ -948,13 +744,13 @@ Let
   \begin{split}
     \mat{A}^{\ell} &=
     \mat{A}^{\text{constant}}
-    + b(t^{\ell - 1 / 2}) \mat{A}^{\text{birth}},
+    - b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}},
     \\
     \vec{c}^{\ell} &=
     \left[
       \mat{B}^{\text{constant}}
-      + b(t^{\ell - 1 / 2}) \mat{B}^{\text{birth}}
-      + \vec{\beta} \vec{x}^{\ell - 1} \mat{B}^{\text{infection}}
+      + b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}}
+      + \vec{\beta} \vec{x}^{\ell - 1} \mat{M}^{\text{infection}}
     \right] \vec{x}^{\ell - 1}.
   \end{split}
 \end{equation}
@@ -963,7 +759,7 @@ we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
 \begin{equation}
   \left[
     \mat{A}^{\ell}
-    + \vec{\beta} \vec{x}^{\ell} \mat{A}^{\text{infection}}
+    - \vec{\beta} \vec{x}^{\ell} \mat{M}^{\text{infection}}
   \right] \vec{x}^{\ell}
   - \vec{c}^{\ell}
   = \vec{0}.
@@ -1350,10 +1146,7 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}_{SM}^{\text{constant}} &=
-    - \frac{\Delta t}{2} \omega \mat{I},
-    \\
-    \mat{B}_{SM}^{\text{constant}} &=
+    \mat{M}_{SM}^{\text{constant}} &=
     \frac{\Delta t}{2} \omega \mat{I},
     \\
     \mat{A}_{SS}^{\text{constant}} &=
@@ -1418,10 +1211,7 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}_{IE}^{\text{constant}} &=
-    - \frac{\Delta t}{2} \rho \mat{I},
-    \\
-    \mat{B}_{IE}^{\text{constant}} &=
+    \mat{M}_{IE}^{\text{constant}} &=
     \frac{\Delta t}{2} \rho \mat{I},
     \\
     \mat{A}_{II}^{\text{constant}} &=
@@ -1455,10 +1245,7 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}_{RI}^{\text{constant}} &=
-    - \frac{\Delta t}{2} \gamma \mat{I},
-    \\
-    \mat{B}_{RI}^{\text{constant}} &=
+    \mat{M}_{RI}^{\text{constant}} &=
     \frac{\Delta t}{2} \gamma \mat{I},
     \\
     \mat{A}_{RR}^{\text{constant}} &=
@@ -1496,15 +1283,15 @@ Let
     \begin{bmatrix}
       \mat{A}_{MM}^{\text{constant}} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{A}_{SM}^{\text{constant}} & \mat{A}_{SS}^{\text{constant}} &
+      - \mat{M}_{SM}^{\text{constant}} & \mat{A}_{SS}^{\text{constant}} &
       \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{A}_{EE}^{\text{constant}} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{A}_{IE}^{\text{constant}} &
+      \mat{0} & \mat{0} & - \mat{M}_{IE}^{\text{constant}} &
       \mat{A}_{II}^{\text{constant}} & \mat{0}
       \\
-      \mat{0} & 0 & \mat{0} & \mat{A}_{RI}^{\text{constant}} &
+      \mat{0} & 0 & \mat{0} & - \mat{M}_{RI}^{\text{constant}} &
       \mat{A}_{RR}^{\text{constant}}
     \end{bmatrix},
     \\
@@ -1512,64 +1299,37 @@ Let
     \begin{bmatrix}
       \mat{B}_{MM}^{\text{constant}} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{B}_{SM}^{\text{constant}} & \mat{B}_{SS}^{\text{constant}} &
+      \mat{M}_{SM}^{\text{constant}} & \mat{B}_{SS}^{\text{constant}} &
       \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{B}_{EE}^{\text{constant}} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{B}_{IE}^{\text{constant}} &
+      \mat{0} & \mat{0} & \mat{M}_{IE}^{\text{constant}} &
       \mat{B}_{II}^{\text{constant}} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{B}_{RI}^{\text{constant}} &
+      \mat{0} & \mat{0} & \mat{0} & \mat{M}_{RI}^{\text{constant}} &
       \mat{B}_{RR}^{\text{constant}}
     \end{bmatrix},
   \end{split}
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}_{MR}^{\text{birth}} =
-    \mat{A}_{SM}^{\text{birth}} =
-    \mat{A}_{SS}^{\text{birth}} =
-    \mat{A}_{SE}^{\text{birth}} =
-    \mat{A}_{SI}^{\text{birth}} &=
-    - \frac{1}{2}
-    \begin{bmatrix}
-      \vec{v} \circ \vec{\nu} \\ \vec{0} \\ \vdots \\ \vec{0}
-    \end{bmatrix},
-    \\
-    \mat{B}_{MR}^{\text{birth}} =
-    \mat{B}_{SM}^{\text{birth}} =
-    \mat{B}_{SS}^{\text{birth}} =
-    \mat{B}_{SE}^{\text{birth}} =
-    \mat{B}_{SI}^{\text{birth}} &=
+    \mat{M}_{MR}^{\text{birth}} &=
+    \mat{M}_{SM}^{\text{birth}} =
+    \mat{M}_{SS}^{\text{birth}} =
+    \mat{M}_{SE}^{\text{birth}} =
+    \mat{M}_{SI}^{\text{birth}} =
     \frac{1}{2}
     \begin{bmatrix}
       \vec{v} \circ \vec{\nu} \\ \vec{0} \\ \vdots \\ \vec{0}
     \end{bmatrix},
-  \end{split}
-\end{equation}
-\begin{equation}
-  \begin{split}
-    \mat{A}^{\text{birth}} &=
-    \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{A}_{MR}^{\text{birth}}
-      \\
-      \mat{A}_{SM}^{\text{birth}} & \mat{A}_{SS}^{\text{birth}} &
-      \mat{A}_{SE}^{\text{birth}} & \mat{A}_{SI}^{\text{birth}} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-    \end{bmatrix},
     \\
-    \mat{B}^{\text{birth}} &=
+    \mat{M}^{\text{birth}} &=
     \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{MR}^{\text{birth}}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{M}_{MR}^{\text{birth}}
       \\
-      \mat{B}_{SM}^{\text{birth}} & \mat{B}_{SS}^{\text{birth}} &
-      \mat{B}_{SE}^{\text{birth}} & \mat{B}_{SI}^{\text{birth}} & \mat{0}
+      \mat{M}_{SM}^{\text{birth}} & \mat{M}_{SS}^{\text{birth}} &
+      \mat{M}_{SE}^{\text{birth}} & \mat{M}_{SI}^{\text{birth}} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
@@ -1581,41 +1341,19 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}_{SS}^{\text{infection}} &=
-    \frac{\Delta t}{2} \mat{I},
-    \\
-    \mat{B}_{SS}^{\text{infection}} &=
+    \mat{M}_{SS}^{\text{infection}} &=
     - \frac{\Delta t}{2} \mat{I},
     \\
-    \mat{A}_{ES}^{\text{infection}} &=
-    - \frac{\Delta t}{2} \mat{I},
-    \\
-    \mat{B}_{ES}^{\text{infection}} &=
+    \mat{M}_{ES}^{\text{infection}} &=
     \frac{\Delta t}{2} \mat{I},
-  \end{split}
-\end{equation}
-\begin{equation}
-  \begin{split}
-    \mat{A}^{\text{infection}} &=
-    \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{A}_{SS}^{\text{infection}} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{A}_{ES}^{\text{infection}} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-    \end{bmatrix},
     \\
-    \mat{B}^{\text{infection}} &=
+    \mat{M}^{\text{infection}} &=
     \begin{bmatrix}
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{B}_{SS}^{\text{infection}} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0} & \mat{M}_{SS}^{\text{infection}} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{B}_{ES}^{\text{infection}} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0} & \mat{M}_{ES}^{\text{infection}} & \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
@@ -1627,13 +1365,13 @@ Let
   \begin{split}
     \mat{A}^{\ell} &=
     \mat{A}^{\text{constant}}
-    + b(t^{\ell - 1 / 2}) \mat{A}^{\text{birth}},
+    - b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}},
     \\
     \vec{c}^{\ell} &=
     \left[
       \mat{B}^{\text{constant}}
-      + b(t^{\ell - 1 / 2}) \mat{B}^{\text{birth}}
-      + \vec{\beta} \vec{x}^{\ell - 1} \mat{B}^{\text{infection}}
+      + b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}}
+      + \vec{\beta} \vec{x}^{\ell - 1} \mat{M}^{\text{infection}}
     \right] \vec{x}^{\ell - 1}.
   \end{split}
 \end{equation}
@@ -1642,7 +1380,7 @@ we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
 \begin{equation}
   \left[
     \mat{A}^{\ell}
-    + \vec{\beta} \vec{x}^{\ell} \mat{A}^{\text{infection}}
+    - \vec{\beta} \vec{x}^{\ell} \mat{M}^{\text{infection}}
   \right] \vec{x}^{\ell}
   - \vec{c}^{\ell}
   = \vec{0}.

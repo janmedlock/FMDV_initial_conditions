@@ -1,5 +1,7 @@
 '''Based on our FMDV work, this is an unstructured model.'''
 
+import functools
+
 from . import _equilibrium
 from . import _limit_cycle
 from . import _solver
@@ -53,14 +55,21 @@ class Model(model.AgeIndependent):
         S = 1 - M - E - I - R
         return (M, S, E, I, R)
 
-    def solve(self, t_start, t_end, t_step, y_start=None):
+    def solver(self, t_step):
+        '''Only initialize the solver once.'''
+        return _solver.Solver(self, t_step)
+
+    def solve(self, t_span, t_step,
+              y_start=None, t=None, y=None,
+              _solution_wrap=True):
         '''Solve the ODEs.'''
-        t = _utility.arange(t_start, t_end, t_step)
         if y_start is None:
             y_start = self.build_initial_conditions()
-        sol = _solver.solve(self, t, y_start)
-        _utility.assert_nonnegative(sol)
-        return sol
+        solver = self.solver(t_step)
+        soln = solver(t_span, y_start,
+                      t=t, y=y, _solution_wrap=_solution_wrap)
+        _utility.assert_nonnegative(soln)
+        return soln
 
     def find_equilibrium(self, y_0_guess):
         '''Find an equilibrium of the model.'''

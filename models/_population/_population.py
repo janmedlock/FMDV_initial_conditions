@@ -21,10 +21,8 @@ class _Solver:
         self.period = self.birth.period
         if self.period == 0:
             self.period = self.time_step
-        self.ages = _utility.arange(0, age_max, self.age_step,
-                                    endpoint=True)
-        self.times = _utility.arange(0, self.period, self.time_step,
-                                     endpoint=True)
+        self.ages = _utility.build_t(0, age_max, self.age_step)
+        self.times = _utility.build_t(0, self.period, self.time_step)
         self._sol_curr = numpy.empty((len(self.ages), ) * 2)
         self._sol_prev = numpy.empty((len(self.ages), ) * 2)
         self._init_crank_nicolson()
