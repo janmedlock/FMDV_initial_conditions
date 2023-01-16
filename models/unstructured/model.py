@@ -2,6 +2,8 @@
 
 import functools
 
+import numpy
+
 from . import _equilibrium
 from . import _limit_cycle
 from . import _solver
@@ -45,6 +47,40 @@ class Model(model.AgeIndependent):
         )
         return (dM, dS, dE, dI, dR)
 
+    def jacobian(self, t, y):
+        '''The Jacobian of the model.'''
+        (M, S, E, I, R) = y
+        birth_rate_t = self.birth.rate(t)
+        dM = (birth_rate_t * self._states_have_antibodies
+              + numpy.array((- 1 / self.waning.mean - self.death_rate_mean,
+                             0,
+                             0,
+                             0,
+                             0)))
+        dS = (birth_rate_t * ~self._states_have_antibodies
+              + numpy.array((1 / self.waning.mean,
+                             (- self.transmission.rate * I
+                              - self.death_rate_mean),
+                             0,
+                             - self.transmission.rate * S,
+                             0)))
+        dE = numpy.array((0,
+                          self.transmission.rate * I,
+                          - 1 / self.progression.mean - self.death_rate_mean,
+                          self.transmission.rate * S,
+                          0))
+        dI = numpy.array((0,
+                          0,
+                          1 / self.progression.mean,
+                          - 1 / self.recovery.mean - self.death_rate_mean,
+                          0))
+        dR = numpy.array((0,
+                          0,
+                          0,
+                          1 / self.recovery.mean,
+                          - self.death_rate_mean))
+        return numpy.vstack((dM, dS, dE, dI, dR))
+
     @staticmethod
     def build_initial_conditions():
         '''Build the initial conditions.'''
@@ -76,10 +112,6 @@ class Model(model.AgeIndependent):
         eql = _equilibrium.find(self, 0, y_0_guess)
         _utility.assert_nonnegative(eql)
         return eql
-
-    def get_jacobian(self):
-        '''Get the Jacobian.'''
-        return _utility.jacobian(self)
 
     def get_eigenvalues(self, eql):
         '''Get the eigenvalues of the Jacobian.'''

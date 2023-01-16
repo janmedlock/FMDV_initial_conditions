@@ -3,19 +3,17 @@
 import numpy
 import scipy.linalg
 
-from .. import _utility
-
 
 class _VariationalSolver:
     '''Crank–Nicolson solver for the variational equation.'''
 
     def __init__(self, model, y):
-        self._jacobian = _utility.jacobian(model)
+        self.model = model
         self.y = y
 
     def jacobian(self, t):
         '''The Jacobian at (t, y(t)).'''
-        return self._jacobian(t, self.y.loc[t])
+        return self.model.jacobian(t, self.y.loc[t])
 
     def step(self, t_cur, phi_cur, t_new, phi_new):
         '''Crank–Nicolson step.'''

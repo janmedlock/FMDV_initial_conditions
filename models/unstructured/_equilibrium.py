@@ -26,6 +26,5 @@ def find(model, t, y_guess):
 
 def eigenvalues(model, t, equilibrium):
     '''Get the eigenvalues of `equilibrium`.'''
-    jacobian = _utility.jacobian(model)
-    evals = numpy.linalg.eigvals(jacobian(t, equilibrium))
+    evals = numpy.linalg.eigvals(model.jacobian(t, equilibrium))
     return _utility.sort_by_real_part(evals)
