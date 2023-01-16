@@ -21,7 +21,7 @@ class _Birth:
         # 0 otherwise.
         return numpy.where(((self.age_menarche <= age)
                             & (age < self.age_menopause)),
-                           0, 1)
+                           1, 0)
 
     def _mean_for_zero_population_growth(self, death):
         '''Get the value for `self.mean` that gives zero population
