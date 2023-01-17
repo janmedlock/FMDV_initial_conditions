@@ -3,13 +3,13 @@
 import scipy.sparse
 
 
-class csr_matrix(scipy.sparse.csr_matrix):
-    '''A subclass of `scipy.sparse.csr_matrix()` with a `matvecs()`
+class csr_array(scipy.sparse.csr_array):
+    '''A subclass of `scipy.sparse.csr_array()` with a `matvecs()`
     method.'''
 
     def matvecs(self, B, C):
         '''Compute the matrix multiplication `C += A @ B`, where
-        `A` is a `scipy.sparse.csr_matrix()`, and
+        `A` is a `scipy.sparse.csr_array()`, and
         `B` & `C` are `numpy.ndarray()`s.'''
         # Use the private function
         # `scipy.sparse._sparsetools.csr_matvecs()` so we can specify

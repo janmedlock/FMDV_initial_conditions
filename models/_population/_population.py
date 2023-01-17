@@ -23,66 +23,71 @@ class _Solver:
             self.period = self.time_step
         self.ages = _utility.build_t(0, age_max, self.age_step)
         self.times = _utility.build_t(0, self.period, self.time_step)
-        self._sol_curr = numpy.empty((len(self.ages), ) * 2)
-        self._sol_prev = numpy.empty((len(self.ages), ) * 2)
+        assert numpy.isclose(self.times[-1], self.period)
+        self._sol_new = numpy.empty((len(self.ages), ) * 2)
+        self._sol_cur = numpy.empty((len(self.ages), ) * 2)
         self._init_crank_nicolson()
         self._init_birth()
 
     def _init_crank_nicolson(self):
         '''Build the matrix used for the Crank–Nicolson step.'''
-        mat_cn = scipy.sparse.lil_matrix((len(self.ages), ) * 2)
-        # Midpoints between adjacent ages.
+        mat_cn = scipy.sparse.lil_array((len(self.ages), ) * 2)
         ages_mid = (self.ages[1:] + self.ages[:-1]) / 2
-        k = self.death.rate(ages_mid) * self.time_step / 2
+        mu = self.death.rate(ages_mid)
+        A_diag = 1 + mu * self.time_step / 2
+        B_subdiag = 1 - mu * self.time_step / 2
         # Set the first subdiagonal.
-        mat_cn.setdiag((1 - k) / (1 + k), -1)
+        mat_cn.setdiag(B_subdiag / A_diag, -1)
         # Keep the last age group from ageing out.
-        k_last = self.death.rate(self.ages[-1]) * self.time_step / 2
-        mat_cn[-1, -1] = (1 - k_last) / (1 + k_last)
-        self._mat_cn = _sparse.csr_matrix(mat_cn)
+        mu_end = self.death.rate(self.ages[-1])
+        mat_cn[-1, -1] = ((1 - mu_end * self.time_step / 2)
+                          / (1 + mu_end * self.time_step / 2))
+        self._mat_cn = _sparse.csr_array(mat_cn)
 
     def _init_birth(self):
         '''Build the vector used for the integral step.'''
-        self._vec_birth = self.birth.maternity(self.ages) * self.age_step
-        self._vec_birth[[0, -1]] /= 2
+        v = self.age_step * numpy.ones(len(self.ages))
+        v[[0, -1]] /= 2
+        nu = self.birth.maternity(self.ages)
+        self._vec_birth = v * nu
         # Temporary storage for efficiency.
         self._vec_temp = numpy.empty(len(self.ages))
 
     def _set_initial_condition(self):
         '''Set the initial condition.'''
-        # self._sol_curr[:] = numpy.eye(len(self.ages))
-        # Avoid build a new matrix.
-        self._sol_curr[:] = 0
-        numpy.fill_diagonal(self._sol_curr, 1)
+        # self._sol_new[:] = numpy.eye(len(self.ages))
+        # Avoid building a new matrix.
+        self._sol_new[:] = 0
+        numpy.fill_diagonal(self._sol_new, 1)
 
     def _step_crank_nicolson(self):
         '''Do the Crank–Nicolson step.'''
-        # self._sol_curr = self._mat_cn @ self._sol_prev
+        # self._sol_new[:] = self._mat_cn @ self._sol_cur
         # Avoid building a new matrix.
-        self._sol_curr[:] = 0
-        # self._sol_curr += self._mat_cn @ self._sol_prev
-        self._mat_cn.matvecs(self._sol_prev, self._sol_curr)
+        self._sol_new[:] = 0
+        # self._sol_new += self._mat_cn @ self._sol_cur
+        self._mat_cn.matvecs(self._sol_cur, self._sol_new)
 
-    def _step_birth(self, t_curr, birth_scaling):
+    def _step_birth(self, t_cur, birth_scaling):
         '''Do the birth step.'''
-        t_mid = t_curr + self.time_step / 2
-        # self._sol_curr[0] = (birth_scaling
-        #                      * self.birth.rate(t_mid)
-        #                      * self._vec_birth @ self._sol_curr)
+        t_mid = t_cur + self.time_step / 2
+        # self._sol_new[0] = (birth_scaling
+        #                     * self.birth.rate(t_mid)
+        #                     * self._vec_birth @ self._sol_new)
         # Avoid building new vectors.
         self._vec_temp[:] = self._vec_birth
-        self._vec_temp *= birth_scaling * self.birth.rate(t_mid)
-        self._vec_temp.dot(self._sol_curr, out=self._sol_curr[0])
+        self._vec_temp *= birth_scaling * self.birth.rate(t_mid) / 2
+        self._vec_temp.dot(self._sol_new + self._sol_cur,
+                           out=self._sol_new[0])
 
-    def _step(self, t_curr, birth_scaling):
+    def _step(self, t_cur, birth_scaling):
         '''Do a step of the solver.'''
-        # Update so that what was the current value of the solulation
-        # is now the previous value and what was the previous value of
-        # the solulation will be storage space for the new current
-        # value.
-        (self._sol_curr, self._sol_prev) = (self._sol_prev, self._sol_curr)
+        # Update so that what was the new value of the solution is now
+        # the current value and what was the current value of the
+        # solution will be storage space for the new value.
+        (self._sol_new, self._sol_cur) = (self._sol_cur, self._sol_new)
         self._step_crank_nicolson()
-        self._step_birth(t_curr, birth_scaling)
+        self._step_birth(t_cur, birth_scaling)
 
     def solve_monodromy(self, birth_scaling=1):
         '''Get the monodromy matrix Psi = Phi(T), where Phi is the
@@ -90,9 +95,9 @@ class _Solver:
         if len(self.times) == 0:
             return None
         self._set_initial_condition()
-        for t_curr in self.times[1:]:
-            self._step(t_curr, birth_scaling)
-        return self._sol_curr
+        for t_cur in self.times[:-1]:
+            self._step(t_cur, birth_scaling)
+        return self._sol_new
 
     def population_growth_rate(self, birth_scaling):
         '''Get the population growth rate.'''
