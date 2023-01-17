@@ -171,7 +171,7 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{M}^{\text{constant}} &=
+    \mat{C} &=
     \frac{\Delta t}{2}
     \begin{bmatrix}
       - (\omega + \mu) & 0 & 0 & 0 & 0
@@ -184,7 +184,7 @@ Let
       0 & 0 & 0 & \gamma & - \mu
     \end{bmatrix},
     \\
-    \mat{M}^{\text{birth}} &=
+    \mat{B} &=
     \frac{\Delta t}{2}
     \begin{bmatrix}
       0 & 0 & 0 & 0 & 1
@@ -198,7 +198,7 @@ Let
       0 & 0 & 0 & 0 & 0
     \end{bmatrix},
     \\
-    \mat{M}^{\text{infection}} &=
+    \mat{T} &=
     \frac{\Delta t}{2}
     \begin{bmatrix}
       0 & 0 & 0 & 0 & 0
@@ -212,26 +212,21 @@ Let
       0 & 0 & 0 & 0 & 0
     \end{bmatrix},
     \\
-    \mat{A}^{\text{constant}} &=
-    \mat{I}
-    - \mat{M}^{\text{constant}},
+    \mat{P} &= \mat{I} - \mat{C},
     \\
-    \mat{B}^{\text{constant}} &=
-    \mat{I}
-    + \mat{M}^{\text{constant}},
+    \mat{Q} &= \mat{I} + \mat{C},
   \end{split}
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}^{\ell} &=
-    \mat{A}^{\text{constant}}
-    - b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}},
+    \mat{P}^{\ell} &=
+    \mat{P} - b(t^{\ell - 1 / 2}) \mat{B},
     \\
-    \vec{c}^{\ell - 1} &=
+    \vec{d}^{\ell - 1} &=
     \left[
-      \mat{B}^{\text{constant}}
-      + b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}}
-      + \vec{\beta} \vec{x}^{\ell - 1} \mat{M}^{\text{infection}}
+      \mat{Q}
+      + b(t^{\ell - 1 / 2}) \mat{B}
+      + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
     \right] \vec{x}^{\ell - 1}.
   \end{split}
 \end{equation}
@@ -239,10 +234,10 @@ Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
 we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
 \begin{equation}
   \left[
-    \mat{A}^{\ell}
-    - \vec{\beta} \vec{x}^{\ell} \mat{M}^{\text{infection}}
+    \mat{P}^{\ell}
+    - \vec{\beta} \vec{x}^{\ell} \mat{T}
   \right] \vec{x}^{\ell}
-  - \vec{c}^{\ell - 1}
+  - \vec{d}^{\ell - 1}
   = \vec{0}.
 \end{equation}
 
@@ -522,7 +517,7 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}_{mm}^{\text{constant}} &=
+    \mat{P}_{mm} &=
     \begin{bmatrix}
       1 & 0 & \cdots & 0
       \\
@@ -535,7 +530,7 @@ Let
       1 + \frac{\Delta t}{2} \left[\omega(z_{K - 1}) + \mu\right]
     \end{bmatrix},
     \\
-    \mat{B}_{mm}^{\text{constant}} &=
+    \mat{Q}_{mm} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & \cdots & 0
       \\
@@ -553,15 +548,15 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \vec{m}_{Sm}^{\text{constant}} &=
+    \vec{c}_{Sm} &=
     \frac{\Delta t}{2} \vec{v} \circ \vec{\omega},
     \\
-    m_{SS}^{\text{constant}} &= - \frac{\Delta t}{2} \mu,
+    c_{SS} &= - \frac{\Delta t}{2} \mu,
   \end{split}
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}_{ee}^{\text{constant}} &=
+    \mat{P}_{ee} &=
     \begin{bmatrix}
       1 & 0 & \cdots & 0
       \\
@@ -574,7 +569,7 @@ Let
       1 + \frac{\Delta t}{2} \left[\rho(z_{K - 1}) + \mu\right]
     \end{bmatrix},
     \\
-    \mat{B}_{ee}^{\text{constant}} &=
+    \mat{Q}_{ee} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & \cdots & 0
       \\
@@ -592,7 +587,7 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{M}_{ie}^{\text{constant}} &=
+    \mat{C}_{ie} &=
     \frac{1}{2}
     \begin{bmatrix}
       \vec{v} \circ \vec{\rho}
@@ -604,7 +599,7 @@ Let
       \vec{0}
     \end{bmatrix},
     \\
-    \mat{A}_{ii}^{\text{constant}} &=
+    \mat{P}_{ii} &=
     \begin{bmatrix}
       1 & 0 & \cdots & 0
       \\
@@ -617,7 +612,7 @@ Let
       1 + \frac{\Delta t}{2} \left[\gamma(z_{K - 1}) + \mu\right]
     \end{bmatrix},
     \\
-    \mat{B}_{ii}^{\text{constant}} &=
+    \mat{Q}_{ii} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & \cdots & 0
       \\
@@ -635,73 +630,66 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \vec{m}_{Ri}^{\text{constant}} &=
+    \vec{c}_{Ri} &=
     \frac{\Delta t}{2} \vec{v} \circ \vec{\gamma},
     \\
-    m_{RR}^{\text{constant}} &=
+    c_{RR} &=
     - \frac{\Delta t}{2} \mu.
   \end{split}
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}^{\text{constant}} &=
+    \mat{P} &=
     \begin{bmatrix}
-      \mat{A}_{mm}^{\text{constant}} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \mat{P}_{mm} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
-      - \vec{m}_{Sm}^{\text{constant}} & 1 - m_{SS}^{\text{constant}} &
-      \vec{0} & \vec{0} & 0
+      - \vec{c}_{Sm} & 1 - c_{SS} & \vec{0} & \vec{0} & 0
       \\
-      \mat{0} & \vec{0} & \mat{A}_{ee}^{\text{constant}} & \mat{0} & \vec{0}
+      \mat{0} & \vec{0} & \mat{P}_{ee} & \mat{0} & \vec{0}
       \\
-      \mat{0} & \vec{0} & - \mat{M}_{ie}^{\text{constant}} &
-      \mat{A}_{ii}^{\text{constant}} & \vec{0}
+      \mat{0} & \vec{0} & - \mat{C}_{ie} & \mat{P}_{ii} & \vec{0}
       \\
-      \vec{0} & 0 & \vec{0} & - \vec{m}_{Ri}^{\text{constant}} &
-      1 - m_{RR}^{\text{constant}}
+      \vec{0} & 0 & \vec{0} & - \vec{c}_{Ri} & 1 - c_{RR}
     \end{bmatrix},
     \\
-    \mat{B}^{\text{constant}} &=
+    \mat{Q} &=
     \begin{bmatrix}
-      \mat{B}_{mm}^{\text{constant}} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \mat{Q}_{mm} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
-      \vec{m}_{Sm}^{\text{constant}} & 1 + m_{SS}^{\text{constant}} &
-      \vec{0} & \vec{0} & 0
+      \vec{c}_{Sm} & 1 + c_{SS} & \vec{0} & \vec{0} & 0
       \\
-      \mat{0} & \vec{0} & \mat{B}_{ee}^{\text{constant}} & \mat{0} & \vec{0}
+      \mat{0} & \vec{0} & \mat{Q}_{ee} & \mat{0} & \vec{0}
       \\
-      \mat{0} & \vec{0} & \mat{M}_{ie}^{\text{constant}} &
-      \mat{B}_{ii}^{\text{constant}} & \vec{0}
+      \mat{0} & \vec{0} & \mat{C}_{ie} & \mat{Q}_{ii} & \vec{0}
       \\
-      \vec{0} & 0 & \vec{0} & \vec{m}_{Ri}^{\text{constant}} &
-      1 + m_{RR}^{\text{constant}}
+      \vec{0} & 0 & \vec{0} & \vec{c}_{Ri} & 1 + c_{RR}
     \end{bmatrix},
   \end{split}
 \end{equation}
 \begin{equation}
   \begin{split}
-    \vec{m}_{mR}^{\text{birth}} &=
+    \vec{b}_{mR} &=
     \frac{1}{2}
     \begin{bmatrix}
       1 \\ 0 \\ \vdots \\ 0
     \end{bmatrix},
     \\
-    \vec{m}_{Sm}^{\text{birth}} =
-    \vec{m}_{Se}^{\text{birth}} =
-    \vec{m}_{Si}^{\text{birth}} &=
+    \vec{b}_{Sm} =
+    \vec{b}_{Se} =
+    \vec{b}_{Si} &=
     \frac{\Delta t}{2} \vec{v},
     \\
-    m_{SS}^{\text{birth}} &=
+    b_{SS} &=
     \frac{\Delta t}{2},
   \end{split}
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{M}^{\text{birth}} &=
+    \mat{B} &=
     \begin{bmatrix}
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{m}_{mR}^{\text{birth}}
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{b}_{mR}
       \\
-      \vec{m}_{Sm}^{\text{birth}} & m_{SS}^{\text{birth}} &
-      \vec{m}_{Se}^{\text{birth}} & \vec{m}_{Si}^{\text{birth}} & 0
+      \vec{b}_{Sm} & b_{SS} & \vec{b}_{Se} & \vec{b}_{Si} & 0
       \\
       \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
@@ -713,10 +701,10 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    m_{SS}^{\text{infection}} &=
+    t_{SS} &=
     - \frac{\Delta t}{2},
     \\
-    \vec{m}_{eS}^{\text{infection}} &=
+    \vec{t}_{eS} &=
     \frac{1}{2}
     \begin{bmatrix}
       1 \\ 0 \\ \vdots \\ 0
@@ -725,13 +713,13 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{M}^{\text{infection}} &=
+    \mat{T} &=
     \begin{bmatrix}
       \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
-      \vec{0} & m_{SS}^{\text{infection}} & \vec{0} & \vec{0} & 0
+      \vec{0} & t_{SS} & \vec{0} & \vec{0} & 0
       \\
-      \mat{0} & \vec{m}_{eS}^{\text{infection}} & \mat{0} & \mat{0} & \vec{0}
+      \mat{0} & \vec{t}_{eS} & \mat{0} & \mat{0} & \vec{0}
       \\
       \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
@@ -741,15 +729,14 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}^{\ell} &=
-    \mat{A}^{\text{constant}}
-    - b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}},
+    \mat{P}^{\ell} &=
+    \mat{P} - b(t^{\ell - 1 / 2}) \mat{B},
     \\
-    \vec{c}^{\ell - 1} &=
+    \vec{d}^{\ell - 1} &=
     \left[
-      \mat{B}^{\text{constant}}
-      + b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}}
-      + \vec{\beta} \vec{x}^{\ell - 1} \mat{M}^{\text{infection}}
+      \mat{Q}
+      + b(t^{\ell - 1 / 2}) \mat{B}
+      + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
     \right] \vec{x}^{\ell - 1}.
   \end{split}
 \end{equation}
@@ -757,10 +744,10 @@ Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
 we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
 \begin{equation}
   \left[
-    \mat{A}^{\ell}
-    - \vec{\beta} \vec{x}^{\ell} \mat{M}^{\text{infection}}
+    \mat{P}^{\ell}
+    - \vec{\beta} \vec{x}^{\ell} \mat{T}
   \right] \vec{x}^{\ell}
-  - \vec{c}^{\ell - 1}
+  - \vec{d}^{\ell - 1}
   = \vec{0}.
 \end{equation}
 
@@ -865,66 +852,7 @@ $j, k \in \{0, 1, 2, \ldots, J - 1\}$;
 $t^{\ell} = t_0 + \ell \Delta t$ for
 $\ell \in \{0, 1, \ldots, L - 1\}$;
 and $\Phi_{j, k}^{\ell} \approx \Phi(t^{\ell}, a_j, a'_k)$.
-For each $j \geq 1$, each $k$, and each $\ell \geq 1$, the
-Crank--Nicolson method on characteristics is
-\begin{equation}
-  \label{CN_step}
-  \frac{\Phi_{j, k}^{\ell} - \Phi_{j - 1, k}^{\ell - 1}}{\Delta t}
-  = - \mu(a_{j - 1 / 2})
-  \frac{\Phi_{j, k}^{\ell} + \Phi_{j - 1, k}^{\ell - 1}}{2},
-\end{equation}
-or
-\begin{equation}
-  \Phi_{j, k}^{\ell}
-  = \frac{1 - C_{j - 1 / 2}}{1 + C_{j - 1 / 2}}
-  \Phi_{j - 1, k}^{\ell - 1},
-\end{equation}
-with
-\begin{equation}
-  C_{j - 1 / 2}
-  = \frac{1}{2} \mu(a_{j - 1 / 2}) \Delta t,
-\end{equation}
-for $j \in \{1, 2, \ldots, J - 2\}$.  For $j = J - 1$,
-a term was added to prevent aging out of this
-last age group:
-\begin{equation}
-  \Phi_{J - 1, k}^{\ell}
-  = \frac{1 - C_{J - 3 / 2}}{1 + C_{J - 3 / 2}}
-  \Phi_{J - 2, k}^{\ell - 1}
-  + \frac{1 - C_{J - 1}}{1 + C_{J - 1}}
-  \Phi_{J - 1, k}^{\ell - 1},
-\end{equation}
-with
-\begin{equation}
-  C_{J - 1}
-  = \frac{1}{2} \mu(a_{J - 1}) \Delta t.
-\end{equation}
-For $j = 0$, the birth integral is given by the composite trapezoid
-rule,
-\begin{equation}
-  \label{birth_step}
-  \Phi_{0, k}^{\ell} =
-  b(t^{\ell - 1 / 2})
-  \sum_{j = 1}^{J - 1}
-  \frac{\nu(a_j) \Phi_{j, k}^{\ell}
-    + \nu(a_{j - 1}) \Phi_{j - 1, k}^{\ell}}{2}
-  \Delta t,
-\end{equation}
-or
-\begin{equation}
-  \mat{\Phi}_0^{\ell} = b(t^{\ell - 1 / 2}) \vec{v} \mat{\Phi}^{\ell},
-\end{equation}
-with the vector $\vec{v} = [v_j]$ for
-\begin{equation}
-  v_j =
-  \begin{cases}
-    \frac{1}{2} \nu(a_j) \Delta t
-    & \text{if $j = 0$ or $j = J - 1$}, \\
-    \nu(a_j) \Delta t
-    & \text{otherwise}.
-  \end{cases}
-\end{equation}
-The initial condition is
+For each $j$ and $k$ the initial condition is
 \begin{equation}
   \Phi_{j, k}^0 =
   \begin{cases}
@@ -932,27 +860,138 @@ The initial condition is
     0 & \text{otherwise}.
   \end{cases}
 \end{equation}
-Considering $\mat{\Phi}^{\ell} = [\Phi_{j, k}^{\ell}]$ as a matrix
-that evolves in time, the method is easily implemented with matrix
-algebra: the Crank--Nicolson step \eqref{CN_step} is
+For each $1 \leq j \leq J - 2$, each $k$, and each $\ell
+\geq 1$, the Crank--Nicolson method on characteristics is
 \begin{equation}
-  \mat{\Phi}^{\ell} = \mat{M} \mat{\Phi}^{\ell - 1},
+  \begin{split}
+    \Phi_{0, k}^{\ell}
+    &= b(t^{\ell - 1 / 2})
+    \frac{1}{2}
+    \Bigg[\sum_{j = 1}^{J - 1}
+    \frac{\nu(a_j) \Phi_{j, k}^{\ell}
+      + \nu(a_{j - 1}) \Phi_{j - 1, k}^{\ell}}
+    {2}
+    \Delta t
+    \\
+    & \quad\quad\quad\quad\quad\quad {}
+    + \sum_{j = 1}^{J - 1}
+    \frac{\nu(a_j) \Phi_{j, k}^{\ell - 1}
+      + \nu(a_{j - 1}) \Phi_{j - 1, k}^{\ell - 1}}
+    {2}
+    \Delta t
+    \Bigg],
+    \\
+    \frac{\Phi_{j, k}^{\ell} - \Phi_{j - 1, k}^{\ell - 1}}{\Delta t}
+    &= - \mu(a_{j - 1 / 2})
+    \frac{\Phi_{j, k}^{\ell} + \Phi_{j - 1, k}^{\ell - 1}}{2},
+    \\
+    \frac{\Phi_{J - 1, k}^{\ell} - \Phi_{J - 2, k}^{\ell - 1}}{\Delta t}
+    &= - \mu(a_{J - 3 / 2})
+    \frac{\Phi_{J - 1, k}^{\ell} + \Phi_{J - 2, k}^{\ell - 1}}{2}
+    \\
+    & \quad {}
+    + \frac{1}{\Delta t}
+    \left[1 + \frac{\Delta t}{2} \mu(a_{J - 3 / 2})\right]
+    \frac{1 - \frac{\Delta t}{2} \mu(a_{J - 1})}
+    {1 + \frac{\Delta t}{2} \mu(a_{J - 1})}
+    \Phi_{J - 1, k}^{\ell - 1}.
+  \end{split}
 \end{equation}
-with the matrix $\mat{M} = [M_{j, k}]$ where
+In the last equation, the final term prevents aging out of the last
+age group.
+
+Let
 \begin{equation}
-  M_{j, k} =
-  \begin{cases}
-    \frac{1 - C_{j - 1 / 2}}{1 + C_{j - 1 / 2}}
-    & \text{if $j = k + 1$}, \\
-    \frac{1 - C_{J - 1}}{1 + C_{J - 1}} & \text{if $j = k = J - 1$}, \\
-    0 & \text{otherwise}.
-  \end{cases}
+  \mat{\Phi}^{\ell}
+  = \left[\Phi_{j, k}^{\ell}\right],
 \end{equation}
-The initial condition is
 \begin{equation}
-  \mat{\Phi}^0 = \mat{I},
+  \begin{split}
+    \vec{v} &=
+    \Delta t
+    \begin{bmatrix}
+      \frac{1}{2} & 1 & \cdots & 1 & \frac{1}{2}
+    \end{bmatrix},
+    \\
+    \vec{\nu} &=
+    \begin{bmatrix}
+      \nu(a_0) & \cdots & \nu(a_{J - 1})
+    \end{bmatrix},
+  \end{split}
 \end{equation}
-where $\mat{I}$ is the $J \times J$ identity matrix.
+\begin{equation}
+  \begin{split}
+    \mat{P} &=
+    \begin{bmatrix}
+      1 & 0 & \cdots & 0
+      \\
+      0 & 1 + \frac{\Delta t}{2} \mu(a_{1 / 2}) &
+      \ddots & \vdots
+      \\
+      \vdots & \ddots & \ddots & 0
+      \\
+      0 & \cdots & 0 &
+      1 + \frac{\Delta t}{2} \mu(a_{J - 3 / 2})
+    \end{bmatrix},
+    \\
+    \mat{Q} &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & 0 & 0
+      \\
+      1 - \frac{\Delta t}{2} \mu(a_{1 / 2}) & \ddots &
+      & \vdots & \vdots
+      \\
+      0 & \ddots & \ddots & \vdots & \vdots
+      \\
+      \vdots & \ddots & \ddots & 0 & 0
+      \\
+      0 & \cdots & 0
+      & 1 - \frac{\Delta t}{2} \mu(a_{J - 3 / 2})
+      & \left[1 + \frac{\Delta t}{2} \mu(a_{J - 3 / 2})\right]
+      \frac{1 - \frac{\Delta t}{2} \mu(a_{J - 1})}
+      {1 + \frac{\Delta t}{2} \mu(a_{J - 1})}
+    \end{bmatrix},
+    \\
+    \mat{C} = \mat{P}^{-1} \mat{Q}
+    &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & 0 & 0
+      \\
+      \frac{1 - \frac{\Delta t}{2} \mu(a_{1 / 2})}
+      {1 + \frac{\Delta t}{2} \mu(a_{1 / 2})}
+      & \ddots & & \vdots & \vdots
+      \\
+      0 & \ddots & \ddots & \vdots & \vdots
+      \\
+      \vdots & \ddots & \ddots & 0 & 0
+      \\
+      0 & \cdots & 0 &
+      \frac{1 - \frac{\Delta t}{2} \mu(a_{J - 3 / 2})}
+      {1 + \frac{\Delta t}{2} \mu(a_{J - 3 / 2})}
+      & \frac{1 - \frac{\Delta t}{2} \mu(a_{J - 1})}
+      {1 + \frac{\Delta t}{2} \mu(a_{J - 1})}
+    \end{bmatrix},
+    \\
+    \mat{B} &=
+    \frac{1}{2}
+    \begin{bmatrix}
+      \vec{v} \circ \vec{\nu} \\ \vec{0} \\ \vdots \\ \vec{0}
+    \end{bmatrix}
+    (\mat{I} + \mat{C}).
+  \end{split}
+\end{equation}
+Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
+\begin{equation}
+  \begin{split}
+    \mat{\Phi}^{\ell}
+    &=
+    \left[
+      \mat{C}
+      + b(t^{\ell - 1 / 2}) \mat{B}
+    \right]
+    \mat{\Phi}^{\ell - 1}.
+  \end{split}
+\end{equation}
 
 Using this numerical scheme, we solved for the monodromy matrix, the
 fundamental solution after one period:
@@ -1110,7 +1149,7 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}_{MM}^{\text{constant}} &=
+    \mat{P}_{MM} &=
     \begin{bmatrix}
       1 & 0 & \cdots & 0
       \\
@@ -1123,7 +1162,7 @@ Let
       1 + \frac{\Delta t}{2} \left[\omega + \mu(a_{J - 1})\right]
     \end{bmatrix},
     \\
-    \mat{B}_{MM}^{\text{constant}} &=
+    \mat{Q}_{MM} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & \cdots & 0
       \\
@@ -1141,10 +1180,10 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{M}_{SM}^{\text{constant}} &=
+    \mat{C}_{SM} &=
     \frac{\Delta t}{2} \omega \mat{I},
     \\
-    \mat{A}_{SS}^{\text{constant}} &=
+    \mat{P}_{SS} &=
     \begin{bmatrix}
       1 & 0 & \cdots & 0
       \\
@@ -1157,7 +1196,7 @@ Let
       1 + \frac{\Delta t}{2} \mu(a_{J - 1})
     \end{bmatrix},
     \\
-    \mat{B}_{SS}^{\text{constant}} &=
+    \mat{Q}_{SS} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & \cdots & 0
       \\
@@ -1175,7 +1214,7 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}_{EE}^{\text{constant}} &=
+    \mat{P}_{EE} &=
     \begin{bmatrix}
       1 & 0 & \cdots & 0
       \\
@@ -1188,7 +1227,7 @@ Let
       1 + \frac{\Delta t}{2} \left[\rho + \mu(a_{J - 1})\right]
     \end{bmatrix},
     \\
-    \mat{B}_{EE}^{\text{constant}} &=
+    \mat{Q}_{EE} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & \cdots & 0
       \\
@@ -1206,10 +1245,10 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{M}_{IE}^{\text{constant}} &=
+    \mat{C}_{IE} &=
     \frac{\Delta t}{2} \rho \mat{I},
     \\
-    \mat{A}_{II}^{\text{constant}} &=
+    \mat{P}_{II} &=
     \begin{bmatrix}
       1 & 0 & \cdots & 0
       \\
@@ -1222,7 +1261,7 @@ Let
       1 + \frac{\Delta t}{2} \left[\gamma + \mu(a_{J - 1})\right]
     \end{bmatrix},
     \\
-    \mat{B}_{II}^{\text{constant}} &=
+    \mat{Q}_{II} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & \cdots & 0
       \\
@@ -1240,10 +1279,10 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{M}_{RI}^{\text{constant}} &=
+    \mat{C}_{RI} &=
     \frac{\Delta t}{2} \gamma \mat{I},
     \\
-    \mat{A}_{RR}^{\text{constant}} &=
+    \mat{P}_{RR} &=
     \begin{bmatrix}
       1 & 0 & \cdots & 0
       \\
@@ -1256,7 +1295,7 @@ Let
       1 + \frac{\Delta t}{2} \mu(a_{J - 1})
     \end{bmatrix},
     \\
-    \mat{B}_{RR}^{\text{constant}} &=
+    \mat{Q}_{RR} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & \cdots & 0
       \\
@@ -1274,57 +1313,47 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}^{\text{constant}} &=
+    \mat{P} &=
     \begin{bmatrix}
-      \mat{A}_{MM}^{\text{constant}} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \mat{P}_{MM} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
-      - \mat{M}_{SM}^{\text{constant}} & \mat{A}_{SS}^{\text{constant}} &
-      \mat{0} & \mat{0} & \mat{0}
+      - \mat{C}_{SM} & \mat{P}_{SS} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{A}_{EE}^{\text{constant}} & \mat{0} & \mat{0}
+      \mat{0} & \mat{0} & \mat{P}_{EE} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{0} & - \mat{M}_{IE}^{\text{constant}} &
-      \mat{A}_{II}^{\text{constant}} & \mat{0}
+      \mat{0} & \mat{0} & - \mat{C}_{IE} & \mat{P}_{II} & \mat{0}
       \\
-      \mat{0} & 0 & \mat{0} & - \mat{M}_{RI}^{\text{constant}} &
-      \mat{A}_{RR}^{\text{constant}}
+      \mat{0} & 0 & \mat{0} & - \mat{C}_{RI} & \mat{P}_{RR}
     \end{bmatrix},
     \\
-    \mat{B}^{\text{constant}} &=
+    \mat{Q} &=
     \begin{bmatrix}
-      \mat{B}_{MM}^{\text{constant}} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \mat{Q}_{MM} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{M}_{SM}^{\text{constant}} & \mat{B}_{SS}^{\text{constant}} &
-      \mat{0} & \mat{0} & \mat{0}
+      \mat{C}_{SM} & \mat{Q}_{SS} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{B}_{EE}^{\text{constant}} & \mat{0} & \mat{0}
+      \mat{0} & \mat{0} & \mat{Q}_{EE} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{M}_{IE}^{\text{constant}} &
-      \mat{B}_{II}^{\text{constant}} & \mat{0}
+      \mat{0} & \mat{0} & \mat{C}_{IE} & \mat{Q}_{II} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{M}_{RI}^{\text{constant}} &
-      \mat{B}_{RR}^{\text{constant}}
+      \mat{0} & \mat{0} & \mat{0} & \mat{C}_{RI} & \mat{Q}_{RR}
     \end{bmatrix},
   \end{split}
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{M}_{MR}^{\text{birth}} &=
-    \mat{M}_{SM}^{\text{birth}} =
-    \mat{M}_{SS}^{\text{birth}} =
-    \mat{M}_{SE}^{\text{birth}} =
-    \mat{M}_{SI}^{\text{birth}} =
+    \mat{B}_{MR} &= \mat{B}_{SM} = \mat{B}_{SS} = \mat{B}_{SE} = \mat{B}_{SI}
+    =
     \frac{1}{2}
     \begin{bmatrix}
       \vec{v} \circ \vec{\nu} \\ \vec{0} \\ \vdots \\ \vec{0}
     \end{bmatrix},
     \\
-    \mat{M}^{\text{birth}} &=
+    \mat{B} &=
     \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{M}_{MR}^{\text{birth}}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{MR}
       \\
-      \mat{M}_{SM}^{\text{birth}} & \mat{M}_{SS}^{\text{birth}} &
-      \mat{M}_{SE}^{\text{birth}} & \mat{M}_{SI}^{\text{birth}} & \mat{0}
+      \mat{B}_{SM} & \mat{B}_{SS} & \mat{B}_{SE} & \mat{B}_{SI} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
@@ -1336,19 +1365,19 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{M}_{SS}^{\text{infection}} &=
+    \mat{T}_{SS} &=
     - \frac{\Delta t}{2} \mat{I},
     \\
-    \mat{M}_{ES}^{\text{infection}} &=
+    \mat{T}_{ES} &=
     \frac{\Delta t}{2} \mat{I},
     \\
-    \mat{M}^{\text{infection}} &=
+    \mat{T} &=
     \begin{bmatrix}
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{M}_{SS}^{\text{infection}} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0} & \mat{T}_{SS} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{M}_{ES}^{\text{infection}} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0} & \mat{T}_{ES} & \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
@@ -1358,15 +1387,14 @@ Let
 \end{equation}
 \begin{equation}
   \begin{split}
-    \mat{A}^{\ell} &=
-    \mat{A}^{\text{constant}}
-    - b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}},
+    \mat{P}^{\ell} &=
+    \mat{P} - b(t^{\ell - 1 / 2}) \mat{B},
     \\
-    \vec{c}^{\ell - 1} &=
+    \vec{d}^{\ell - 1} &=
     \left[
-      \mat{B}^{\text{constant}}
-      + b(t^{\ell - 1 / 2}) \mat{M}^{\text{birth}}
-      + \vec{\beta} \vec{x}^{\ell - 1} \mat{M}^{\text{infection}}
+      \mat{Q}
+      + b(t^{\ell - 1 / 2}) \mat{B}
+      + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
     \right] \vec{x}^{\ell - 1}.
   \end{split}
 \end{equation}
@@ -1374,10 +1402,10 @@ Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
 we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
 \begin{equation}
   \left[
-    \mat{A}^{\ell}
-    - \vec{\beta} \vec{x}^{\ell} \mat{M}^{\text{infection}}
+    \mat{P}^{\ell}
+    - \vec{\beta} \vec{x}^{\ell} \mat{T}
   \right] \vec{x}^{\ell}
-  - \vec{c}^{\ell - 1}
+  - \vec{d}^{\ell - 1}
   = \vec{0}.
 \end{equation}
 

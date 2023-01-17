@@ -13,7 +13,8 @@ def get_dominant_eigen(A, which='LR', return_eigenvector=True,
     `which='LM'` gets the eigenvalue with largest magnitude.'''
     # The solver just spins with inf/NaN entries.
     # I think this check handles dense & sparse matrices, etc.
-    assert numpy.isfinite(A[numpy.nonzero(A)]).all(), 'A has inf/NaN entries.'
+    assert numpy.isfinite(A[numpy.nonzero(A)]).all(), \
+        '`A` has inf/NaN entries.'
     result = scipy.sparse.linalg.eigs(A, k=1, which=which, maxiter=maxiter,
                                       return_eigenvectors=return_eigenvector,
                                       *args, **kwargs)
