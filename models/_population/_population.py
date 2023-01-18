@@ -32,21 +32,23 @@ class _Solver:
     def _init_crank_nicolson(self):
         '''Build the matrix used for the Crank–Nicolson step.'''
         mu = self.death.rate(self.ages)
-        P_diag = numpy.hstack([1,
-                               1 + mu[1:] * self.time_step / 2])
-        Q_subdiag_1 = 1 - mu[:-1] * self.time_step / 2
-        # P = scipy.sparse.diags(P_diag, 0)
-        # Q = scipy.sparse.diags(Q_subdiag_1, -1)
+        P_diags = {0: numpy.hstack([1,
+                                    1 + mu[1:] * self.time_step / 2])}
+        Q_diags = {-1: 1 - mu[:-1] * self.time_step / 2,
+                   # Keep the last age group from ageing out.
+                   0: numpy.hstack([numpy.zeros(len(self.ages) - 1),
+                                    1 - mu[-1] * self.time_step / 2])}
+        # P = _sparse.diags(P_diags)
+        # Q = _sparse.diags(Q_diags)
         # P_inv = scipy.sparse.linalg.inv(P)
-        # C = P_inv @ R  # This will not be a `scipy.sparse.spmatrix()`.
-        # Exploit the sparsity of P & Q to directly build C.
-        C_subdiag_1 = Q_subdiag_1 / P_diag[1:]
-        C = scipy.sparse.diags(C_subdiag_1, -1)
-        # Keep the last age group from ageing out.
-        P_end = 1 + mu[-1] * self.time_step / 2
-        Q_end = 1 - mu[-1] * self.time_step / 2
-        C = C.tolil()
-        C[-1, -1] += Q_end / P_end
+        # C = P_inv @ Q
+        # `C` will not be a `scipy.sparse` matrix without using
+        # `scipy.sparse._sparsetools.csr_matmat()' or similar.
+        # Instead, use the sparsity patterns of P & Q to directly
+        # construct `C`.
+        C_diags = {-1: Q_diags[-1] / P_diags[0][1:],
+                   0: Q_diags[0] / P_diags[0]}
+        C = _sparse.diags(C_diags)
         self._CN = _sparse.csr_array(C)
 
     def _init_birth(self):

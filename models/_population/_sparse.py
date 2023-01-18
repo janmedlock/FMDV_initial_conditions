@@ -3,6 +3,15 @@
 import scipy.sparse
 
 
+def diags(diags, *args, **kwds):
+    '''Build a `scipy.sparse` matrix from the dictionary of diagonals
+    `diags`.'''
+    return scipy.sparse.diags(diags.values(),
+                              tuple(diags.keys()),
+                              *args,
+                              **kwds)
+
+
 class csr_array(scipy.sparse.csr_array):
     '''A subclass of `scipy.sparse.csr_array()` with a `matvecs()`
     method.'''
