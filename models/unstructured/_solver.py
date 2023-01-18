@@ -15,47 +15,47 @@ class Solver:
         self.t_step = t_step
         self._build_matrices_constant()
         self._build_matrix_birth()
-        self._build_matrix_infection()
+        self._build_matrix_transmission()
         self._build_force_of_infection()
         self._build_scratch()
 
     def _build_matrices_constant(self):
-        M_MM = - (1 / self.model.waning.mean
+        C_MM = - (1 / self.model.waning.mean
                   + self.model.death_rate_mean)
-        M_SM = 1 / self.model.waning.mean
-        M_SS = - self.model.death_rate_mean
-        M_EE = - (1 / self.model.progression.mean
+        C_SM = 1 / self.model.waning.mean
+        C_SS = - self.model.death_rate_mean
+        C_EE = - (1 / self.model.progression.mean
                   + self.model.death_rate_mean)
-        M_IE = 1 / self.model.progression.mean
-        M_II = - (1 / self.model.recovery.mean
+        C_IE = 1 / self.model.progression.mean
+        C_II = - (1 / self.model.recovery.mean
                   + self.model.death_rate_mean)
-        M_RI = 1 / self.model.recovery.mean
-        M_RR = - self.model.death_rate_mean
-        M = numpy.array(((M_MM, 0, 0, 0, 0),
-                         (M_SM, M_SS, 0, 0, 0),
-                         (0, 0, M_EE, 0, 0),
-                         (0, 0, M_IE, M_II, 0),
-                         (0, 0, 0, M_RI, M_RR)))
-        M_constant = self.t_step / 2 * M
-        I = numpy.eye(*M_constant.shape)
-        self._A_constant = I - M_constant
-        self._B_constant = I + M_constant
+        C_RI = 1 / self.model.recovery.mean
+        C_RR = - self.model.death_rate_mean
+        C = (self.t_step / 2
+             * numpy.array(((C_MM, 0, 0, 0, 0),
+                            (C_SM, C_SS, 0, 0, 0),
+                            (0, 0, C_EE, 0, 0),
+                            (0, 0, C_IE, C_II, 0),
+                            (0, 0, 0, C_RI, C_RR))))
+        I = numpy.eye(*C.shape)
+        self._P = I - C
+        self._Q = I + C
 
     def _build_matrix_birth(self):
-        M = numpy.array(((0, 0, 0, 0, 1),
-                         (1, 1, 1, 1, 0),
-                         (0, 0, 0, 0, 0),
-                         (0, 0, 0, 0, 0),
-                         (0, 0, 0, 0, 0)))
-        self._M_birth = self.t_step / 2 * M
+        self._Birth = (self.t_step / 2
+                       * numpy.array(((0, 0, 0, 0, 1),
+                                      (1, 1, 1, 1, 0),
+                                      (0, 0, 0, 0, 0),
+                                      (0, 0, 0, 0, 0),
+                                      (0, 0, 0, 0, 0))))
 
-    def _build_matrix_infection(self):
-        M = numpy.array(((0, 0, 0, 0, 0),
-                         (0, -1, 0, 0, 0),
-                         (0, 1, 0, 0, 0),
-                         (0, 0, 0, 0, 0),
-                         (0, 0, 0, 0, 0)))
-        self._M_infection = self.t_step / 2 * M
+    def _build_matrix_transmission(self):
+        self._Transmission = (self.t_step / 2
+                              * numpy.array(((0, 0, 0, 0, 0),
+                                             (0, -1, 0, 0, 0),
+                                             (0, 1, 0, 0, 0),
+                                             (0, 0, 0, 0, 0),
+                                             (0, 0, 0, 0, 0))))
 
     def _build_force_of_infection(self):
         beta = numpy.array((0, 0, 0, 1, 0))
@@ -63,28 +63,28 @@ class Solver:
 
     def _build_scratch(self):
         n = len(self.model.states)
-        self._A_new = numpy.empty((n, n))
-        self._A_constant_birth_new = numpy.empty((n, n))
-        self._B_cur = numpy.empty((n, n))
-        self._c_cur = numpy.empty(n)
+        self._P_new = numpy.empty((n, n))
+        self._P_Birth = numpy.empty((n, n))
+        self._Q_cur = numpy.empty((n, n))
+        self._d_cur = numpy.empty(n)
 
     def _objective(self, y_new):
-        self._A_new[:] = (self._A_constant_birth_new
+        self._P_new[:] = (self._P_Birth
                           - ((self._force_of_infection @ y_new)
-                             * self._M_infection))
-        return self._A_new @ y_new - self._c_cur
+                             * self._Transmission))
+        return self._P_new @ y_new - self._d_cur
 
     def _step(self, t_cur, y_cur, y_new):
         '''Do a step.'''
         t_mid = t_cur + 0.5 * self.t_step
         b_mid = self.model.birth.rate(t_mid)
-        self._A_constant_birth_new[:] = (self._A_constant
-                                         - b_mid * self._M_birth)
-        self._B_cur[:] = (self._B_constant
-                          + b_mid * self._M_birth
+        self._P_Birth[:] = (self._P
+                            - b_mid * self._Birth)
+        self._Q_cur[:] = (self._Q
+                          + b_mid * self._Birth
                           + ((self._force_of_infection @ y_cur)
-                             * self._M_infection))
-        self._c_cur[:] = self._B_cur @ y_cur
+                             * self._Transmission))
+        self._d_cur[:] = self._Q_cur @ y_cur
         result = scipy.optimize.root(self._objective, y_cur)
         assert result.success, f't={t_cur}: {result}'
         y_new[:] = result.x
@@ -99,8 +99,8 @@ class Solver:
         if y is None:
             y = numpy.empty((len(t), *numpy.shape(y_0)))
         y[0] = y_0
-        for k in range(1, len(t)):
-            self._step(t[k - 1], y[k - 1], y[k])
+        for ell in range(1, len(t)):
+            self._step(t[ell - 1], y[ell - 1], y[ell])
         if _solution_wrap:
             return _solution.Solution(y, t, states=self.model.states)
         else:
