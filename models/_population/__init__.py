@@ -1,3 +1,3 @@
 '''Models of population size.'''
 
-from ._population import *
+from ._solver import *
