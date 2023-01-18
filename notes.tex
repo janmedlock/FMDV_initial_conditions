@@ -882,18 +882,16 @@ For each $1 \leq j \leq J - 2$, each $k$, and each $\ell
     \Bigg],
     \\
     \frac{\Phi_{j, k}^{\ell} - \Phi_{j - 1, k}^{\ell - 1}}{\Delta t}
-    &= - \mu(a_{j - 1 / 2})
-    \frac{\Phi_{j, k}^{\ell} + \Phi_{j - 1, k}^{\ell - 1}}{2},
+    &= - \frac{\mu(a_j) \Phi_{j, k}^{\ell}
+      + \mu(a_{j - 1}) \Phi_{j - 1, k}^{\ell - 1}}{2},
     \\
     \frac{\Phi_{J - 1, k}^{\ell} - \Phi_{J - 2, k}^{\ell - 1}}{\Delta t}
-    &= - \mu(a_{J - 3 / 2})
-    \frac{\Phi_{J - 1, k}^{\ell} + \Phi_{J - 2, k}^{\ell - 1}}{2}
+    &= - \frac{\mu(a_{J - 1}) \Phi_{J - 1, k}^{\ell}
+      + \mu(a_{J - 2}) \Phi_{J - 2, k}^{\ell - 1}}{2}
     \\
     & \quad {}
     + \frac{1}{\Delta t}
-    \left[1 + \frac{\Delta t}{2} \mu(a_{J - 3 / 2})\right]
-    \frac{1 - \frac{\Delta t}{2} \mu(a_{J - 1})}
-    {1 + \frac{\Delta t}{2} \mu(a_{J - 1})}
+    \left[1 - \frac{\Delta t}{2} \mu(a_{J - 1})\right]
     \Phi_{J - 1, k}^{\ell - 1}.
   \end{split}
 \end{equation}
@@ -925,20 +923,20 @@ Let
     \begin{bmatrix}
       1 & 0 & \cdots & 0
       \\
-      0 & 1 + \frac{\Delta t}{2} \mu(a_{1 / 2}) &
+      0 & 1 + \frac{\Delta t}{2} \mu(a_1) &
       \ddots & \vdots
       \\
       \vdots & \ddots & \ddots & 0
       \\
       0 & \cdots & 0 &
-      1 + \frac{\Delta t}{2} \mu(a_{J - 3 / 2})
+      1 + \frac{\Delta t}{2} \mu(a_{J - 1})
     \end{bmatrix},
     \\
     \mat{Q} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0
       \\
-      1 - \frac{\Delta t}{2} \mu(a_{1 / 2}) & \ddots &
+      1 - \frac{\Delta t}{2} \mu(a_0) & \ddots &
       & \vdots & \vdots
       \\
       0 & \ddots & \ddots & \vdots & \vdots
@@ -946,10 +944,8 @@ Let
       \vdots & \ddots & \ddots & 0 & 0
       \\
       0 & \cdots & 0
-      & 1 - \frac{\Delta t}{2} \mu(a_{J - 3 / 2})
-      & \left[1 + \frac{\Delta t}{2} \mu(a_{J - 3 / 2})\right]
-      \frac{1 - \frac{\Delta t}{2} \mu(a_{J - 1})}
-      {1 + \frac{\Delta t}{2} \mu(a_{J - 1})}
+      & 1 - \frac{\Delta t}{2} \mu(a_{J - 2})
+      & 1 - \frac{\Delta t}{2} \mu(a_{J - 1})
     \end{bmatrix},
     \\
     \mat{C} = \mat{P}^{-1} \mat{Q}
@@ -957,8 +953,8 @@ Let
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0
       \\
-      \frac{1 - \frac{\Delta t}{2} \mu(a_{1 / 2})}
-      {1 + \frac{\Delta t}{2} \mu(a_{1 / 2})}
+      \frac{1 - \frac{\Delta t}{2} \mu(a_0)}
+      {1 + \frac{\Delta t}{2} \mu(a_1)}
       & \ddots & & \vdots & \vdots
       \\
       0 & \ddots & \ddots & \vdots & \vdots
@@ -966,8 +962,8 @@ Let
       \vdots & \ddots & \ddots & 0 & 0
       \\
       0 & \cdots & 0 &
-      \frac{1 - \frac{\Delta t}{2} \mu(a_{J - 3 / 2})}
-      {1 + \frac{\Delta t}{2} \mu(a_{J - 3 / 2})}
+      \frac{1 - \frac{\Delta t}{2} \mu(a_{J - 2})}
+      {1 + \frac{\Delta t}{2} \mu(a_{J - 1})}
       & \frac{1 - \frac{\Delta t}{2} \mu(a_{J - 1})}
       {1 + \frac{\Delta t}{2} \mu(a_{J - 1})}
     \end{bmatrix},
@@ -992,6 +988,11 @@ Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
     \mat{\Phi}^{\ell - 1}.
   \end{split}
 \end{equation}
+\textbf{TODO: Simplify this as in the code by separating the C–N step
+  $\mat{\hat{\Phi}}^{\ell} = \mat{C} \mat{\Phi}^{\ell - 1}$
+  and the birth step
+  $\vec{\Phi}_0^{\ell} = b(t^{\ell - 1 / 2}) (\vec{v} \circ \vec{\nu})
+  \frac{\mat{\hat{\Phi}}^{\ell} + \mat{\Phi}^{\ell - 1}}{2}$.}
 
 Using this numerical scheme, we solved for the monodromy matrix, the
 fundamental solution after one period:

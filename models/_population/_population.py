@@ -31,11 +31,10 @@ class _Solver:
 
     def _init_crank_nicolson(self):
         '''Build the matrix used for the Crank–Nicolson step.'''
-        ages_mid = (self.ages[1:] + self.ages[:-1]) / 2
-        mu = self.death.rate(ages_mid)
+        mu = self.death.rate(self.ages)
         P_diag = numpy.hstack([1,
-                               1 + mu * self.time_step / 2])
-        Q_subdiag_1 = 1 - mu * self.time_step / 2
+                               1 + mu[1:] * self.time_step / 2])
+        Q_subdiag_1 = 1 - mu[:-1] * self.time_step / 2
         # P = scipy.sparse.diags(P_diag, 0)
         # Q = scipy.sparse.diags(Q_subdiag_1, -1)
         # P_inv = scipy.sparse.linalg.inv(P)
@@ -44,9 +43,8 @@ class _Solver:
         C_subdiag_1 = Q_subdiag_1 / P_diag[1:]
         C = scipy.sparse.diags(C_subdiag_1, -1)
         # Keep the last age group from ageing out.
-        mu_end = self.death.rate(self.ages[-1])
-        P_end = 1 + mu_end * self.time_step / 2
-        Q_end = 1 - mu_end * self.time_step / 2
+        P_end = 1 + mu[-1] * self.time_step / 2
+        Q_end = 1 - mu[-1] * self.time_step / 2
         C = C.tolil()
         C[-1, -1] += Q_end / P_end
         self._CN = _sparse.csr_array(C)
@@ -147,8 +145,9 @@ def birth_scaling_for_zero_population_growth(birth, death, *args, **kwds):
     lower = upper / MULT  # Starting guess.
     while solver.population_growth_rate(lower) > 0:
         (lower, upper) = (lower / MULT, lower)
-    return scipy.optimize.brentq(solver.population_growth_rate,
-                                 lower, upper)
+    scaling = scipy.optimize.brentq(solver.population_growth_rate,
+                                    lower, upper)
+    return scaling
 
 
 def stable_age_density(birth, death, *args, **kwds):
