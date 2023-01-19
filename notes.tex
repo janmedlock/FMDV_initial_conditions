@@ -114,12 +114,13 @@ i.e.~periodic with period $T = \unit[1]{y}$.
   trapezoid rule for the integrals \autocite{milner_1992}.  Given the
   time step $\Delta t$, let
   $t^{\ell} = t_0 + \ell \Delta t$ for $\ell \in \{0, 1, \ldots, L - 1\}$;
-  and $X^{\ell} \approx X(t^{\ell})$ for $X \in \{M, S, E, I, R\}$.
+  $X^{\ell} \approx X(t^{\ell})$ for $X \in \{M, S, E, I, R\}$;
+  and $b^{\ell - 1 / 2} = b(t^{\ell - 1 / 2})$.
   For each $\ell \geq 1$, the Crank--Nicolson method is
   \begin{align}
     \frac{M^{\ell} - M^{\ell - 1}}{\Delta t}
     &=
-    b(t^{\ell - 1 / 2})
+    b^{\ell - 1 / 2}
     \frac{R^{\ell} + R^{\ell - 1}}{2}
     - (\omega + \mu)
     \frac{M^{\ell} + M^{\ell - 1}}{2},
@@ -127,7 +128,7 @@ i.e.~periodic with period $T = \unit[1]{y}$.
     \begin{split}
       \frac{S^{\ell} - S^{\ell - 1}}{\Delta t}
       &=
-      b(t^{\ell - 1 / 2})
+      b^{\ell - 1 / 2}
       \left(\frac{N^{\ell} + N^{\ell - 1}}{2}
         - \frac{R^{\ell} + R^{\ell - 1}}{2}\right)
       \\ & \quad {}
@@ -179,92 +180,723 @@ Let
     \lambda^{\ell} &=
     \vec{\beta} \vec{x}^{\ell},
     \\
-    c_{MM} &= - \frac{\Delta t}{2} (\omega + \mu),
-    \\
-    c_{SM} &= \frac{\Delta t}{2} \omega,
-    \\
-    c_{SS} &= - \frac{\Delta t}{2} \mu,
-    \\
-    c_{EE} &= - \frac{\Delta t}{2} (\rho + \mu),
-    \\
-    c_{IE} &= \frac{\Delta t}{2} \rho,
-    \\
-    c_{II} &= - \frac{\Delta t}{2} (\gamma + \mu),
-    \\
-    c_{RI} &= \frac{\Delta t}{2} \gamma,
-    \\
-    c_{II} &= - \frac{\Delta t}{2} \mu,
-    \\
-    \mat{C} &=
+    \mat{H} &=
     \begin{bmatrix}
-      c_{MM} & 0 & 0 & 0 & 0
-      \\
-      c_{SM} & c_{SS} & 0 & 0 & 0
-      \\
-      0 & 0 & c_{EE} & 0 & 0 \\
-      0 & 0 & c_{IE} & c_{II} & 0
-      \\
-      0 & 0 & 0 & c_{RI} & c_{RR}
+      1 & 0 & 0 & 0 & 0 \\
+      0 & 1 & 0 & 0 & 0 \\
+      0 & 0 & 1 & 0 & 0 \\
+      0 & 0 & 0 & 1 & 0 \\
+      0 & 0 & 0 & 0 & 1
     \end{bmatrix},
     \\
-    \mat{P} &= \mat{I} - \mat{C},
-    \\
-    \mat{Q} &= \mat{I} + \mat{C},
-    \\
-    b_{MR} &= b_{SM} = b_{SS} = b_{SE} = b_{SI}
-    = \frac{\Delta t}{2},
-    \\
-    \mat{B} &=
+    \mat{F} &=
     \begin{bmatrix}
-      0 & 0 & 0 & 0 & b_{MR}
-      \\
-      b_{SM} & b_{SS} & b_{SE} & b_{SI} & 0
-      \\
-      0 & 0 & 0 & 0 & 0
-      \\
-      0 & 0 & 0 & 0 & 0
-      \\
-      0 & 0 & 0 & 0 & 0
+      - (\omega + \mu) & 0 & 0 & 0 & 0 \\
+      \omega & - \mu & 0 & 0 & 0 \\
+      0 & 0 & - (\rho + \mu) & 0 & 0 \\
+      0 & 0 & \rho & - (\gamma + \mu) & 0 \\
+      0 & 0 & 0 & \gamma & - \mu
     \end{bmatrix},
-    \\
-    t_{SS} &= - \frac{\Delta t}{2},
-    \\
-    t_{ES} &= \frac{\Delta t}{2},
     \\
     \mat{T} &=
     \begin{bmatrix}
-      0 & 0 & 0 & 0 & 0
-      \\
-      0 & t_{SS} & 0 & 0 & 0
-      \\
-      0 & t_{ES} & 0 & 0 & 0
-      \\
-      0 & 0 & 0 & 0 & 0
-      \\
+      0 & 0 & 0 & 0 & 0 \\
+      0 & -1 & 0 & 0 & 0 \\
+      0 & 1 & 0 & 0 & 0 \\
+      0 & 0 & 0 & 0 & 0 \\
       0 & 0 & 0 & 0 & 0
     \end{bmatrix},
     \\
-    \mat{P}^{\ell} &=
-    \mat{P} - b(t^{\ell - 1 / 2}) \mat{B},
-    \\
-    \vec{d}^{\ell - 1} &=
-    \left[
-      \mat{Q}
-      + b(t^{\ell - 1 / 2}) \mat{B}
-      + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
-    \right] \vec{x}^{\ell - 1}.
+    \mat{B} &=
+    \begin{bmatrix}
+      0 & 0 & 0 & 0 & 1 \\
+      1 & 1 & 1 & 1 & 0 \\
+      0 & 0 & 0 & 0 & 0 \\
+      0 & 0 & 0 & 0 & 0 \\
+      0 & 0 & 0 & 0 & 0
+    \end{bmatrix}.
   \end{align}
 \end{subequations}
 Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
 we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
+\begin{multline}
+  \left[
+    \mat{H}
+    - \frac{\Delta t}{2}
+    \left(
+      \mat{F}
+      + \vec{\beta} \vec{x}^{\ell} \mat{T}
+      + b^{\ell - 1 / 2} \mat{B}
+    \right)
+  \right]
+  \vec{x}^{\ell}
+  \\
+  =
+  \left[
+    \mat{H}
+    + \frac{\Delta t}{2}
+    \left(
+      \mat{F}
+      + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
+      + b^{\ell - 1 / 2} \mat{B}
+    \right)
+  \right]
+  \vec{x}^{\ell - 1}.
+\end{multline}
+
+
+\section{Age-structured model}
+
+The model is
+\begin{subequations}
+  \label{model_age_structured}
+  \begin{align}
+    M(t, 0)
+    &= b(t) \int_0^{+\infty} \nu(a) R(t, a) \md a,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    M(t, a)
+    &= - \omega M(t, a) - \mu(a) M(t, a),
+    \\
+    S(t, 0)
+    &= b(t) \int_0^{+\infty} \nu(a) \left[N(t, a) - R(t, a)\right] \md a,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    S(t, a)
+    &= \omega M(t, a) - \lambda(t) S(t, a) - \mu(a) S(t, a),
+    \\
+    E(t, 0)
+    &= 0,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    E(t, a)
+    &= \lambda(t) S(t, a) - \rho E(t, a) - \mu(a) E(t, a),
+    \\
+    I(t, 0)
+    &= 0,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    I(t, a)
+    &= \rho E(t, a) - \gamma I(t, a) - \mu(a) I(t, a),
+    \\
+    R(t, 0)
+    &= 0,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    R(t, a)
+    &= \gamma I(t, a) - \mu(a) R(t, a),
+  \end{align}
+  with force of infection
+  \begin{equation}
+    \lambda(t) = \beta \int_0^{+\infty} I(t, a) \md a
+  \end{equation}
+  and population size
+  \begin{equation}
+    N(t, a) = M(t, a) + S(t, a) + E(t, a) + I(t, a) + R(t, a).
+  \end{equation}
+\end{subequations}
+
+
+\subsection{Total population}
+
+The total population follows the linear PDE
+\begin{subequations}
+  \begin{align}
+    N(t, 0)
+    &= b(t) \int_0^{+\infty} \nu(a) N(t, a) \md a,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    N(t, a)
+    &= - \mu(a) N(t, a).
+  \end{align}
+\end{subequations}
+
+Because $b(t)$ is periodic with period $T = \unit[1]{y}$, we used
+Floquet theory \autocite{parker_1992} to find the stable age
+distribution and the asymptotic population growth rate. Floquet theory
+requires the fundamental solution $\Phi(t, a, a')$ to
+\begin{subequations}
+  \begin{align}
+    \Phi(t, 0, a')
+    &= b(t) \int_0^{+\infty} \nu(a) \Phi(t, a, a') \md a,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    \Phi(t, a, a')
+    &= - \mu(a) \Phi(t, a, a'),
+    \\
+    \Phi(t_0, a, a')
+    &= \delta(a - a'),
+  \end{align}
+\end{subequations}
+where $\delta(x)$ is the Dirac delta.
+
+To numerically solve the PDE for the fundamental solution, we used the
+Crank--Nicolson method on characteristics and the composite trapezoid
+rule for the birth integral \autocite{milner_1992}.  Given the time
+step $\Delta t$, let $a_j = j \Delta t$ and $a'_k = k \Delta t$ for
+$j, k \in \{0, 1, 2, \ldots, J - 1\}$;
+$t^{\ell} = t_0 + \ell \Delta t$ for
+$\ell \in \{0, 1, \ldots, L - 1\}$;
+$\Phi_{j, k}^{\ell} \approx \Phi(t^{\ell}, a_j, a'_k)$;
+$b^{\ell - 1 / 2} = b(t^{\ell - 1 / 2})$; and
+$\pi_j = \pi(a_j)$ for $\pi \in \{\mu, \nu\}$.
+For each $j$ and $k$ the initial condition is
+\begin{subequations}
+  \begin{equation}
+    \Phi_{j, k}^0 =
+    \begin{cases}
+      1 & \text{if $j = k$}, \\
+      0 & \text{otherwise}.
+    \end{cases}
+  \end{equation}
+  For each $1 \leq j \leq J - 2$, each $k$, and each $\ell
+  \geq 1$, the Crank--Nicolson method on characteristics is
+  \begin{align}
+    \begin{split}
+      \Phi_{0, k}^{\ell}
+      &= b^{\ell - 1 / 2}
+      \frac{1}{2}
+      \Bigg(\sum_{j = 1}^{J - 1}
+      \frac{\nu_j \Phi_{j, k}^{\ell}
+        + \nu_{j - 1} \Phi_{j - 1, k}^{\ell}}
+      {2}
+      \Delta t
+      \\ & \quad\quad\quad\quad\quad\quad {}
+      + \sum_{j = 1}^{J - 1}
+      \frac{\nu_j \Phi_{j, k}^{\ell - 1}
+        + \nu_{j - 1} \Phi_{j - 1, k}^{\ell - 1}}
+      {2}
+      \Delta t
+      \Bigg),
+    \end{split}
+    \\
+    \frac{\Phi_{j, k}^{\ell} - \Phi_{j - 1, k}^{\ell - 1}}{\Delta t}
+    &= - \frac{\mu_j \Phi_{j, k}^{\ell}
+      + \mu_{j - 1} \Phi_{j - 1, k}^{\ell - 1}}{2},
+    \\
+    \begin{split}
+      \frac{\Phi_{J - 1, k}^{\ell} - \Phi_{J - 2, k}^{\ell - 1}}{\Delta t}
+      &= - \frac{\mu_{J - 1} \Phi_{J - 1, k}^{\ell}
+        + \mu_{J - 2} \Phi_{J - 2, k}^{\ell - 1}}{2}
+      \\
+      & \quad {}
+      + \left(\frac{1}{\Delta t} - \frac{1}{2} \mu_{J - 1}\right)
+      \Phi_{J - 1, k}^{\ell - 1}.
+    \end{split}
+    \label{age_structured_pop_last}
+  \end{align}
+\end{subequations}
+In equation \eqref{age_structured_pop_last}, the final term prevents
+aging out of the last age group.
+
+Let
+\begin{subequations}
+  \begin{align}
+    \mat{\Phi}^{\ell}
+    &= \left[\Phi_{j, k}^{\ell}\right],
+    \\
+    \vec{v} &=
+    \Delta t
+    \begin{bmatrix}
+      \frac{1}{2} & 1 & \cdots & 1 & \frac{1}{2}
+    \end{bmatrix},
+    \\
+    \vec{\nu} &=
+    \begin{bmatrix}
+      \nu_0 & \cdots & \nu_{J - 1}
+    \end{bmatrix},
+    \\
+    \mat{H}_0 &=
+    \begin{bmatrix}
+      1 & 0 & \cdots & 0
+      \\
+      0 & 1 & \ddots & \vdots
+      \\
+      \vdots & \ddots & \ddots & 0
+      \\
+      0 & \cdots & 0 & 1
+    \end{bmatrix},
+    \\
+    \mat{H}_1 &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & 0 & 0
+      \\
+      1 & \ddots & & \vdots & \vdots
+      \\
+      0 & \ddots & \ddots & \vdots & \vdots
+      \\
+      \vdots & \ddots & \ddots & 0 & 0
+      \\
+      0 & \cdots & 0 & 1 & 1
+    \end{bmatrix},
+    \\
+    \mat{F}_0 &=
+    \begin{bmatrix}
+      0 & 0 & \cdots & 0
+      \\
+      0 & - \mu_1 & \ddots & \vdots
+      \\
+      \vdots & \ddots & \ddots & 0
+      \\
+      0 & \cdots & 0 & - \mu_{J - 1}
+    \end{bmatrix},
+    \\
+    \mat{F}_1 &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & 0 & 0
+      \\
+      - \mu_0 & \ddots & & \vdots & \vdots
+      \\
+      0 & \ddots & \ddots & \vdots & \vdots
+      \\
+      \vdots & \ddots & \ddots & 0 & 0
+      \\
+      0 & \cdots & 0 & - \mu_{J - 2} & - \mu_{J - 1}
+    \end{bmatrix},
+    \\
+    \mat{B} &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      \vec{v} \circ \vec{\nu} \\ \vec{0} \\ \vdots \\ \vec{0}
+    \end{bmatrix},
+    \\
+  \end{align}
+\end{subequations}
+Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
 \begin{equation}
   \left[
-    \mat{P}^{\ell}
-    - \vec{\beta} \vec{x}^{\ell} \mat{T}
-  \right] \vec{x}^{\ell}
-  - \vec{d}^{\ell - 1}
-  = \vec{0}.
+    \mat{H}_0
+    - \frac{\Delta t}{2}
+    \left(
+      \mat{F}_0
+      + b^{\ell - 1 / 2} \mat{B}
+    \right)
+  \right]
+  \mat{\Phi}^{\ell}
+  =
+  \left[
+    \mat{H}_1
+    + \frac{\Delta t}{2}
+    \left(
+      \mat{F}_1
+      + b^{\ell - 1 / 2} \mat{B}
+    \right)
+  \right]
+  \mat{\Phi}^{\ell - 1}.
 \end{equation}
+
+\textbf{TODO: Simplify this as in the code by separating the C–N step
+  $\mat{\hat{\Phi}}^{\ell} = \mat{C} \mat{\Phi}^{\ell - 1}$
+  and the birth step
+  $\vec{\Phi}_0^{\ell} = b^{\ell - 1 / 2} (\vec{v} \circ \vec{\nu})
+  \frac{\mat{\hat{\Phi}}^{\ell} + \mat{\Phi}^{\ell - 1}}{2}$.}
+\begin{subequations}
+  \begin{align}
+    \begin{split}
+      \mat{C}
+      &= \left(\mat{H}_0
+        - \frac{\Delta t}{2} \mat{F}_0\right)^{-1}
+      \left(\mat{H}_1
+        + \frac{\Delta t}{2} \mat{F}_1\right)
+      \\
+      &=
+      \begin{bmatrix}
+        0 & \cdots & \cdots & 0 & 0
+        \\
+        \frac{1 - \frac{\Delta t}{2} \mu_0}
+        {1 + \frac{\Delta t}{2} \mu_1}
+        & \ddots & & \vdots & \vdots
+        \\
+        0 & \ddots & \ddots & \vdots & \vdots
+        \\
+        \vdots & \ddots & \ddots & 0 & 0
+        \\
+        0 & \cdots & 0 &
+        \frac{1 - \frac{\Delta t}{2} \mu_{J - 2}}
+        {1 + \frac{\Delta t}{2} \mu_{J - 1}}
+        & \frac{1 - \frac{\Delta t}{2} \mu_{J - 1}}
+        {1 + \frac{\Delta t}{2} \mu_{J - 1}}
+      \end{bmatrix}.
+    \end{split}
+  \end{align}
+\end{subequations}
+Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
+\begin{equation}
+  \mat{\Phi}^{\ell}
+  =
+  \left[\mat{C}
+    +  \frac{\Delta t}{2} b^{\ell - 1 / 2} \mat{B}
+    \left(\mat{I} + \mat{C}\right)
+  \right]
+  \mat{\Phi}^{\ell - 1}.
+\end{equation}
+
+Using this numerical scheme, we solved for the monodromy matrix, the
+fundamental solution after one period:
+\begin{equation}
+  \mat{\Psi} = [\Psi_{j, k}] \approx [\Phi(t_0 + T, a_j, a'_k)].
+\end{equation}
+The monodromy matrix projects the population forward at by one period,
+\begin{equation}
+  \vec{n}(t_0 + T) = \mat{\Psi} \vec{n}(t_0),
+\end{equation}
+where $\vec{n}(t) = [N(t, a_j)]$.
+Using the monodromy matrix to repeatedly project the population
+forward gives
+\begin{equation}
+  \vec{n}(t_0 + m T)
+  = \mat{\Psi}^m \vec{n}(t_0)
+  \to \rho_0^m \vec{w}_0
+  = \me^{r m T} \vec{w}_0
+\end{equation}
+as $m \to +\infty$, where $\rho_0$ is the dominant eigenvalue,
+i.e.~the eigenvalue with largest magnitude, of $\mat{\Psi}$;
+the corresponding right eigenvector $\vec{w}_0$ is the stable age
+distribution; and
+\begin{equation}
+  r = \frac{1}{T} \log \rho_0
+\end{equation}
+is the asymptotic population growth rate.
+
+We used a nonlinear solver to search for the mean birth rate $\bar{b}$
+that gives population growth rate $r = 0$.
+
+
+\subsection{Numerical method}
+
+To numerically solve the system \eqref{model_age_structured}, we used
+the Crank--Nicolson method on characteristics and the composite
+trapezoid rule for the integrals \autocite{milner_1992}.  Given the
+time step $\Delta t$, let
+$a_j = j \Delta t$ for $j \in \{0, 1, 2, \ldots, J - 1\}$;
+$t^{\ell} = t_0 + \ell \Delta t$ for $\ell \in \{0, 1, \ldots, L - 1\}$;
+$X_j^{\ell} \approx X(t^{\ell}, a_j)$ for $X \in \{M, S, E, I, R\}$;
+$b^{\ell - 1 / 2} = b(t^{\ell - 1 / 2})$; and
+$\pi_j = \pi(a_j)$ for $\pi \in \{\mu, \nu\}$.
+For each $1 \leq j \leq J - 2$ and each $\ell \geq 1$, the
+Crank--Nicolson method on characteristics is
+\begin{subequations}
+  \begin{align}
+    \begin{split}
+      M_0^{\ell} &=
+      b^{\ell - 1 / 2}
+      \frac{1}{2}
+      \Bigg(
+      \sum_{j = 1}^{J - 1}
+      \frac{\nu_j R_j^{\ell} + \nu_{j - 1} R_{j - 1}^{\ell}}{2}
+      \Delta t
+      \\ & \quad\quad\quad\quad\quad\quad {}
+      + \sum_{j = 1}^{J - 1}
+      \frac{\nu_j R_j^{\ell - 1} + \nu_{j - 1} R_{j - 1}^{\ell - 1}}{2}
+      \Delta t
+      \Bigg),
+    \end{split}
+    \\
+    \frac{M_j^{\ell} - M_{j - 1}^{\ell - 1}}{\Delta t} &=
+    - \frac{(\omega + \mu_j) M_j^{\ell}
+      + (\omega + \mu_{j - 1}) M_{j - 1}^{\ell - 1}}{2},
+    \\
+    \begin{split}
+      \frac{M_{J - 1}^{\ell} - M_{J - 2}^{\ell - 1}}{\Delta t} &=
+      - \frac{(\omega + \mu_{J - 1}) M_{J - 1}^{\ell}
+        + (\omega + \mu_{J - 2}) M_{J - 2}^{\ell - 1}}{2}
+      \\ & \quad {}
+      + \left[\frac{1}{\Delta t}
+        - \frac{1}{2} (\omega + \mu_{J - 1})\right]
+      M_{J - 1}^{\ell - 1},
+    \end{split}
+    \\
+    \begin{split}
+      S_0^{\ell} &=
+      b^{\ell - 1 / 2}
+      \frac{1}{2}
+      \Bigg(
+      \sum_{j = 1}^{J - 1}
+      \frac{\nu_j (N_j^{\ell} - R_j^{\ell})
+        + \nu_{j - 1} (N_{j - 1}^{\ell} - R_{j - 1}^{\ell})}
+      {2}
+      \Delta t
+      \\ & \quad\quad\quad\quad\quad\quad {}
+      + \sum_{j = 1}^{J - 1}
+      \frac{\nu_j (N_j^{\ell - 1} - R_j^{\ell - 1})
+        + \nu_{j - 1} (N_{j - 1}^{\ell - 1} - R_{j - 1}^{\ell - 1})}
+      {2}
+      \Delta t
+      \Bigg),
+    \end{split}
+    \\
+    \frac{S_j^{\ell} - S_{j - 1}^{\ell - 1}}{\Delta t} &=
+    \omega \frac{M_j^{\ell} + M_{j - 1}^{\ell - 1}}{2}
+    - \frac{(\lambda^{\ell} + \mu_j) S_j^{\ell}
+      + (\lambda^{\ell - 1} + \mu_{j - 1}) S_{j - 1}^{\ell - 1}}{2},
+    \\
+    \begin{split}
+      \frac{S_{J - 1}^{\ell} - S_{J - 2}^{\ell - 1}}{\Delta t} &=
+      \omega \frac{M_{J - 1}^{\ell} + M_{J - 2}^{\ell - 1}}{2}
+      \\ & \quad {}
+      - \frac{(\lambda^{\ell} + \mu_{J - 1}) S_{J - 1}^{\ell}
+        + (\lambda^{\ell - 1} + \mu_{J - 2}) S_{J - 2}^{\ell - 1}}
+      {2}
+      \\ & \quad {}
+      + \frac{1}{2} \omega M_{J - 1}^{\ell - 1}
+      + \left[\frac{1}{\Delta t}
+        - \frac{1}{2} (\lambda^{\ell - 1} + \mu_{J - 1})\right]
+      S_{J - 1}^{\ell - 1},
+    \end{split}
+    \\
+    E_0^{\ell} &= 0,
+    \\
+    \frac{E_j^{\ell} - E_{j - 1}^{\ell - 1}}{\Delta t} &=
+    \frac{\lambda^{\ell} S_j^{\ell} + \lambda^{\ell - 1} S_{j - 1}^{\ell - 1}}{2}
+    - \frac{(\rho + \mu_j) E_j^{\ell}
+      + (\rho + \mu_{j - 1}) E_{j - 1}^{\ell - 1}}{2},
+    \\
+    \begin{split}
+      \frac{E_{J - 1}^{\ell} - E_{J - 2}^{\ell - 1}}{\Delta t} &=
+      \frac{\lambda^{\ell} S_{J - 1}^{\ell}
+        + \lambda^{\ell - 1} S_{J - 2}^{\ell - 1}}{2}
+      \\ & \quad {}
+      - \frac{(\rho + \mu_{J - 1}) E_{J - 1}^{\ell}
+        + (\rho + \mu_{J - 2}) E_{J - 2}^{\ell - 1}}{2}
+      \\ & \quad {}
+      + \frac{1}{2} \lambda^{\ell - 1} S_{J - 1}^{\ell - 1}
+      + \left[\frac{1}{\Delta t}
+        - \frac{1}{2} (\rho + \mu_{J - 1})\right]
+      E_{J - 1}^{\ell - 1},
+    \end{split}
+    \\
+    I_0^{\ell} &= 0,
+    \\
+    \frac{I_j^{\ell} - I_{j - 1}^{\ell - 1}}{\Delta t} &=
+    \rho \frac{E_j^{\ell} + E_{j - 1}^{\ell}}{2}
+    - \frac{(\gamma + \mu_j) I_j^{\ell}
+      + (\gamma + \mu_{j - 1}) I_{j - 1}^{\ell - 1}}{2},
+    \\
+    \begin{split}
+      \frac{I_{J - 1}^{\ell} - I_{J - 2}^{\ell - 1}}{\Delta t} &=
+      \rho \frac{E_{J - 1}^{\ell} + E_{J - 2}^{\ell}}{2}
+      \\ & \quad {}
+      - \frac{(\gamma + \mu_{J - 1}) I_{J - 1}^{\ell}
+        + (\gamma + \mu_{J - 2}) I_{J - 2}^{\ell - 1}}{2}
+      \\ & \quad {}
+      + \frac{1}{2} \rho E_{J - 1}^{\ell - 1}
+      + \left[\frac{1}{\Delta t}
+        - \frac{1}{2} (\gamma + \mu_{J - 1})\right]
+      I_{J - 1}^{\ell - 1},
+    \end{split}
+    \\
+    R_0^{\ell} &= 0,
+    \\
+    \frac{R_j^{\ell} - R_{j - 1}^{\ell - 1}}{\Delta t} &=
+    \gamma \frac{I_j^{\ell} + I_{j - 1}^{\ell}}{2}
+    - \frac{\mu_j R_j^{\ell} + \mu_{j - 1} R_{j - 1}^{\ell - 1}}{2},
+    \\
+    \begin{split}
+      \frac{R_{J - 1}^{\ell} - R_{J - 2}^{\ell - 1}}{\Delta t} &=
+      \gamma \frac{I_{J - 1}^{\ell} + I_{J - 2}^{\ell}}{2}
+      - \frac{\mu_{J - 1} R_{J - 1}^{\ell}
+        + \mu_{J - 2} R_{J - 2}^{\ell - 1}}{2}
+      \\ & \quad {}
+      + \frac{1}{2} \gamma I_{J - 1}^{\ell - 1}
+      + \left(\frac{1}{\Delta t} - \frac{1}{2} \mu_{J - 1}\right)
+      R_{J - 1}^{\ell - 1},
+    \end{split}
+  \end{align}
+  with force of infection
+  \begin{equation}
+    \lambda^{\ell} =
+    \beta \sum_{j = 1}^{J - 1}
+    \frac{I_j^{\ell} + I_{j - 1}^{\ell}}{2}
+    \Delta t
+  \end{equation}
+  and population size
+  \begin{equation}
+    N_j^{\ell} =
+    M_j^{\ell} + S_j^{\ell} + E_j^{\ell} + I_j^{\ell} + R_j^{\ell}.
+  \end{equation}
+\end{subequations}
+
+Let
+\begin{subequations}
+  \begin{align}
+    \vec{x}^{\ell} &=
+    \begin{bmatrix}
+      M_0^{\ell} \\ \vdots \\ M_{J - 1}^{\ell} \\
+      S_0^{\ell} \\ \vdots \\ S_{J - 1}^{\ell} \\
+      E_0^{\ell} \\ \vdots \\ E_{J - 1}^{\ell} \\
+      I_0^{\ell} \\ \vdots \\ I_{J - 1}^{\ell} \\
+      R_0^{\ell} \\ \vdots \\ R_{J - 1}^{\ell}
+    \end{bmatrix},
+    \\
+    \vec{v} &=
+    \Delta t
+    \begin{bmatrix}
+      \frac{1}{2} & 1 & \cdots & 1 & \frac{1}{2}
+    \end{bmatrix},
+    \\
+    \vec{\beta} &=
+    \beta
+    \begin{bmatrix}
+      \vec{0} & \vec{0} & \vec{0} & \vec{v} & \vec{0}
+    \end{bmatrix}
+    \\
+    \lambda^{\ell} &=
+    \vec{\beta} \vec{x}^{\ell},
+    \\
+    \vec{\nu} &=
+    \begin{bmatrix}
+      \nu_0 & \cdots & \nu_{J - 1}
+    \end{bmatrix},
+    \\
+    \mat{H}_{0, XX} &=
+    \begin{bmatrix}
+      1 & 0 & \cdots & 0 \\
+      0 & 1 & \ddots & \vdots \\
+      \vdots & \ddots & \ddots & 0 \\
+      0 & \cdots & 0 & 1
+    \end{bmatrix},
+    \\
+    \mat{H}_{1, XX} &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & 0 & 0 \\
+      1 & \ddots & & \vdots & \vdots \\
+      0 & \ddots & \ddots & \vdots & \vdots \\
+      \vdots & \ddots & \ddots & 0 & 0 \\
+      0 & \cdots & 0 & 1 & 1
+    \end{bmatrix},
+    \\
+    \mat{H}_{q} &=
+    \begin{bmatrix}
+      \mat{H}_{q, XX} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{H}_{q, XX} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{H}_{q, XX} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{q, XX} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{q, XX}
+    \end{bmatrix},
+    \\
+    \mat{F}_{0, XY}(\vec{p}) &=
+    \begin{bmatrix}
+      0 & 0 & \cdots & 0 \\
+      0 & p_1 & \ddots & \vdots \\
+      \vdots & \ddots & \ddots & 0 \\
+      0 & \cdots & 0 & p_{J - 1}
+    \end{bmatrix},
+    \\
+    \mat{F}_{1, XY}(\vec{p}) &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & 0 & 0 \\
+      p_0 & \ddots & & \vdots & \vdots \\
+      0 & \ddots & \ddots & \vdots & \vdots \\
+      \vdots & \ddots & \ddots & 0 & 0 \\
+      0 & \cdots & 0 & p_{J - 2} & p_{J - 1}
+    \end{bmatrix},
+    \\
+    \mat{F}_q &=
+    \begin{bmatrix}
+      - \mat{F}_{q, XY}(\omega + \vec{\mu}) & \mat{0} & \mat{0} & \mat{0}
+      & \mat{0}
+      \\
+      \mat{F}_{q, XY}(\omega) & - \mat{F}_{q, XY}(\vec{\mu})
+      & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & - \mat{F}_{q, XY}(\rho + \vec{\mu}) & \mat{0}
+      & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{F}_{q, XY}(\rho)
+      & - \mat{F}_{q, XY}(\gamma + \vec{\mu}) & \mat{0}
+      \\
+      \mat{0} & 0 & \mat{0} & \mat{F}_{q, XY}(\gamma)
+      & - \mat{F}_{q, XY}(\vec{\mu})
+    \end{bmatrix},
+    \\
+    \mat{T}_{0, XY} &=
+    \begin{bmatrix}
+      1 & 0 & \cdots & 0
+      \\
+      0 & \ddots & \ddots & \vdots
+      \\
+      \vdots & \ddots & \ddots & 0
+      \\
+      0 & \cdots & 0 & 1
+    \end{bmatrix},
+    \\
+    \mat{T}_{1, XY} &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & 0 & 0
+      \\
+      1 & \ddots & & \vdots & \vdots
+      \\
+      0 & \ddots & \ddots & \vdots & \vdots
+      \\
+      \vdots & \ddots & \ddots & 0 & 0
+      \\
+      0 & \cdots & 0 & 1 & 1
+    \end{bmatrix},
+    \\
+    \mat{T}_q &=
+    \begin{bmatrix}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & - \mat{T}_{q, XY} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{T}_{q, XY} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+    \end{bmatrix},
+    \\
+    \mat{B}_{XY} &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      \vec{v} \circ \vec{\nu} \\ \vec{0} \\ \vdots \\ \vec{0}
+    \end{bmatrix},
+    \\
+    \mat{B} &=
+    \begin{bmatrix}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{XY}
+      \\
+      \mat{B}_{XY} & \mat{B}_{XY} & \mat{B}_{XY} & \mat{B}_{XY} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+    \end{bmatrix}.
+  \end{align}
+\end{subequations}
+Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
+we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
+\begin{multline}
+  \left[
+    \mat{H}_0
+    - \frac{\Delta t}{2}
+    \left(
+      \mat{F}_0
+      + \vec{\beta} \vec{x}^{\ell} \mat{T}_0
+      + b^{\ell - 1 / 2} \mat{B}
+    \right)
+  \right] \vec{x}^{\ell}
+  \\
+  = \left[
+    \mat{H}_1
+    + \frac{\Delta t}{2}
+    \left(
+      \mat{F}_1
+      + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_1
+      + b^{\ell - 1 / 2} \mat{B}
+    \right)
+  \right] \vec{x}^{\ell - 1}.
+\end{multline}
 
 
 \section{Time-since-entry-structured model}
@@ -735,7 +1367,7 @@ Let
     \left[
       \mat{Q}
       + b(t^{\ell - 1 / 2}) \mat{B}
-      + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
+      + \vec{\beta} \vec{x}^{\ell - 1} \mat{U}
     \right] \vec{x}^{\ell - 1}.
   \end{align}
 \end{subequations}
@@ -744,646 +1376,7 @@ we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
 \begin{equation}
   \left[
     \mat{P}^{\ell}
-    - \vec{\beta} \vec{x}^{\ell} \mat{T}
-  \right] \vec{x}^{\ell}
-  - \vec{d}^{\ell - 1}
-  = \vec{0}.
-\end{equation}
-
-
-\section{Age-structured model}
-
-The model is
-\begin{subequations}
-  \label{model_age_structured}
-  \begin{align}
-    M(t, 0)
-    &= b(t) \int_0^{+\infty} \nu(a) R(t, a) \md a,
-    \\
-    \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial a}\right)
-    M(t, a)
-    &= - \omega M(t, a) - \mu(a) M(t, a),
-    \\
-    S(t, 0)
-    &= b(t) \int_0^{+\infty} \nu(a) \left[N(t, a) - R(t, a)\right] \md a,
-    \\
-    \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial a}\right)
-    S(t, a)
-    &= \omega M(t, a) - \lambda(t) S(t, a) - \mu(a) S(t, a),
-    \\
-    E(t, 0)
-    &= 0,
-    \\
-    \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial a}\right)
-    E(t, a)
-    &= \lambda(t) S(t, a) - \rho E(t, a) - \mu(a) E(t, a),
-    \\
-    I(t, 0)
-    &= 0,
-    \\
-    \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial a}\right)
-    I(t, a)
-    &= \rho E(t, a) - \gamma I(t, a) - \mu(a) I(t, a),
-    \\
-    R(t, 0)
-    &= 0,
-    \\
-    \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial a}\right)
-    R(t, a)
-    &= \gamma I(t, a) - \mu(a) R(t, a),
-  \end{align}
-  with force of infection
-  \begin{equation}
-    \lambda(t) = \beta \int_0^{+\infty} I(t, a) \md a
-  \end{equation}
-  and population size
-  \begin{equation}
-    N(t, a) = M(t, a) + S(t, a) + E(t, a) + I(t, a) + R(t, a).
-  \end{equation}
-\end{subequations}
-
-
-\subsection{Total population}
-
-The total population follows the linear PDE
-\begin{subequations}
-  \begin{align}
-    N(t, 0)
-    &= b(t) \int_0^{+\infty} \nu(a) N(t, a) \md a,
-    \\
-    \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial a}\right)
-    N(t, a)
-    &= - \mu(a) N(t, a).
-  \end{align}
-\end{subequations}
-
-Because $b(t)$ is periodic with period $T = \unit[1]{y}$, we used
-Floquet theory \autocite{parker_1992} to find the stable age
-distribution and the asymptotic population growth rate. Floquet theory
-requires the fundamental solution $\Phi(t, a, a')$ to
-\begin{subequations}
-  \begin{align}
-    \Phi(t, 0, a')
-    &= b(t) \int_0^{+\infty} \nu(a) \Phi(t, a, a') \md a,
-    \\
-    \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial a}\right)
-    \Phi(t, a, a')
-    &= - \mu(a) \Phi(t, a, a'),
-    \\
-    \Phi(t_0, a, a')
-    &= \delta(a - a'),
-  \end{align}
-\end{subequations}
-where $\delta(x)$ is the Dirac delta.
-
-To numerically solve the PDE for the fundamental solution, we used the
-Crank--Nicolson method on characteristics and the composite trapezoid
-rule for the birth integral \autocite{milner_1992}.  Given the time
-step $\Delta t$, let $a_j = j \Delta t$ and $a'_k = k \Delta t$ for
-$j, k \in \{0, 1, 2, \ldots, J - 1\}$;
-$t^{\ell} = t_0 + \ell \Delta t$ for
-$\ell \in \{0, 1, \ldots, L - 1\}$;
-and $\Phi_{j, k}^{\ell} \approx \Phi(t^{\ell}, a_j, a'_k)$.
-For each $j$ and $k$ the initial condition is
-\begin{subequations}
-  \begin{equation}
-    \Phi_{j, k}^0 =
-    \begin{cases}
-      1 & \text{if $j = k$}, \\
-      0 & \text{otherwise}.
-    \end{cases}
-  \end{equation}
-  For each $1 \leq j \leq J - 2$, each $k$, and each $\ell
-  \geq 1$, the Crank--Nicolson method on characteristics is
-  \begin{align}
-    \begin{split}
-      \Phi_{0, k}^{\ell}
-      &= b(t^{\ell - 1 / 2})
-      \frac{1}{2}
-      \Bigg[\sum_{j = 1}^{J - 1}
-      \frac{\nu(a_j) \Phi_{j, k}^{\ell}
-        + \nu(a_{j - 1}) \Phi_{j - 1, k}^{\ell}}
-      {2}
-      \Delta t
-      \\ & \quad\quad\quad\quad\quad\quad {}
-      + \sum_{j = 1}^{J - 1}
-      \frac{\nu(a_j) \Phi_{j, k}^{\ell - 1}
-        + \nu(a_{j - 1}) \Phi_{j - 1, k}^{\ell - 1}}
-      {2}
-      \Delta t
-      \Bigg],
-    \end{split}
-    \\
-    \frac{\Phi_{j, k}^{\ell} - \Phi_{j - 1, k}^{\ell - 1}}{\Delta t}
-    &= - \frac{\mu(a_j) \Phi_{j, k}^{\ell}
-      + \mu(a_{j - 1}) \Phi_{j - 1, k}^{\ell - 1}}{2},
-    \\
-    \begin{split}
-      \frac{\Phi_{J - 1, k}^{\ell} - \Phi_{J - 2, k}^{\ell - 1}}{\Delta t}
-      &= - \frac{\mu(a_{J - 1}) \Phi_{J - 1, k}^{\ell}
-        + \mu(a_{J - 2}) \Phi_{J - 2, k}^{\ell - 1}}{2}
-      \\
-      & \quad {}
-      + \frac{1}{\Delta t}
-      \left[1 - \frac{\Delta t}{2} \mu(a_{J - 1})\right]
-      \Phi_{J - 1, k}^{\ell - 1}.
-    \end{split}
-    \label{age_structured_pop_last}
-  \end{align}
-\end{subequations}
-In equation \eqref{age_structured_pop_last}, the final term prevents
-aging out of the last age group.
-
-Let
-\begin{subequations}
-  \begin{align}
-    \mat{\Phi}^{\ell}
-    &= \left[\Phi_{j, k}^{\ell}\right],
-    \\
-    \vec{v} &=
-    \Delta t
-    \begin{bmatrix}
-      \frac{1}{2} & 1 & \cdots & 1 & \frac{1}{2}
-    \end{bmatrix},
-    \\
-    \vec{\nu} &=
-    \begin{bmatrix}
-      \nu(a_0) & \cdots & \nu(a_{J - 1})
-    \end{bmatrix},
-    \\
-    \mat{P} &=
-    \begin{bmatrix}
-      1 & 0 & \cdots & 0
-      \\
-      0 & 1 + \frac{\Delta t}{2} \mu(a_1) &
-      \ddots & \vdots
-      \\
-      \vdots & \ddots & \ddots & 0
-      \\
-      0 & \cdots & 0 &
-      1 + \frac{\Delta t}{2} \mu(a_{J - 1})
-    \end{bmatrix},
-    \\
-    \mat{Q} &=
-    \begin{bmatrix}
-      0 & \cdots & \cdots & 0 & 0
-      \\
-      1 - \frac{\Delta t}{2} \mu(a_0) & \ddots &
-      & \vdots & \vdots
-      \\
-      0 & \ddots & \ddots & \vdots & \vdots
-      \\
-      \vdots & \ddots & \ddots & 0 & 0
-      \\
-      0 & \cdots & 0
-      & 1 - \frac{\Delta t}{2} \mu(a_{J - 2})
-      & 1 - \frac{\Delta t}{2} \mu(a_{J - 1})
-    \end{bmatrix},
-    \\
-    \mat{C}
-    &= \mat{P}^{-1} \mat{Q}
-    =
-    \begin{bmatrix}
-      0 & \cdots & \cdots & 0 & 0
-      \\
-      \frac{1 - \frac{\Delta t}{2} \mu(a_0)}
-      {1 + \frac{\Delta t}{2} \mu(a_1)}
-      & \ddots & & \vdots & \vdots
-      \\
-      0 & \ddots & \ddots & \vdots & \vdots
-      \\
-      \vdots & \ddots & \ddots & 0 & 0
-      \\
-      0 & \cdots & 0 &
-      \frac{1 - \frac{\Delta t}{2} \mu(a_{J - 2})}
-      {1 + \frac{\Delta t}{2} \mu(a_{J - 1})}
-      & \frac{1 - \frac{\Delta t}{2} \mu(a_{J - 1})}
-      {1 + \frac{\Delta t}{2} \mu(a_{J - 1})}
-    \end{bmatrix},
-    \\
-    \mat{B} &=
-    \frac{1}{2}
-    \begin{bmatrix}
-      \vec{v} \circ \vec{\nu} \\ \vec{0} \\ \vdots \\ \vec{0}
-    \end{bmatrix}
-    (\mat{I} + \mat{C}).
-  \end{align}
-\end{subequations}
-Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
-\begin{equation}
-  \begin{split}
-    \mat{\Phi}^{\ell}
-    &=
-    \left[
-      \mat{C}
-      + b(t^{\ell - 1 / 2}) \mat{B}
-    \right]
-    \mat{\Phi}^{\ell - 1}.
-  \end{split}
-\end{equation}
-\textbf{TODO: Simplify this as in the code by separating the C–N step
-  $\mat{\hat{\Phi}}^{\ell} = \mat{C} \mat{\Phi}^{\ell - 1}$
-  and the birth step
-  $\vec{\Phi}_0^{\ell} = b(t^{\ell - 1 / 2}) (\vec{v} \circ \vec{\nu})
-  \frac{\mat{\hat{\Phi}}^{\ell} + \mat{\Phi}^{\ell - 1}}{2}$.}
-
-Using this numerical scheme, we solved for the monodromy matrix, the
-fundamental solution after one period:
-\begin{equation}
-  \mat{\Psi} = [\Psi_{j, k}] \approx [\Phi(t_0 + T, a_j, a'_k)].
-\end{equation}
-The monodromy matrix projects the population forward at by one period,
-\begin{equation}
-  \vec{n}(t_0 + T) = \mat{\Psi} \vec{n}(t_0),
-\end{equation}
-where $\vec{n}(t) = [N(t, a_j)]$.
-Using the monodromy matrix to repeatedly project the population
-forward gives
-\begin{equation}
-  \vec{n}(t_0 + m T)
-  = \mat{\Psi}^m \vec{n}(t_0)
-  \to \rho_0^m \vec{w}_0
-  = \me^{r m T} \vec{w}_0
-\end{equation}
-as $m \to +\infty$, where $\rho_0$ is the dominant eigenvalue,
-i.e.~the eigenvalue with largest magnitude, of $\mat{\Psi}$;
-the corresponding right eigenvector $\vec{w}_0$ is the stable age
-distribution; and
-\begin{equation}
-  r = \frac{1}{T} \log \rho_0
-\end{equation}
-is the asymptotic population growth rate.
-
-We used a nonlinear solver to search for the mean birth rate $\bar{b}$
-that gives population growth rate $r = 0$.
-
-
-\subsection{Numerical method}
-
-To numerically solve the system \eqref{model_age_structured}, we used
-the Crank--Nicolson method on characteristics and the composite
-trapezoid rule for the integrals \autocite{milner_1992}.  Given the
-time step $\Delta t$, let
-$a_j = j \Delta t$ for $j \in \{0, 1, 2, \ldots, J - 1\}$;
-$t^{\ell} = t_0 + \ell \Delta t$ for $\ell \in \{0, 1, \ldots, L - 1\}$; and
-$X_j^{\ell} \approx X(t^{\ell}, a_j)$ for $X \in \{M, S, E, I, R\}$.
-For each $j$ and each $\ell \geq 1$, the Crank--Nicolson method on
-characteristics is
-\begin{subequations}
-  \begin{align}
-    \begin{split}
-      M_0^{\ell} &=
-      b(t^{\ell - 1 / 2})
-      \frac{1}{2}
-      \Bigg[
-      \sum_{j = 1}^{J - 1}
-      \frac{\nu(a_j) R_j^{\ell} + \nu(a_{j - 1}) R_{j - 1}^{\ell}}{2}
-      \Delta t
-      \\ & \quad\quad\quad\quad\quad\quad\quad {}
-      + \sum_{j = 1}^{J - 1}
-      \frac{\nu(a_j) R_j^{\ell - 1} + \nu(a_{j - 1}) R_{j - 1}^{\ell - 1}}{2}
-      \Delta t
-      \Bigg],
-    \end{split}
-    \\
-    \frac{M_j^{\ell} - M_{j - 1}^{\ell - 1}}{\Delta t} &=
-    - \omega \frac{M_j^{\ell} + M_{j - 1}^{\ell - 1}}{2}
-    - \frac{\mu(a_j) M_j^{\ell} + \mu(a_{j - 1}) M_{j - 1}^{\ell - 1}}{2},
-    \\
-    \begin{split}
-      S_0^{\ell} &=
-      b(t^{\ell - 1 / 2})
-      \frac{1}{2}
-      \Bigg[
-      \sum_{j = 1}^{J - 1}
-      \frac{\nu(a_j) (N_j^{\ell} - R_j^{\ell})
-        + \nu(a_{j - 1}) (N_{j - 1}^{\ell} - R_{j - 1}^{\ell})}
-      {2}
-      \Delta t
-      \\ & \quad\quad\quad\quad\quad\quad\quad {}
-      + \sum_{j = 1}^{J - 1}
-      \frac{\nu(a_j) (N_j^{\ell - 1} - R_j^{\ell - 1})
-        + \nu(a_{j - 1}) (N_{j - 1}^{\ell - 1} - R_{j - 1}^{\ell - 1})}
-      {2}
-      \Delta t
-      \Bigg],
-    \end{split}
-    \\
-    \begin{split}
-      \frac{S_j^{\ell} - S_j^{\ell - 1}}{\Delta t} &=
-      \omega \frac{M_j^{\ell} + M_{j - 1}^{\ell - 1}}{2}
-      - \frac{\lambda^{\ell} S_j^{\ell} + \lambda^{\ell - 1} S_{j - 1}^{\ell - 1}}{2}
-      \\ & \quad {}
-      - \frac{\mu(a_j) S_j^{\ell} + \mu(a_{j - 1}) S_{j - 1}^{\ell - 1}}{2},
-    \end{split}
-    \\
-    E_0^{\ell} &= 0,
-    \\
-    \begin{split}
-      \frac{E_j^{\ell} - E_{j - 1}^{\ell - 1}}{\Delta t} &=
-      \frac{\lambda^{\ell} S_j^{\ell} + \lambda^{\ell - 1} S_{j - 1}^{\ell - 1}}{2}
-      - \rho \frac{E_j^{\ell} + E_{j - 1}^{\ell - 1}}{2}
-      \\ & \quad {}
-      - \frac{\mu(a_j) E_j^{\ell} + \mu(a_{j - 1}) E_{j - 1}^{\ell - 1}}{2},
-    \end{split}
-    \\
-    I_0^{\ell} &= 0,
-    \\
-    \frac{I_j^{\ell} - I_{j - 1}^{\ell - 1}}{\Delta t} &=
-    \rho \frac{E_j^{\ell} + E_{j - 1}^{\ell}}{2}
-    - \gamma \frac{I_j^{\ell} + I_{j - 1}^{\ell - 1}}{2}
-    - \frac{\mu(a_j) I_j^{\ell} + \mu(a_{j - 1}) I_{j - 1}^{\ell - 1}}{2},
-    \\
-    R_0^{\ell} &= 0,
-    \\
-    \frac{R_j^{\ell} - R_j^{\ell - 1}}{\Delta t} &=
-    \gamma \frac{I_j^{\ell} + I_{j - 1}^{\ell}}{2}
-    - \frac{\mu(a_j) R_j^{\ell} + \mu(a_{j - 1}) R_{j - 1}^{\ell - 1}}{2},
-  \end{align}
-  with force of infection
-  \begin{equation}
-    \lambda^{\ell} =
-    \beta \sum_{j = 1}^{J - 1}
-    \frac{I_j^{\ell} + I_{j - 1}^{\ell}}{2}
-    \Delta t
-  \end{equation}
-  and population size
-  \begin{equation}
-    N_j^{\ell} =
-    M_j^{\ell} + S_j^{\ell} + E_j^{\ell} + I_j^{\ell} + R_j^{\ell}.
-  \end{equation}
-\end{subequations}
-
-Let
-\begin{subequations}
-  \begin{align}
-    \vec{x}^{\ell} &=
-    \begin{bmatrix}
-      M_0^{\ell} \\ \vdots \\ M_{J - 1}^{\ell} \\
-      S_0^{\ell} \\ \vdots \\ S_{J - 1}^{\ell} \\
-      E_0^{\ell} \\ \vdots \\ E_{J - 1}^{\ell} \\
-      I_0^{\ell} \\ \vdots \\ I_{J - 1}^{\ell} \\
-      R_0^{\ell} \\ \vdots \\ R_{J - 1}^{\ell}
-    \end{bmatrix},
-    \\
-    \vec{v} &=
-    \Delta t
-    \begin{bmatrix}
-      \frac{1}{2} & 1 & \cdots & 1 & \frac{1}{2}
-    \end{bmatrix},
-    \\
-    \vec{\beta} &=
-    \beta
-    \begin{bmatrix}
-      \vec{0} & \vec{0} & \vec{0} & \vec{v} & \vec{0}
-    \end{bmatrix}
-    \\
-    \lambda^{\ell} &=
-    \vec{\beta} \vec{x}^{\ell},
-    \\
-    \vec{\nu} &=
-    \begin{bmatrix}
-      \nu(a_0) & \cdots & \nu(a_{J - 1})
-    \end{bmatrix},
-    \\
-    \mat{P}_{MM} &=
-    \begin{bmatrix}
-      1 & 0 & \cdots & 0
-      \\
-      0 & 1 + \frac{\Delta t}{2} \left[\omega + \mu(a_1)\right] &
-      \ddots & \vdots
-      \\
-      \vdots & \ddots & \ddots & 0
-      \\
-      0 & \cdots & 0 &
-      1 + \frac{\Delta t}{2} \left[\omega + \mu(a_{J - 1})\right]
-    \end{bmatrix},
-    \\
-    \mat{Q}_{MM} &=
-    \begin{bmatrix}
-      0 & \cdots & \cdots & \cdots & 0
-      \\
-      1 - \frac{\Delta t}{2} \left[\omega + \mu(a_0)\right] & \ddots &
-      & & \vdots
-      \\
-      0 & \ddots & \ddots & & \vdots
-      \\
-      \vdots & \ddots & \ddots & \ddots & \vdots
-      \\
-      0 & \cdots & 0 &
-      1 - \frac{\Delta t}{2} \left[\omega + \mu(a_{J - 2})\right] & 0
-    \end{bmatrix},
-    \\
-    \mat{C}_{SM} &=
-    \frac{\Delta t}{2} \omega \mat{I},
-    \\
-    \mat{P}_{SS} &=
-    \begin{bmatrix}
-      1 & 0 & \cdots & 0
-      \\
-      0 & 1 + \frac{\Delta t}{2} \mu(a_1) &
-      \ddots & \vdots
-      \\
-      \vdots & \ddots & \ddots & 0
-      \\
-      0 & \cdots & 0 &
-      1 + \frac{\Delta t}{2} \mu(a_{J - 1})
-    \end{bmatrix},
-    \\
-    \mat{Q}_{SS} &=
-    \begin{bmatrix}
-      0 & \cdots & \cdots & \cdots & 0
-      \\
-      1 - \frac{\Delta t}{2} \mu(a_0) & \ddots &
-      & & \vdots
-      \\
-      0 & \ddots & \ddots & & \vdots
-      \\
-      \vdots & \ddots & \ddots & \ddots & \vdots
-      \\
-      0 & \cdots & 0 &
-      1 - \frac{\Delta t}{2} \mu(a_{J - 2}) & 0
-    \end{bmatrix},
-    \\
-    \mat{P}_{EE} &=
-    \begin{bmatrix}
-      1 & 0 & \cdots & 0
-      \\
-      0 & 1 + \frac{\Delta t}{2} \left[\rho + \mu(a_1)\right] &
-      \ddots & \vdots
-      \\
-      \vdots & \ddots & \ddots & 0
-      \\
-      0 & \cdots & 0 &
-      1 + \frac{\Delta t}{2} \left[\rho + \mu(a_{J - 1})\right]
-    \end{bmatrix},
-    \\
-    \mat{Q}_{EE} &=
-    \begin{bmatrix}
-      0 & \cdots & \cdots & \cdots & 0
-      \\
-      1 - \frac{\Delta t}{2} \left[\rho + \mu(a_0)\right] & \ddots &
-      & & \vdots
-      \\
-      0 & \ddots & \ddots & & \vdots
-      \\
-      \vdots & \ddots & \ddots & \ddots & \vdots
-      \\
-      0 & \cdots & 0 &
-      1 - \frac{\Delta t}{2} \left[\rho + \mu(a_{J - 2})\right] & 0
-    \end{bmatrix},
-    \\
-    \mat{C}_{IE} &=
-    \frac{\Delta t}{2} \rho \mat{I},
-    \\
-    \mat{P}_{II} &=
-    \begin{bmatrix}
-      1 & 0 & \cdots & 0
-      \\
-      0 & 1 + \frac{\Delta t}{2} \left[\gamma + \mu(a_1)\right] &
-      \ddots & \vdots
-      \\
-      \vdots & \ddots & \ddots & 0
-      \\
-      0 & \cdots & 0 &
-      1 + \frac{\Delta t}{2} \left[\gamma + \mu(a_{J - 1})\right]
-    \end{bmatrix},
-    \\
-    \mat{Q}_{II} &=
-    \begin{bmatrix}
-      0 & \cdots & \cdots & \cdots & 0
-      \\
-      1 - \frac{\Delta t}{2} \left[\gamma + \mu(a_0)\right] & \ddots &
-      & & \vdots
-      \\
-      0 & \ddots & \ddots & & \vdots
-      \\
-      \vdots & \ddots & \ddots & \ddots & \vdots
-      \\
-      0 & \cdots & 0 &
-      1 - \frac{\Delta t}{2} \left[\gamma + \mu(a_{J - 2})\right] & 0
-    \end{bmatrix},
-    \\
-    \mat{C}_{RI} &=
-    \frac{\Delta t}{2} \gamma \mat{I},
-    \\
-    \mat{P}_{RR} &=
-    \begin{bmatrix}
-      1 & 0 & \cdots & 0
-      \\
-      0 & 1 + \frac{\Delta t}{2} \mu(a_1) &
-      \ddots & \vdots
-      \\
-      \vdots & \ddots & \ddots & 0
-      \\
-      0 & \cdots & 0 &
-      1 + \frac{\Delta t}{2} \mu(a_{J - 1})
-    \end{bmatrix},
-    \\
-    \mat{Q}_{RR} &=
-    \begin{bmatrix}
-      0 & \cdots & \cdots & \cdots & 0
-      \\
-      1 - \frac{\Delta t}{2} \mu(a_0) & \ddots &
-      & & \vdots
-      \\
-      0 & \ddots & \ddots & & \vdots
-      \\
-      \vdots & \ddots & \ddots & \ddots & \vdots
-      \\
-      0 & \cdots & 0 &
-      1 - \frac{\Delta t}{2} \mu(a_{J - 2}) & 0
-    \end{bmatrix},
-    \\
-    \mat{P} &=
-    \begin{bmatrix}
-      \mat{P}_{MM} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      - \mat{C}_{SM} & \mat{P}_{SS} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{P}_{EE} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & - \mat{C}_{IE} & \mat{P}_{II} & \mat{0}
-      \\
-      \mat{0} & 0 & \mat{0} & - \mat{C}_{RI} & \mat{P}_{RR}
-    \end{bmatrix},
-    \\
-    \mat{Q} &=
-    \begin{bmatrix}
-      \mat{Q}_{MM} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{C}_{SM} & \mat{Q}_{SS} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{Q}_{EE} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{C}_{IE} & \mat{Q}_{II} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{C}_{RI} & \mat{Q}_{RR}
-    \end{bmatrix},
-    \\
-    \mat{B}_{MR} &= \mat{B}_{SM} = \mat{B}_{SS} = \mat{B}_{SE} = \mat{B}_{SI}
-    =
-    \frac{1}{2}
-    \begin{bmatrix}
-      \vec{v} \circ \vec{\nu} \\ \vec{0} \\ \vdots \\ \vec{0}
-    \end{bmatrix},
-    \\
-    \mat{B} &=
-    \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{MR}
-      \\
-      \mat{B}_{SM} & \mat{B}_{SS} & \mat{B}_{SE} & \mat{B}_{SI} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-    \end{bmatrix},
-    \\
-    \mat{T}_{SS} &=
-    - \frac{\Delta t}{2} \mat{I},
-    \\
-    \mat{T}_{ES} &=
-    \frac{\Delta t}{2} \mat{I},
-    \\
-    \mat{T} &=
-    \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{T}_{SS} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{T}_{ES} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-    \end{bmatrix},
-    \\
-    \mat{P}^{\ell} &=
-    \mat{P} - b(t^{\ell - 1 / 2}) \mat{B},
-    \\
-    \vec{d}^{\ell - 1} &=
-    \left[
-      \mat{Q}
-      + b(t^{\ell - 1 / 2}) \mat{B}
-      + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
-    \right] \vec{x}^{\ell - 1}.
-  \end{align}
-\end{subequations}
-Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
-we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
-\begin{equation}
-  \left[
-    \mat{P}^{\ell}
-    - \vec{\beta} \vec{x}^{\ell} \mat{T}
+    + \vec{\beta} \vec{x}^{\ell} \mat{T}
   \right] \vec{x}^{\ell}
   - \vec{d}^{\ell - 1}
   = \vec{0}.

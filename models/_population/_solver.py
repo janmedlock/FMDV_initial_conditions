@@ -32,22 +32,22 @@ class _Solver:
     def _init_crank_nicolson(self):
         '''Build the matrix used for the Crank–Nicolson step.'''
         mu = self.death.rate(self.ages)
-        P_diags = {0: numpy.hstack([1,
-                                    1 + mu[1:] * self.time_step / 2])}
-        Q_diags = {-1: 1 - mu[:-1] * self.time_step / 2,
-                   # Keep the last age group from ageing out.
-                   0: numpy.hstack([numpy.zeros(len(self.ages) - 1),
-                                    1 - mu[-1] * self.time_step / 2])}
-        # P = _sparse.diags(P_diags)
-        # Q = _sparse.diags(Q_diags)
-        # P_inv = scipy.sparse.linalg.inv(P)
-        # C = P_inv @ Q
+        HF0_diags = {0: numpy.hstack([1,
+                                      1 + mu[1:] * self.time_step / 2])}
+        HF1_diags = {-1: 1 - mu[:-1] * self.time_step / 2,
+                     # Keep the last age group from ageing out.
+                     0: numpy.hstack([numpy.zeros(len(self.ages) - 1),
+                                      1 - mu[-1] * self.time_step / 2])}
+        # HF0 = _sparse.diags(HF0_diags)
+        # HF1 = _sparse.diags(HF1_diags)
+        # HF0_inv = scipy.sparse.linalg.inv(HF0)
+        # C = HF0_inv @ HF1
         # `C` will not be a `scipy.sparse` matrix without using
         # `scipy.sparse._sparsetools.csr_matmat()' or similar.
-        # Instead, use the sparsity patterns of P & Q to directly
+        # Instead, use the sparsity patterns of HF0 & HF1 to directly
         # construct `C`.
-        C_diags = {-1: Q_diags[-1] / P_diags[0][1:],
-                   0: Q_diags[0] / P_diags[0]}
+        C_diags = {-1: HF1_diags[-1] / HF0_diags[0][1:],
+                   0: HF1_diags[0] / HF0_diags[0]}
         C = _sparse.diags(C_diags)
         self._CN = _sparse.csr_array(C)
 
