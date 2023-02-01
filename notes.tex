@@ -782,42 +782,42 @@ Let
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{q, XX}
     \end{bmatrix},
     \\
-    \mat{F}_{0, XY}(\vec{p}) &=
+    \mat{F}_{0, XW}(\vec{\pi}) &=
     \begin{bmatrix}
       0 & 0 & \cdots & 0 \\
-      0 & p_1 & \ddots & \vdots \\
+      0 & \pi_1 & \ddots & \vdots \\
       \vdots & \ddots & \ddots & 0 \\
-      0 & \cdots & 0 & p_{J - 1}
+      0 & \cdots & 0 & \pi_{J - 1}
     \end{bmatrix},
     \\
-    \mat{F}_{1, XY}(\vec{p}) &=
+    \mat{F}_{1, XW}(\vec{\pi}) &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0 \\
-      p_0 & \ddots & & \vdots & \vdots \\
+      \pi_0 & \ddots & & \vdots & \vdots \\
       0 & \ddots & \ddots & \vdots & \vdots \\
       \vdots & \ddots & \ddots & 0 & 0 \\
-      0 & \cdots & 0 & p_{J - 2} & p_{J - 1}
+      0 & \cdots & 0 & \pi_{J - 2} & \pi_{J - 1}
     \end{bmatrix},
     \\
     \mat{F}_q &=
     \begin{bmatrix}
-      - \mat{F}_{q, XY}(\omega + \vec{\mu}) & \mat{0} & \mat{0} & \mat{0}
+      - \mat{F}_{q, XW}(\omega + \vec{\mu}) & \mat{0} & \mat{0} & \mat{0}
       & \mat{0}
       \\
-      \mat{F}_{q, XY}(\omega) & - \mat{F}_{q, XY}(\vec{\mu})
+      \mat{F}_{q, XW}(\omega) & - \mat{F}_{q, XW}(\vec{\mu})
       & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{0} & - \mat{F}_{q, XY}(\rho + \vec{\mu}) & \mat{0}
+      \mat{0} & \mat{0} & - \mat{F}_{q, XW}(\rho + \vec{\mu}) & \mat{0}
       & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{F}_{q, XY}(\rho)
-      & - \mat{F}_{q, XY}(\gamma + \vec{\mu}) & \mat{0}
+      \mat{0} & \mat{0} & \mat{F}_{q, XW}(\rho)
+      & - \mat{F}_{q, XW}(\gamma + \vec{\mu}) & \mat{0}
       \\
-      \mat{0} & 0 & \mat{0} & \mat{F}_{q, XY}(\gamma)
-      & - \mat{F}_{q, XY}(\vec{\mu})
+      \mat{0} & \mat{0} & \mat{0} & \mat{F}_{q, XW}(\gamma)
+      & - \mat{F}_{q, XW}(\vec{\mu})
     \end{bmatrix},
     \\
-    \mat{T}_{0, XY} &=
+    \mat{T}_{0, X\mathrm{S}} &=
     \begin{bmatrix}
       1 & 0 & \cdots & 0
       \\
@@ -828,7 +828,7 @@ Let
       0 & \cdots & 0 & 1
     \end{bmatrix},
     \\
-    \mat{T}_{1, XY} &=
+    \mat{T}_{1, X\mathrm{S}} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0
       \\
@@ -845,16 +845,16 @@ Let
     \begin{bmatrix}
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & - \mat{T}_{q, XY} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0} & - \mat{T}_{q, X\mathrm{S}} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{T}_{q, XY} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0} & \mat{T}_{q, X\mathrm{S}} & \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
     \end{bmatrix},
     \\
-    \mat{B}_{XY} &=
+    \mat{B}_{XW} &=
     \frac{1}{\Delta t}
     \begin{bmatrix}
       \vec{v} \circ \vec{\nu} \\ \vec{0} \\ \vdots \\ \vec{0}
@@ -862,9 +862,9 @@ Let
     \\
     \mat{B} &=
     \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{XY}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{XW}
       \\
-      \mat{B}_{XY} & \mat{B}_{XY} & \mat{B}_{XY} & \mat{B}_{XY} & \mat{0}
+      \mat{B}_{XW} & \mat{B}_{XW} & \mat{B}_{XW} & \mat{B}_{XW} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
@@ -1167,19 +1167,223 @@ Crank--Nicolson method on characteristics is
     N^{\ell} =
     S^{\ell} + R^{\ell}
     + \sum_{k = 1}^{K - 1}
-    \frac{m_k^{\ell} + e_k^{\ell} + i_k^{\ell} + m_{k - 1}^{\ell}
-      + e_{k - 1}^{\ell} + i_{k - 1}^{\ell}}
+    \frac{m_k^{\ell} + e_k^{\ell} + i_k^{\ell}
+      + m_{k - 1}^{\ell} + e_{k - 1}^{\ell} + i_{k - 1}^{\ell}}
     {2}
     \Delta t.
   \end{equation}
 \end{subequations}
 
-\textbf{TODO:\\
-  * Does the above scheme aggregate to the C–N scheme for
-  $N^{\ell}$?\\
-  * Fix the matrices and notation in the rest of this section. Be
-  careful with the shifts on the matrices for $\ell - 1$.
-}
+\textbf{TODO: Does the above scheme aggregate to the C–N scheme for
+  $N^{\ell}$?}
+
+
+\begin{subequations}
+  \begin{align}
+    M^{\ell}
+    &=
+    \sum_{k = 1}^{K - 1}
+    \frac{m_k^{\ell} + m_{k - 1}^{\ell}}{2}
+    \Delta t,
+    \\
+    \begin{split}
+      \frac{M^{\ell}  - M^{\ell - 1}}{\Delta t}
+      &=
+      \Delta t
+      \sum_{k = 1}^{K - 1}
+      \frac{m_k^{\ell} - m_{k - 1}^{\ell - 1}}{\Delta t}
+      \\ & \quad {}
+      + \frac{1}{2} m_0^{\ell}
+      + \frac{1}{2} m_0^{\ell - 1}
+      - \frac{1}{2} m_{K - 1}^{\ell}
+      - \frac{1}{2} m_{K - 1}^{\ell - 1}
+      \\
+      &= - \frac{\Delta t}{2}
+      \left[
+        \sum_{k = 1}^{K - 1} (\omega_k + \mu) m_k^{\ell}
+        + \sum_{k = 1}^{K - 1} (\omega_{k - 1} + \mu) m_{k - 1}^{\ell - 1}
+      \right]
+      \\ & \quad {}
+      + \frac{1}{2} m_0^{\ell}
+      + \frac{1}{2} m_0^{\ell - 1}
+      - \frac{1}{2} m_{K - 1}^{\ell}
+      + \left[\frac{1}{2}
+        - \frac{\Delta t}{2} (\omega_{K - 1} + \mu)\right]
+      m_{K - 1}^{\ell - 1}
+      \\
+      &= - \frac{1}{2}
+      \left(
+        \sum_{k = 1}^{K - 1}
+        \frac{\omega_k m_k^{\ell} + \omega_{k - 1} m_{k - 1}^{\ell}}{2}
+        \Delta t
+        + \sum_{k = 1}^{K - 1}
+        \frac{\omega_k m_k^{\ell - 1} + \omega_{k - 1} m_{k - 1}^{\ell - 1}}{2}
+        \Delta t
+      \right)
+      \\ & \quad {}
+      - \mu \frac{M^{\ell} + M^{\ell - 1}}{2}
+      \\ & \quad {}
+      + \frac{1}{2} \left[
+        1 + \frac{\Delta t}{2} (\omega_0 + \mu)
+      \right] m_0^{\ell}
+      - \frac{1}{2} \left[
+        1 + \frac{\Delta t}{2} (\omega_{K - 1} + \mu)
+      \right] m_{K - 1}^{\ell}
+      \\ & \quad {}
+      + \frac{1}{2} \left[
+        1 - \frac{\Delta t}{2} (\omega_0 + \mu)
+      \right] m_0^{\ell - 1}
+      + \frac{1}{2} \left[
+        1 - \frac{\Delta t}{2} (\omega_{K - 1} + \mu)
+      \right] m_{K - 1}^{\ell - 1},
+    \end{split}
+    \\
+    \begin{split}
+      \frac{S^{\ell} - S^{\ell - 1}}{\Delta t} &=
+      b^{\ell - 1 / 2} \left(\frac{N^{\ell} + N^{\ell - 1}}{2}
+        - \frac{R^{\ell} + R^{\ell - 1}}{2}\right)
+      \\ & \quad {}
+      + \frac{1}{2} \left(
+        \sum_{k = 1}^{K - 1}
+        \frac{\omega_k m_k^{\ell} + \omega_{k - 1} m_{k - 1}^{\ell}}{2}
+        \Delta t
+        + \sum_{k = 1}^{K - 1}
+        \frac{\omega_k m_k^{\ell - 1} + \omega_{k - 1} m_{k - 1}^{\ell - 1}}{2}
+        \Delta t
+      \right)
+      \\ & \quad {}
+      - \frac{\lambda^{\ell} S^{\ell}
+        + \lambda^{\ell - 1} S^{\ell - 1}}{2}
+      - \mu \frac{S^{\ell} + S^{\ell - 1}}{2},
+    \end{split}
+    \\
+    \begin{split}
+      \frac{E^{\ell}  - E^{\ell - 1}}{\Delta t}
+      &= - \frac{1}{2}
+      \left(
+        \sum_{k = 1}^{K - 1}
+        \frac{\rho_k e_k^{\ell} + \rho_{k - 1} e_{k - 1}^{\ell}}{2}
+        \Delta t
+        + \sum_{k = 1}^{K - 1}
+        \frac{\rho_k e_k^{\ell - 1} + \rho_{k - 1} e_{k - 1}^{\ell - 1}}{2}
+        \Delta t
+      \right)
+      \\ & \quad {}
+      - \mu \frac{E^{\ell} + E^{\ell - 1}}{2}
+      \\ & \quad {}
+      + \frac{1}{2} \left[
+        1 + \frac{\Delta t}{2} (\rho_0 + \mu)
+      \right] e_0^{\ell}
+      - \frac{1}{2} \left[
+        1 + \frac{\Delta t}{2} (\rho_{K - 1} + \mu)
+      \right] e_{K - 1}^{\ell}
+      \\ & \quad {}
+      + \frac{1}{2} \left[
+        1 - \frac{\Delta t}{2} (\rho_0 + \mu)
+      \right] e_0^{\ell - 1}
+      + \frac{1}{2} \left[
+        1 - \frac{\Delta t}{2} (\rho_{K - 1} + \mu)
+      \right] e_{K - 1}^{\ell - 1},
+    \end{split}
+    \\
+    \begin{split}
+      \frac{I^{\ell}  - I^{\ell - 1}}{\Delta t}
+      &= - \frac{1}{2}
+      \left(
+        \sum_{k = 1}^{K - 1}
+        \frac{\gamma_k i_k^{\ell} + \gamma_{k - 1} i_{k - 1}^{\ell}}{2}
+        \Delta t
+        + \sum_{k = 1}^{K - 1}
+        \frac{\gamma_k i_k^{\ell - 1} + \gamma_{k - 1} i_{k - 1}^{\ell - 1}}{2}
+        \Delta t
+      \right)
+      \\ & \quad {}
+      - \mu \frac{I^{\ell} + I^{\ell - 1}}{2}
+      \\ & \quad {}
+      + \frac{1}{2} \left[
+        1 + \frac{\Delta t}{2} (\gamma_0 + \mu)
+      \right] i_0^{\ell}
+      - \frac{1}{2} \left[
+        1 + \frac{\Delta t}{2} (\gamma_{K - 1} + \mu)
+      \right] i_{K - 1}^{\ell}
+      \\ & \quad {}
+      + \frac{1}{2} \left[
+        1 - \frac{\Delta t}{2} (\gamma_0 + \mu)
+      \right] i_0^{\ell - 1}
+      + \frac{1}{2} \left[
+        1 - \frac{\Delta t}{2} (\gamma_{K - 1} + \mu)
+      \right] i_{K - 1}^{\ell - 1},
+    \end{split}
+    \\
+    \begin{split}
+      \frac{R^{\ell} - R^{\ell - 1}}{\Delta t} &=
+      \frac{1}{2} \left(
+      \sum_{k = 1}^{K - 1}
+      \frac{\gamma_k i_k^{\ell} + \gamma_{k - 1} i_{k - 1}^{\ell}}{2}
+      \Delta t
+      + \sum_{k = 1}^{K - 1}
+      \frac{\gamma_k i_k^{\ell - 1} + \gamma_{k - 1} i_{k - 1}^{\ell - 1}}{2}
+      \Delta t
+      \right)
+      \\ & \quad {}
+      - \mu \frac{R^{\ell} + R^{\ell - 1}}{2},
+    \end{split}
+  \end{align}
+  so then
+  \begin{align}
+    \begin{split}
+      \frac{N^{\ell} - N^{\ell - 1}}{\Delta t}
+      &=
+      \left(b^{\ell - 1 / 2} - \mu\right)
+      \frac{N^{\ell} + N^{\ell - 1}}{2}
+      \\ & \quad {}
+      - \frac{1}{2} \left[
+        1 - \frac{\Delta t}{2} (\omega_0 + \mu)
+      \right] m_0^{\ell}
+      - \frac{1}{2} \left[
+        1 + \frac{\Delta t}{2} (\omega_{K - 1} + \mu)
+      \right] m_{K - 1}^{\ell}
+      \\ & \quad {}
+      + \frac{1}{2} \left[
+        1 - \frac{\Delta t}{2} (\omega_0 + \mu)
+      \right] m_0^{\ell - 1}
+      + \frac{1}{2} \left[
+        1 - \frac{\Delta t}{2} (\omega_{K - 1} + \mu)
+      \right] m_{K - 1}^{\ell - 1}
+      \\ & \quad {}
+      - \frac{1}{2} \left[
+        1 - \frac{\Delta t}{2} (\rho_0 + \mu)
+      \right] e_0^{\ell}
+      - \frac{1}{2} \left[
+        1 + \frac{\Delta t}{2} (\rho_{K - 1} + \mu)
+      \right] e_{K - 1}^{\ell}
+      \\ & \quad {}
+      + \frac{1}{2} \left[
+        1 - \frac{\Delta t}{2} (\rho_0 + \mu)
+      \right] e_0^{\ell - 1}
+      + \frac{1}{2} \left[
+        1 - \frac{\Delta t}{2} (\rho_{K - 1} + \mu)
+      \right] e_{K - 1}^{\ell - 1}
+      \\ & \quad {}
+      - \frac{1}{2} \left[
+        1 - \frac{\Delta t}{2} (\gamma_0 + \mu)
+      \right] i_0^{\ell}
+      - \frac{1}{2} \left[
+        1 + \frac{\Delta t}{2} (\gamma_{K - 1} + \mu)
+      \right] i_{K - 1}^{\ell}
+      \\ & \quad {}
+      + \frac{1}{2} \left[
+        1 - \frac{\Delta t}{2} (\gamma_0 + \mu)
+      \right] i_0^{\ell - 1}
+      + \frac{1}{2} \left[
+        1 - \frac{\Delta t}{2} (\gamma_{K - 1} + \mu)
+      \right] i_{K - 1}^{\ell - 1}.
+    \end{split}
+  \end{align}
+\end{subequations}
+\textbf{Nope. Try a simple linear system with just $m$
+  and $S$ or just $S$ and $e$?}
+
 
 Let
 \begin{subequations}
@@ -1210,184 +1414,90 @@ Let
     \\
     \vec{\omega} &=
     \begin{bmatrix}
-      \omega(z_0) & \cdots & \omega(z_{K - 1})
+      \omega_0 & \cdots & \omega_{K - 1}
     \end{bmatrix},
     \\
     \vec{\gamma} &=
     \begin{bmatrix}
-      \gamma(z_0) & \cdots & \gamma(z_{K - 1})
+      \gamma_0 & \cdots & \gamma_{K - 1}
     \end{bmatrix},
     \\
     \vec{\rho} &=
     \begin{bmatrix}
-      \rho(z_0) & \cdots & \rho(z_{K - 1})
+      \rho_0 & \cdots & \rho_{K - 1}
     \end{bmatrix},
     \\
-    \mat{P}_{mm} &=
+    \mat{H}_{0, yy} &=
     \begin{bmatrix}
-      1 & 0 & \cdots & 0
-      \\
-      0 & 1 + \frac{\Delta t}{2} \left[\omega(z_1) + \mu\right] &
-      \ddots & \vdots
-      \\
-      \vdots & \ddots & \ddots & 0
-      \\
-      0 & \cdots & 0 &
-      1 + \frac{\Delta t}{2} \left[\omega(z_{K - 1}) + \mu\right]
+      1 & 0 & \cdots & 0 \\
+      0 & 1 & \ddots & \vdots \\
+      \vdots & \ddots & \ddots & 0 \\
+      0 & \cdots & 0 & 1
     \end{bmatrix},
     \\
-    \mat{Q}_{mm} &=
+    \mat{H}_{1, yy} &=
     \begin{bmatrix}
-      0 & \cdots & \cdots & \cdots & 0
-      \\
-      1 - \frac{\Delta t}{2} \left[\omega(z_0) + \mu\right] & \ddots &
-      & & \vdots
-      \\
-      0 & \ddots & \ddots & & \vdots
-      \\
-      \vdots & \ddots & \ddots & \ddots & \vdots
-      \\
-      0 & \cdots & 0 &
-      1 - \frac{\Delta t}{2} \left[\omega(z_{K - 2}) + \mu\right] & 0
+      0 & \cdots & \cdots & 0 & 0 \\
+      1 & \ddots & & \vdots & \vdots \\
+      0 & \ddots & \ddots & \vdots & \vdots \\
+      \vdots & \ddots & \ddots & 0 & 0 \\
+      0 & \cdots & 0 & 1 & 1
     \end{bmatrix},
     \\
-    \vec{c}_{Sm} &=
-    \frac{\Delta t}{2} \vec{v} \circ \vec{\omega},
-    \\
-    c_{SS} &= - \frac{\Delta t}{2} \mu,
-    \\
-    \mat{P}_{ee} &=
+    \mat{H}_{q} &=
     \begin{bmatrix}
-      1 & 0 & \cdots & 0
+      \mat{H}_{q, yy} & \vec{0} & \mat{0} & \mat{0} & \vec{0} \\
+      \vec{0} & 1 & \vec{0} & \vec{0} & 0 \\
+      \mat{0} & \vec{0} & \mat{H}_{q, yy} & \mat{0} & \vec{0} \\
+      \mat{0} & \vec{0} & \mat{0} & \mat{H}_{q, yy} & \vec{0}
       \\
-      0 & 1 + \frac{\Delta t}{2} \left[\rho(z_1) + \mu\right] &
-      \ddots & \vdots
-      \\
-      \vdots & \ddots & \ddots & 0
-      \\
-      0 & \cdots & 0 &
-      1 + \frac{\Delta t}{2} \left[\rho(z_{K - 1}) + \mu\right]
+      \vec{0} & 0 & \vec{0} & \vec{0} & 1
     \end{bmatrix},
     \\
-    \mat{Q}_{ee} &=
+    \mat{F}_{0, yy}(\vec{\xi}) &=
     \begin{bmatrix}
-      0 & \cdots & \cdots & \cdots & 0
-      \\
-      1 - \frac{\Delta t}{2} \left[\rho(z_0) + \mu\right] & \ddots &
-      & & \vdots
-      \\
-      0 & \ddots & \ddots & & \vdots
-      \\
-      \vdots & \ddots & \ddots & \ddots & \vdots
-      \\
-      0 & \cdots & 0 &
-      1 - \frac{\Delta t}{2} \left[\rho(z_{K - 2}) + \mu\right] & 0
+      0 & 0 & \cdots & 0 \\
+      0 & \xi_1 & \ddots & \vdots \\
+      \vdots & \ddots & \ddots & 0 \\
+      0 & \cdots & 0 & \xi_{K - 1}
     \end{bmatrix},
     \\
-    \mat{C}_{ie} &=
-    \frac{1}{2}
+    \mat{F}_{1, yy}(\vec{\xi}) &=
     \begin{bmatrix}
-      \vec{v} \circ \vec{\rho}
-      \\
-      \vec{0}
-      \\
-      \vdots
-      \\
+      0 & \cdots & \cdots & 0 & 0 \\
+      \xi_0 & \ddots & & \vdots & \vdots \\
+      0 & \ddots & \ddots & \vdots & \vdots \\
+      \vdots & \ddots & \ddots & 0 & 0 \\
+      0 & \cdots & 0 & \xi_{K - 2} & \xi_{K - 1}
+    \end{bmatrix},
+    \\
+    \mat{F}_{yz}(\vec{\xi}) &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      \vec{v} \circ \vec{\xi} \\
+      \vec{0} \\
+      \vdots \\
       \vec{0}
     \end{bmatrix},
     \\
-    \mat{P}_{ii} &=
+    \mat{F}_q &=
     \begin{bmatrix}
-      1 & 0 & \cdots & 0
+      - \mat{F}_{q, yy}(\vec{\omega} + \mu) & \vec{0} & \mat{0} & \mat{0}
+      & \vec{0}
       \\
-      0 & 1 + \frac{\Delta t}{2} \left[\gamma(z_1) + \mu\right] &
-      \ddots & \vdots
+      \vec{v} \circ \vec{\omega} & - \mu & \vec{0} & \vec{0} & 0
       \\
-      \vdots & \ddots & \ddots & 0
+      \mat{0} & \vec{0} & - \mat{F}_{q, yy}(\vec{\rho} + \mu) & \mat{0}
+      & \vec{0}
       \\
-      0 & \cdots & 0 &
-      1 + \frac{\Delta t}{2} \left[\gamma(z_{K - 1}) + \mu\right]
+      \mat{0} & \vec{0} & \mat{F}_{yz}(\vec{\rho})
+      & - \mat{F}_{yy}(\vec{\gamma} + \mu) & \vec{0}
+      \\
+      \vec{0} & 0 & \vec{0} & \vec{v} \circ \vec{\gamma} & - \mu
     \end{bmatrix},
     \\
-    \mat{Q}_{ii} &=
-    \begin{bmatrix}
-      0 & \cdots & \cdots & \cdots & 0
-      \\
-      1 - \frac{\Delta t}{2} \left[\gamma(z_0) + \mu\right] & \ddots &
-      & & \vdots
-      \\
-      0 & \ddots & \ddots & & \vdots
-      \\
-      \vdots & \ddots & \ddots & \ddots & \vdots
-      \\
-      0 & \cdots & 0 &
-      1 - \frac{\Delta t}{2} \left[\gamma(z_{K - 2}) + \mu\right] & 0
-    \end{bmatrix},
-    \\
-    \vec{c}_{Ri} &=
-    \frac{\Delta t}{2} \vec{v} \circ \vec{\gamma},
-    \\
-    c_{RR} &=
-    - \frac{\Delta t}{2} \mu.
-    \\
-    \mat{P} &=
-    \begin{bmatrix}
-      \mat{P}_{mm} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
-      \\
-      - \vec{c}_{Sm} & 1 - c_{SS} & \vec{0} & \vec{0} & 0
-      \\
-      \mat{0} & \vec{0} & \mat{P}_{ee} & \mat{0} & \vec{0}
-      \\
-      \mat{0} & \vec{0} & - \mat{C}_{ie} & \mat{P}_{ii} & \vec{0}
-      \\
-      \vec{0} & 0 & \vec{0} & - \vec{c}_{Ri} & 1 - c_{RR}
-    \end{bmatrix},
-    \\
-    \mat{Q} &=
-    \begin{bmatrix}
-      \mat{Q}_{mm} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
-      \\
-      \vec{c}_{Sm} & 1 + c_{SS} & \vec{0} & \vec{0} & 0
-      \\
-      \mat{0} & \vec{0} & \mat{Q}_{ee} & \mat{0} & \vec{0}
-      \\
-      \mat{0} & \vec{0} & \mat{C}_{ie} & \mat{Q}_{ii} & \vec{0}
-      \\
-      \vec{0} & 0 & \vec{0} & \vec{c}_{Ri} & 1 + c_{RR}
-    \end{bmatrix},
-    \\
-    \vec{b}_{mR} &=
-    \frac{1}{2}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix},
-    \\
-    \vec{b}_{Sm} &=
-    \vec{b}_{Se} =
-    \vec{b}_{Si} =
-    \frac{\Delta t}{2} \vec{v},
-    \\
-    b_{SS} &=
-    \frac{\Delta t}{2},
-    \\
-    \mat{B} &=
-    \begin{bmatrix}
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{b}_{mR}
-      \\
-      \vec{b}_{Sm} & b_{SS} & \vec{b}_{Se} & \vec{b}_{Si} & 0
-      \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
-      \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
-      \\
-      \vec{0} & 0 & \vec{0} & \vec{0} & 0
-    \end{bmatrix},
-    \\
-    t_{SS} &=
-    - \frac{\Delta t}{2},
-    \\
-    \vec{t}_{eS} &=
-    \frac{1}{2}
+    \vec{t}_{\mathrm{eS}} &=
+    \frac{1}{\Delta t}
     \begin{bmatrix}
       1 \\ 0 \\ \vdots \\ 0
     \end{bmatrix},
@@ -1396,36 +1506,58 @@ Let
     \begin{bmatrix}
       \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
-      \vec{0} & t_{SS} & \vec{0} & \vec{0} & 0
+      \vec{0} & - 1 & \vec{0} & \vec{0} & 0
       \\
-      \mat{0} & \vec{t}_{eS} & \mat{0} & \mat{0} & \vec{0}
+      \mat{0} & \vec{t}_{\mathrm{eS}} & \mat{0} & \mat{0} & \vec{0}
       \\
       \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
       \vec{0} & 0 & \vec{0} & \vec{0} & 0
     \end{bmatrix},
     \\
-    \mat{P}^{\ell} &=
-    \mat{P} - b(t^{\ell - 1 / 2}) \mat{B},
+    \vec{b}_{\mathrm{mR}} &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix},
     \\
-    \vec{d}^{\ell - 1} &=
-    \left[
-      \mat{Q}
-      + b(t^{\ell - 1 / 2}) \mat{B}
-      + \vec{\beta} \vec{x}^{\ell - 1} \mat{U}
-    \right] \vec{x}^{\ell - 1}.
+    \mat{B} &=
+    \begin{bmatrix}
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{b}_{\mathrm{mR}}
+      \\
+      \vec{v} & 1 & \vec{v} & \vec{v} & 0
+      \\
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \\
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \\
+      \mat{0} & 0 & \mat{0} & \mat{0} & 0
+    \end{bmatrix}.
   \end{align}
 \end{subequations}
 Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
 we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
-\begin{equation}
+\begin{multline}
   \left[
-    \mat{P}^{\ell}
-    + \vec{\beta} \vec{x}^{\ell} \mat{T}
+    \mat{H}_0
+    - \frac{\Delta t}{2}
+    \left(
+      \mat{F}_0
+      + \vec{\beta} \vec{x}^{\ell} \mat{T}
+      + b^{\ell - 1 / 2} \mat{B}
+    \right)
   \right] \vec{x}^{\ell}
-  - \vec{d}^{\ell - 1}
-  = \vec{0}.
-\end{equation}
+  \\
+  = \left[
+    \mat{H}_1
+    + \frac{\Delta t}{2}
+    \left(
+      \mat{F}_1
+      + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
+      + b^{\ell - 1 / 2} \mat{B}
+    \right)
+  \right] \vec{x}^{\ell - 1}.
+\end{multline}
 
 
 \section{Age- and time-since-entry-structured model}

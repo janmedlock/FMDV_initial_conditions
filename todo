@@ -3,8 +3,8 @@
 
 * Time-since-entry model
   * Does aggregating the CN scheme give a CN scheme for N?
-  * Fix matrix entries and notation
-  * Use functions to emphasize structure of matrices and reduce repetition
+    Should I use the rectangle rule and tweak y_0 as in `test`?
+    Should I backport these changes to the age-structured model?
   * Write code
 
 * Combination model
