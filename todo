@@ -1,16 +1,23 @@
 * Age-structured model
+  * Check Floquet solver aggregates
+  * Check aggregate over states
+  * Check aggregate over ages
+  * Check aggregate over states & ages
+  * Update Floquet solver code to notes
   * Write code
 
 * Time-since-entry model
-  * Does aggregating the CN scheme give a CN scheme for N?
-    Should I use the rectangle rule and tweak y_0 as in `test`?
-    Should I backport these changes to the age-structured model?
+  * Update numerical method in notes to follow age-structured method
+  * Check aggregate over states
+  * Check aggregate over time since entry
+  * Check aggregate over states & time since entry
   * Write code
 
 * Combination model
+  * Update numerical method in notes to follow age-structured method
   * Fix ageing & timing out in the J - 1 & K - 1 rows
-  * Does aggregating the CN scheme give a CN scheme for N?
   * Use functions to emphasize structure of matrices and reduce repetition
+  * Check aggregates ...
   * Write code
 
 * Can I find a limit-cycle of say period 6 then see if it is actually

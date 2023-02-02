@@ -110,9 +110,7 @@ i.e.~periodic with period $T = \unit[1]{y}$.
 
 \begin{subequations}
   To numerically solve the system \eqref{model_unstructured}, we used
-  the Crank--Nicolson method on characteristics and the composite
-  trapezoid rule for the integrals \autocite{milner_1992}.  Given the
-  time step $\Delta t$, let
+  the Crank--Nicolson method. Given the time step $\Delta t$, let
   $t^{\ell} = t_0 + \ell \Delta t$ for $\ell \in \{0, 1, \ldots, L - 1\}$;
   $X^{\ell} \approx X(t^{\ell})$ for $X \in \{M, S, E, I, R\}$;
   and $b^{\ell - 1 / 2} = b(t^{\ell - 1 / 2})$.
@@ -338,7 +336,7 @@ requires the fundamental solution $\Phi(t, a, a')$ to
 where $\delta(x)$ is the Dirac delta.
 
 To numerically solve the PDE for the fundamental solution, we used the
-Crank--Nicolson method on characteristics and the composite trapezoid
+Crank--Nicolson method on characteristics and the composite rectangle
 rule for the birth integral \autocite{milner_1992}.  Given the time
 step $\Delta t$, let $a_j = j \Delta t$ and $a'_k = k \Delta t$ for
 $j, k \in \{0, 1, 2, \ldots, J - 1\}$;
@@ -359,23 +357,11 @@ For each $j$ and $k$ the initial condition is
   For each $1 \leq j \leq J - 2$, each $k$, and each $\ell
   \geq 1$, the Crank--Nicolson method on characteristics is
   \begin{align}
-    \begin{split}
-      \Phi_{0, k}^{\ell}
-      &= b^{\ell - 1 / 2}
-      \frac{1}{2}
-      \Bigg(\sum_{j = 1}^{J - 1}
-      \frac{\nu_j \Phi_{j, k}^{\ell}
-        + \nu_{j - 1} \Phi_{j - 1, k}^{\ell}}
-      {2}
-      \Delta t
-      \\ & \quad\quad\quad\quad\quad\quad {}
-      + \sum_{j = 1}^{J - 1}
-      \frac{\nu_j \Phi_{j, k}^{\ell - 1}
-        + \nu_{j - 1} \Phi_{j - 1, k}^{\ell - 1}}
-      {2}
-      \Delta t
-      \Bigg),
-    \end{split}
+    \Phi_{0, k}^{\ell}
+    &= \frac{b^{\ell - 1 / 2}}{1 + \frac{\Delta t}{2} \mu_0}
+    \sum_{j = 0}^{J - 1}
+    \nu_j \frac{\Phi_{j, k}^{\ell} + \Phi_{j, k}^{\ell - 1}}{2}
+    \Delta t,
     \\
     \frac{\Phi_{j, k}^{\ell} - \Phi_{j - 1, k}^{\ell - 1}}{\Delta t}
     &= - \frac{\mu_j \Phi_{j, k}^{\ell}
@@ -387,7 +373,7 @@ For each $j$ and $k$ the initial condition is
         + \mu_{J - 2} \Phi_{J - 2, k}^{\ell - 1}}{2}
       \\
       & \quad {}
-      + \left(\frac{1}{\Delta t} - \frac{1}{2} \mu_{J - 1}\right)
+      + \frac{1}{\Delta t} \left(1 - \frac{\Delta t}{2} \mu_{J - 1}\right)
       \Phi_{J - 1, k}^{\ell - 1}.
     \end{split}
     \label{age_structured_pop_last}
@@ -401,17 +387,6 @@ Let
   \begin{align}
     \mat{\Phi}^{\ell}
     &= \left[\Phi_{j, k}^{\ell}\right],
-    \\
-    \vec{v} &=
-    \Delta t
-    \begin{bmatrix}
-      \frac{1}{2} & 1 & \cdots & 1 & \frac{1}{2}
-    \end{bmatrix},
-    \\
-    \vec{\nu} &=
-    \begin{bmatrix}
-      \nu_0 & \cdots & \nu_{J - 1}
-    \end{bmatrix},
     \\
     \mat{H}_0 &=
     \begin{bmatrix}
@@ -439,7 +414,7 @@ Let
     \\
     \mat{F}_0 &=
     \begin{bmatrix}
-      0 & 0 & \cdots & 0
+      - \mu_0 & 0 & \cdots & 0
       \\
       0 & - \mu_1 & \ddots & \vdots
       \\
@@ -462,9 +437,11 @@ Let
     \end{bmatrix},
     \\
     \mat{B} &=
-    \frac{1}{\Delta t}
     \begin{bmatrix}
-      \vec{v} \circ \vec{\nu} \\ \vec{0} \\ \vdots \\ \vec{0}
+      \nu_0 & \cdots & \nu_{J - 1} \\
+      0 & \cdots & 0 \\
+      \vdots & & \vdots \\
+      0 & \cdots & 0
     \end{bmatrix},
     \\
   \end{align}
@@ -495,8 +472,9 @@ Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
 \textbf{TODO: Simplify this as in the code by separating the C–N step
   $\mat{\hat{\Phi}}^{\ell} = \mat{C} \mat{\Phi}^{\ell - 1}$
   and the birth step
-  $\vec{\Phi}_0^{\ell} = b^{\ell - 1 / 2} (\vec{v} \circ \vec{\nu})
-  \frac{\mat{\hat{\Phi}}^{\ell} + \mat{\Phi}^{\ell - 1}}{2}$.}
+  $\vec{\Phi}_0^{\ell} =
+  \frac{b^{\ell - 1 / 2}}{1 + \frac{\Delta t}{2} \mu_0} \vec{b}_0
+  \frac{\mat{\hat{\Phi}}^{\ell} + \mat{\hat{\Phi}}^{\ell - 1}}{2}$.}
 \begin{subequations}
   \begin{align}
     \begin{split}
@@ -573,7 +551,7 @@ that gives population growth rate $r = 0$.
 
 To numerically solve the system \eqref{model_age_structured}, we used
 the Crank--Nicolson method on characteristics and the composite
-trapezoid rule for the integrals \autocite{milner_1992}.  Given the
+rectangular rule for the integrals \autocite{milner_1992}.  Given the
 time step $\Delta t$, let
 $a_j = j \Delta t$ for $j \in \{0, 1, 2, \ldots, J - 1\}$;
 $t^{\ell} = t_0 + \ell \Delta t$ for $\ell \in \{0, 1, \ldots, L - 1\}$;
@@ -584,20 +562,10 @@ For each $1 \leq j \leq J - 2$ and each $\ell \geq 1$, the
 Crank--Nicolson method on characteristics is
 \begin{subequations}
   \begin{align}
-    \begin{split}
-      M_0^{\ell} &=
-      b^{\ell - 1 / 2}
-      \frac{1}{2}
-      \Bigg(
-      \sum_{j = 1}^{J - 1}
-      \frac{\nu_j R_j^{\ell} + \nu_{j - 1} R_{j - 1}^{\ell}}{2}
-      \Delta t
-      \\ & \quad\quad\quad\quad\quad\quad {}
-      + \sum_{j = 1}^{J - 1}
-      \frac{\nu_j R_j^{\ell - 1} + \nu_{j - 1} R_{j - 1}^{\ell - 1}}{2}
-      \Delta t
-      \Bigg),
-    \end{split}
+    M_0^{\ell} &=
+    \frac{b^{\ell - 1 / 2}}{1 + \frac{\Delta t}{2} (\omega + \mu_0)}
+    \sum_{j = 0}^{J - 1} \nu_j \frac{R_j^{\ell} + R_j^{\ell - 1}}{2}
+    \Delta t,
     \\
     \frac{M_j^{\ell} - M_{j - 1}^{\ell - 1}}{\Delta t} &=
     - \frac{(\omega + \mu_j) M_j^{\ell}
@@ -608,29 +576,17 @@ Crank--Nicolson method on characteristics is
       - \frac{(\omega + \mu_{J - 1}) M_{J - 1}^{\ell}
         + (\omega + \mu_{J - 2}) M_{J - 2}^{\ell - 1}}{2}
       \\ & \quad {}
-      + \left[\frac{1}{\Delta t}
-        - \frac{1}{2} (\omega + \mu_{J - 1})\right]
-      M_{J - 1}^{\ell - 1},
+      + \frac{1}{\Delta t} \left[
+        1 - \frac{\Delta t}{2} (\omega + \mu_{J - 1})
+      \right] M_{J - 1}^{\ell - 1},
     \end{split}
     \\
-    \begin{split}
-      S_0^{\ell} &=
-      b^{\ell - 1 / 2}
-      \frac{1}{2}
-      \Bigg(
-      \sum_{j = 1}^{J - 1}
-      \frac{\nu_j (N_j^{\ell} - R_j^{\ell})
-        + \nu_{j - 1} (N_{j - 1}^{\ell} - R_{j - 1}^{\ell})}
-      {2}
-      \Delta t
-      \\ & \quad\quad\quad\quad\quad\quad {}
-      + \sum_{j = 1}^{J - 1}
-      \frac{\nu_j (N_j^{\ell - 1} - R_j^{\ell - 1})
-        + \nu_{j - 1} (N_{j - 1}^{\ell - 1} - R_{j - 1}^{\ell - 1})}
-      {2}
-      \Delta t
-      \Bigg),
-    \end{split}
+    S_0^{\ell} &=
+    \frac{b^{\ell - 1 / 2}}{1 + \frac{\Delta t}{2} (\lambda^{\ell} + \mu_0)}
+    \sum_{j = 0}^{J - 1}
+    \nu_j
+    \frac{N_j^{\ell} - R_j^{\ell} + N_j^{\ell - 1} - R_j^{\ell - 1}}{2}
+    \Delta t,
     \\
     \frac{S_j^{\ell} - S_{j - 1}^{\ell - 1}}{\Delta t} &=
     \omega \frac{M_j^{\ell} + M_{j - 1}^{\ell - 1}}{2}
@@ -645,10 +601,11 @@ Crank--Nicolson method on characteristics is
         + (\lambda^{\ell - 1} + \mu_{J - 2}) S_{J - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
-      + \frac{1}{2} \omega M_{J - 1}^{\ell - 1}
-      + \left[\frac{1}{\Delta t}
-        - \frac{1}{2} (\lambda^{\ell - 1} + \mu_{J - 1})\right]
-      S_{J - 1}^{\ell - 1},
+      + \frac{1}{\Delta t} \frac{\Delta t}{2}
+      \omega M_{J - 1}^{\ell - 1}
+      + \frac{1}{\Delta t} \left[
+        1 - \frac{\Delta t}{2} (\lambda^{\ell - 1} + \mu_{J - 1})
+      \right] S_{J - 1}^{\ell - 1},
     \end{split}
     \\
     E_0^{\ell} &= 0,
@@ -666,10 +623,11 @@ Crank--Nicolson method on characteristics is
       - \frac{(\rho + \mu_{J - 1}) E_{J - 1}^{\ell}
         + (\rho + \mu_{J - 2}) E_{J - 2}^{\ell - 1}}{2}
       \\ & \quad {}
-      + \frac{1}{2} \lambda^{\ell - 1} S_{J - 1}^{\ell - 1}
-      + \left[\frac{1}{\Delta t}
-        - \frac{1}{2} (\rho + \mu_{J - 1})\right]
-      E_{J - 1}^{\ell - 1},
+      + \frac{1}{\Delta t} \frac{\Delta t}{2}
+      \lambda^{\ell - 1} S_{J - 1}^{\ell - 1}
+      + \frac{1}{\Delta t} \left[
+        1 - \frac{\Delta t}{2} (\rho + \mu_{J - 1})
+      \right] E_{J - 1}^{\ell - 1},
     \end{split}
     \\
     I_0^{\ell} &= 0,
@@ -686,10 +644,11 @@ Crank--Nicolson method on characteristics is
       - \frac{(\gamma + \mu_{J - 1}) I_{J - 1}^{\ell}
         + (\gamma + \mu_{J - 2}) I_{J - 2}^{\ell - 1}}{2}
       \\ & \quad {}
-      + \frac{1}{2} \rho E_{J - 1}^{\ell - 1}
-      + \left[\frac{1}{\Delta t}
-        - \frac{1}{2} (\gamma + \mu_{J - 1})\right]
-      I_{J - 1}^{\ell - 1},
+      + \frac{1}{\Delta t} \frac{\Delta t}{2}
+      \rho E_{J - 1}^{\ell - 1}
+      + \frac{1}{\Delta t} \left[
+        1 - \frac{\Delta t}{2} (\gamma + \mu_{J - 1})
+      \right] I_{J - 1}^{\ell - 1},
     \end{split}
     \\
     R_0^{\ell} &= 0,
@@ -704,17 +663,17 @@ Crank--Nicolson method on characteristics is
       - \frac{\mu_{J - 1} R_{J - 1}^{\ell}
         + \mu_{J - 2} R_{J - 2}^{\ell - 1}}{2}
       \\ & \quad {}
-      + \frac{1}{2} \gamma I_{J - 1}^{\ell - 1}
-      + \left[\frac{1}{\Delta t} - \frac{1}{2} \mu_{J - 1}\right]
-      R_{J - 1}^{\ell - 1},
+      + \frac{1}{\Delta t} \frac{\Delta t}{2}
+      \gamma I_{J - 1}^{\ell - 1}
+      + \frac{1}{\Delta t} \left[
+        1 - \frac{\Delta t}{2} \mu_{J - 1}
+      \right] R_{J - 1}^{\ell - 1},
     \end{split}
   \end{align}
   with force of infection
   \begin{equation}
     \lambda^{\ell} =
-    \beta \sum_{j = 1}^{J - 1}
-    \frac{I_j^{\ell} + I_{j - 1}^{\ell}}{2}
-    \Delta t
+    \beta \sum_{j = 0}^{J - 1} I_j^{\ell} \Delta t
   \end{equation}
   and population size
   \begin{equation}
@@ -738,7 +697,7 @@ Let
     \vec{v} &=
     \Delta t
     \begin{bmatrix}
-      \frac{1}{2} & 1 & \cdots & 1 & \frac{1}{2}
+      1 & \cdots & 1
     \end{bmatrix},
     \\
     \vec{\beta} &=
@@ -749,11 +708,6 @@ Let
     \\
     \lambda^{\ell} &=
     \vec{\beta} \vec{x}^{\ell},
-    \\
-    \vec{\nu} &=
-    \begin{bmatrix}
-      \nu_0 & \cdots & \nu_{J - 1}
-    \end{bmatrix},
     \\
     \mat{H}_{0, XX} &=
     \begin{bmatrix}
@@ -784,7 +738,7 @@ Let
     \\
     \mat{F}_{0, XW}(\vec{\pi}) &=
     \begin{bmatrix}
-      0 & 0 & \cdots & 0 \\
+      \pi_0 & 0 & \cdots & 0 \\
       0 & \pi_1 & \ddots & \vdots \\
       \vdots & \ddots & \ddots & 0 \\
       0 & \cdots & 0 & \pi_{J - 1}
@@ -855,9 +809,11 @@ Let
     \end{bmatrix},
     \\
     \mat{B}_{XW} &=
-    \frac{1}{\Delta t}
     \begin{bmatrix}
-      \vec{v} \circ \vec{\nu} \\ \vec{0} \\ \vdots \\ \vec{0}
+      \nu_0 & \cdots & \nu_{J - 1} \\
+      0 & \cdots & 0 \\
+      \vdots & & \vdots \\
+      0 & \cdots & 0
     \end{bmatrix},
     \\
     \mat{B} &=
