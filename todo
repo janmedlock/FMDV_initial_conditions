@@ -1,8 +1,4 @@
 * Age-structured model
-  * Check Floquet solver aggregates
-  * Check aggregate over states
-  * Check aggregate over ages
-  * Check aggregate over states & ages
   * Update Floquet solver code to notes
   * Write code
 
