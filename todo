@@ -6,10 +6,9 @@
   * Write code
 
 * Combination model
-  * Update numerical method in notes to follow age-structured method
-  * Fix ageing & timing out in the J - 1 & K - 1 rows
-  * Use functions to emphasize structure of matrices and reduce repetition
-  * Check aggregates ...
+  * Finish numerical method
+  * Check aggregates
+  * Write numerical method as linear algebra
   * Write code
 
 * Can I find a limit-cycle of say period 6 then see if it is actually

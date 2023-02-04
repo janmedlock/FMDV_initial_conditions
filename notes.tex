@@ -245,6 +245,13 @@ we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
 
 \subsubsection{Aggregating over immune state}
 
+As before, summing the differential equations over immune state gives
+\begin{equation}
+  \frac{\md}{\md t} N(t)
+  = b(t) N(t) - \mu N(t).
+\end{equation}
+
+Summing the numerical method over immune state gives
 \begin{equation}
   \frac{N^{\ell} - N^{\ell - 1}}{\Delta t}
   = b^{\ell - 1 / 2} \frac{N^{\ell} + N^{\ell - 1}}{2}
@@ -561,71 +568,50 @@ that gives population growth rate $r = 0$.
 \subsubsection{Aggregating over age}
 
 Let
+\begin{subequations}
+  \begin{align}
+    \bar{\Phi}(t, a')
+    &= \int_0^{+\infty} \Phi(t, a, a') \md a,
+    \\
+    \bar{\mu}(t, a')
+    &= \frac{\int_0^{+\infty} \mu(a) \Phi(t, a, a') \md a}
+    {\int_0^{+\infty} \Phi(t, a, a') \md a},
+    \\
+    \bar{\nu}(t, a')
+    &= \frac{\int_0^{+\infty} \nu(a) \Phi(t, a, a') \md a}
+    {\int_0^{+\infty} \Phi(t, a, a') \md a}.
+  \end{align}
+\end{subequations}
+Then
 \begin{equation}
-  \bar{\Phi}(t, a')
-  = \int_0^{+\infty} \Phi(t, a, a') \md a,
-\end{equation}
-and
-\begin{equation}
-  \bar{\pi}(t, a')
-  = \frac{\int_0^{+\infty} \pi(a) \Phi(t, a, a') \md a}
-  {\int_0^{+\infty} \Phi(t, a, a') \md a},
-\end{equation}
-for $\pi \in \{\mu, \nu\}$. Then
-\begin{equation}
-  \begin{split}
-    \frac{\md}{\md t} \bar{\Phi}(t, a')
-    &= \frac{\md}{\md t} \int_0^{+\infty} \Phi(t, a, a') \md a
-    \\
-    &= \int_0^{+\infty} \frac{\partial}{\partial t} \Phi(t, a, a') \md a
-    \\
-    &= - \int_0^{+\infty} \frac{\partial}{\partial a} \Phi(t, a, a')
-    + \mu(a) \Phi(t, a, a') \md a
-    \\
-    &= - \Phi(t, +\infty, a')
-    + \Phi(t, 0, a')
-    - \int_0^{+\infty} \mu(a) \Phi(t, a, a') \md a
-    \\
-    &= b(t) \int_0^{+\infty} \nu(a) \Phi(t, a, a') \md a
-    - \int_0^{+\infty} \mu(a) \Phi(t, a, a') \md a
-    \\
-    &= b(t) \bar{\nu}(t, a') \bar{\Phi}(t, a')
-    - \bar{\mu}(t, a') \bar{\Phi}(t, a').
-  \end{split}
+  \frac{\md}{\md t} \bar{\Phi}(t, a')
+  = b(t) \bar{\nu}(t, a') \bar{\Phi}(t, a')
+  - \bar{\mu}(t, a') \bar{\Phi}(t, a').
 \end{equation}
 
 Let
-\begin{equation}
-  \bar{\Phi}_k^{\ell}
-  = \sum_{j = 0}^{J - 1} \Phi_{j, k}^{\ell} \Delta t,
-\end{equation}
-and
-\begin{equation}
-  \bar{\pi}_k^{\ell}
-  = \frac{\sum_{j = 0}^{J - 1} \pi_j \Phi_{j, k}^{\ell} \Delta t}
-  {\sum_{j = 0}^{J - 1} \Phi_{j, k}^{\ell} \Delta t},
-\end{equation}
-for $\pi \in \{\mu, \nu\}$. Then
-\begin{equation}
-  \begin{split}
-    \frac{\bar{\Phi}_k^{\ell} - \bar{\Phi}_k^{\ell - 1}}{\Delta t}
-    &= \Delta t \sum_{j = 1}^{J - 1}
-    \frac{\Phi_{j, k}^{\ell} - \Phi_{j - 1, k}^{\ell - 1}}{\Delta t}
-    + \Phi_{0, k}^{\ell} -  \Phi_{J - 1, k}^{\ell - 1}
+\begin{subequations}
+  \begin{align}
+    \bar{\Phi}_k^{\ell}
+    &= \sum_{j = 0}^{J - 1} \Phi_{j, k}^{\ell} \Delta t,
     \\
-    &= - \sum_{j = 0}^{J - 1} \mu_j
-    \frac{\Phi_{j, k}^{\ell} + \Phi_{j, k}^{\ell - 1}}{2}
-    \Delta t
-    + b^{\ell - 1 / 2} \sum_{j = 0}^{J - 1} \nu_j
-    \frac{\Phi_{j, k}^{\ell} + \Phi_{j, k}^{\ell - 1}}{2}
-    \Delta t
+    \bar{\mu}_k^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \mu_j \Phi_{j, k}^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} \Phi_{j, k}^{\ell} \Delta t},
     \\
-    &= - \frac{\bar{\mu}_k^{\ell} \bar{\Phi}_k^{\ell}
-      + \bar{\mu}_k^{\ell - 1} \bar{\Phi}_k^{\ell - 1}}{2}
-    + b^{\ell - 1 / 2}
-    \frac{\bar{\nu}_k^{\ell} \bar{\Phi}_k^{\ell}
-      + \bar{\nu}_k^{\ell - 1} \bar{\Phi}_k^{\ell - 1}}{2},
-  \end{split}
+    \bar{\nu}_k^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \nu_j \Phi_{j, k}^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} \Phi_{j, k}^{\ell} \Delta t}.
+  \end{align}
+\end{subequations}
+Then
+\begin{equation}
+  \frac{\bar{\Phi}_k^{\ell} - \bar{\Phi}_k^{\ell - 1}}{\Delta t}
+  = - \frac{\bar{\mu}_k^{\ell} \bar{\Phi}_k^{\ell}
+    + \bar{\mu}_k^{\ell - 1} \bar{\Phi}_k^{\ell - 1}}{2}
+  + b^{\ell - 1 / 2}
+  \frac{\bar{\nu}_k^{\ell} \bar{\Phi}_k^{\ell}
+    + \bar{\nu}_k^{\ell - 1} \bar{\Phi}_k^{\ell - 1}}{2},
 \end{equation}
 as expected.
 
@@ -948,6 +934,20 @@ we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
 
 \subsubsection{Aggregating over immune state}
 
+As before, summing the differential equations over immune state gives
+\begin{subequations}
+  \begin{align}
+    N(t, 0)
+    &= b(t) \int_0^{+\infty} \nu(a) N(t, a) \md a,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    N(t, a)
+    &= - \mu(a) N(t, a).
+  \end{align}
+\end{subequations}
+
+Summing the numerical method over immune state gives
 \begin{subequations}
   \begin{align}
     \left[1 + \frac{\Delta t}{2} \mu_0\right] N_0^{\ell}
@@ -968,76 +968,54 @@ we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
 \end{subequations}
 as expected.
 
-Now aggregating over age, let
+
+\paragraph{Aggregating over age}
+
+Let
+\begin{subequations}
+  \begin{align}
+    \bar{N}(t)
+    &= \int_0^{+\infty} N(t, a) \md a,
+    \\
+    \bar{\mu}_N(t)
+    &= \frac{\int_0^{+\infty} \mu(a) N(t, a) \md a}
+    {\int_0^{+\infty} N(t, a) \md a},
+    \\
+    \bar{\nu}_N(t)
+    &= \frac{\int_0^{+\infty} \nu(a) N(t, a) \md a}
+    {\int_0^{+\infty} N(t, a) \md a}.
+  \end{align}
+\end{subequations}
+Then
 \begin{equation}
-  \bar{N}(t)
-  = \int_0^{+\infty} N(t, a) \md a,
-\end{equation}
-and
-\begin{equation}
-  \bar{\pi}(t)
-  = \frac{\int_0^{+\infty} \pi(a) N(t, a) \md a}
-  {\int_0^{+\infty} N(t, a) \md a},
-\end{equation}
-for $\pi \in \{\mu, \nu\}$. Then
-\begin{equation}
-  \begin{split}
-    \frac{\md}{\md t} \bar{N}(t)
-    &= \frac{\md}{\md t}
-    \int_0^{+\infty} N(t, a) \md a
-    \\
-    &= \int_0^{+\infty} \frac{\partial}{\partial t} N(t, a) \md a
-    \\
-    &= - \int_0^{+\infty} \frac{\partial}{\partial a} N(t, a)
-    + \mu(a) N(t, a) \md a
-    \\
-    &= - N(t, +\infty) + N(t, 0)
-    - \int_0^{+\infty} \mu(a) N(t, a) \md a
-    \\
-    &= b(t) \int_0^{+\infty} \nu(a) N(t, a) \md a
-    - \int_0^{+\infty} \mu(a) N(t, a) \md a
-    \\
-    &= b(t) \bar{\nu}(t) \bar{N}(t)
-    - \bar{\mu}(t) \bar{N}(t).
-  \end{split}
+  \frac{\md}{\md t} \bar{N}(t)
+  = b(t) \bar{\nu}_N(t) \bar{N}(t)
+  - \bar{\mu}_N(t) \bar{N}(t).
 \end{equation}
 
 Let
-\begin{align}
-  \bar{N}^{\ell}
-  = \sum_{j = 0}^{J - 1} N_j^{\ell} \Delta t,
-\end{align}
-and
+\begin{subequations}
+  \begin{align}
+    \bar{N}^{\ell}
+    &= \sum_{j = 0}^{J - 1} N_j^{\ell} \Delta t,
+    \\
+    \bar{\mu}^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \mu_j N_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} N_j^{\ell} \Delta t},
+    \\
+    \bar{\nu}^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \nu_j N_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} N_j^{\ell} \Delta t}.
+  \end{align}
+\end{subequations}
+Then
 \begin{equation}
-  \bar{\pi}^{\ell}
-  = \frac{\sum_{j = 0}^{J - 1} \pi_j N_j^{\ell} \Delta t}
-  {\sum_{j = 0}^{J - 1} N_j^{\ell} \Delta t},
-\end{equation}
-for $\pi \in \{\mu, \nu\}$. Then
-\begin{equation}
-  \begin{split}
-    \frac{\bar{N}^{\ell} - \bar{N}^{\ell - 1}}{\Delta t}
-    &= \Delta t \sum_{j = 1}^{J - 1}
-    \frac{N_j^{\ell} - N_{j - 1}^{\ell - 1}}{\Delta t}
-    + N_0^{\ell} - N_{J - 1}^{\ell - 1}
-    \\
-    &= \left(1 + \frac{\Delta t}{2} \mu_0\right) N_0^{\ell}
-    - \sum_{j = 0}^{J - 1} \mu_j
-    \frac{N_j^{\ell} + N_j^{\ell - 1}}{2} \Delta t
-    \\
-    &= b^{\ell - 1 / 2} \sum_{j = 0}^{J - 1} \nu_j
-    \frac{N_j^{\ell} + N_j^{\ell - 1}}{2}
-    \Delta t
-    - \sum_{j = 0}^{J - 1} \mu_j
-    \frac{N_j^{\ell} + N_j^{\ell - 1}}{2}
-    \Delta t
-    \\
-    &= b^{\ell - 1 / 2}
-    \frac{\bar{\nu}^{\ell} \bar{N}^{\ell}
-      + \bar{\nu}^{\ell - 1} \bar{N}^{\ell - 1}}{2}
-    - \frac{\bar{\mu}^{\ell} \bar{N}^{\ell}
-      + \bar{\mu}^{\ell - 1} \bar{N}^{\ell - 1}}{2},
-  \end{split}
+  \frac{\bar{N}^{\ell} - \bar{N}^{\ell - 1}}{\Delta t}
+  = b^{\ell - 1 / 2}
+  \frac{\bar{\nu}^{\ell} \bar{N}^{\ell}
+    + \bar{\nu}^{\ell - 1} \bar{N}^{\ell - 1}}{2}
+  - \frac{\bar{\mu}^{\ell} \bar{N}^{\ell}
+    + \bar{\mu}^{\ell - 1} \bar{N}^{\ell - 1}}{2},
 \end{equation}
 as expected.
 
@@ -1045,100 +1023,88 @@ as expected.
 \subsubsection{Aggregating over age}
 
 Let
-\begin{align}
-  \bar{X}(t) &= \int_0^{+\infty} X(t, a) \md a,
-  \\
-  \bar{\pi}_X(t)
-  &= \frac{\int_0^{+\infty} \pi(a) X(t, a) \md a}
-  {\int_0^{+\infty} X(t, a) \md a},
-\end{align}
-for $X \in \{N, M, S, E, I, R\}$ and $\pi \in \{\mu, \nu\}$. Then
 \begin{subequations}
   \begin{align}
-    \begin{split}
-      \frac{\md}{\md t} \bar{M}(t)
-      &= \int_0^{+\infty} b(t) \nu(a) R(t, a)
-      - [\omega + \mu(a)] M(t, a) \md a
-      \\
-      &= b(t) \bar{\nu}_R(t) \bar{R}(t)
-      - \left[\omega + \bar{\mu}_M(t)\right] \bar{M}(t),
-    \end{split}
+    \bar{M}(t) &= \int_0^{+\infty} M(t, a) \md a,
     \\
-    \begin{split}
-      \frac{\md}{\md t} \bar{S}(t)
-      &= \int_0^{+\infty} b(t) \nu(a) [N(t, a) - R(t, a)]
-      + \omega M(t, a) - [\lambda(t) + \mu(a)] S(t, a) \md a
-      \\
-      &= b(t) \left[
-        \bar{\nu}_N(t) \bar{N}(t)
-        - \bar{\nu}_R(t) \bar{R}(t)
-      \right]
-      + \omega \bar{M}(t)
-      - \left[\lambda(t) + \bar{\mu}_S(t)\right] \bar{S}(t),
-    \end{split}
+    \bar{S}(t) &= \int_0^{+\infty} S(t, a) \md a,
     \\
-    \begin{split}
-      \frac{\md}{\md t} \bar{E}(t)
-      &= \int_0^{+\infty} \lambda(t) S(t, a)
-      - [\rho + \mu(a)] E(t, a) \md a
-      \\
-      &= \lambda(t) \bar{S}(t)
-      - \left[\rho + \bar{\mu}_E(t)\right] \bar{E}(t),
-    \end{split}
+    \bar{E}(t) &= \int_0^{+\infty} E(t, a) \md a,
     \\
-    \begin{split}
-      \frac{\md}{\md t} \bar{I}(t)
-      &= \int_0^{+\infty} \rho E(t, a)
-      - [\gamma + \mu(a)] I(t, a) \md a
-      \\
-      &= \rho \bar{E}(t)
-      - \left[\gamma + \bar{\mu}_I(t)\right] \bar{I}(t),
-    \end{split}
+    \bar{I}(t) &= \int_0^{+\infty} I(t, a) \md a,
     \\
-    \begin{split}
-      \frac{\md}{\md t} \bar{R}(t)
-      &= \int_0^{+\infty} \gamma I(t, a)
-      - \mu(a) R(t, a) \md a
-      \\
-      &= \gamma \bar{I}(t)
-      - \bar{\mu}_R(t) \bar{R}(t).
-    \end{split}
+    \bar{R}(t) &= \int_0^{+\infty} R(t, a) \md a,
+    \\
+    \bar{\mu}_X(t)
+    &= \frac{\int_0^{+\infty} \mu(a) X(t, a) \md a}
+    {\int_0^{+\infty} X(t, a) \md a},
+    \\
+    \bar{\nu}_X(t)
+    &= \frac{\int_0^{+\infty} \nu(a) X(t, a) \md a}
+    {\int_0^{+\infty} X(t, a) \md a}.
+  \end{align}
+\end{subequations}
+Then
+\begin{subequations}
+  \begin{align}
+    \frac{\md}{\md t} \bar{M}(t)
+    &= b(t) \bar{\nu}_R(t) \bar{R}(t)
+    - \left[\omega + \bar{\mu}_M(t)\right] \bar{M}(t),
+    \\
+    \frac{\md}{\md t} \bar{S}(t)
+    &= b(t) \left[
+      \bar{\nu}_N(t) \bar{N}(t)
+      - \bar{\nu}_R(t) \bar{R}(t)
+    \right]
+    + \omega \bar{M}(t)
+    - \left[\lambda(t) + \bar{\mu}_S(t)\right] \bar{S}(t),
+    \\
+    \frac{\md}{\md t} \bar{E}(t)
+    &= \lambda(t) \bar{S}(t)
+    - \left[\rho + \bar{\mu}_E(t)\right] \bar{E}(t),
+    \\
+    \frac{\md}{\md t} \bar{I}(t)
+    &= \rho \bar{E}(t)
+    - \left[\gamma + \bar{\mu}_I(t)\right] \bar{I}(t),
+    \\
+    \frac{\md}{\md t} \bar{R}(t)
+    &= \gamma \bar{I}(t)
+    - \bar{\mu}_R(t) \bar{R}(t).
   \end{align}
 \end{subequations}
 
 Let
-\begin{align}
-  \bar{X}^{\ell}
-  &= \sum_{j = 0}^{J - 1} X_j^{\ell} \Delta t,
-  \\
-  \bar{\pi}_X^{\ell}
-  &= \frac{\sum_{j = 0}^{J - 1} \pi_j X_j^{\ell} \Delta t}
-  {\sum_{j = 0}^{J - 1} X_j^{\ell} \Delta t},
-\end{align}
-for $X \in \{N, M, S, E, I, R\}$ and $\pi \in \{\mu, \nu\}$. Then
+\begin{subequations}
+  \begin{align}
+    \bar{M}^{\ell}
+    &= \sum_{j = 0}^{J - 1} M_j^{\ell} \Delta t,
+    \\
+    \bar{S}^{\ell}
+    &= \sum_{j = 0}^{J - 1} S_j^{\ell} \Delta t,
+    \\
+    \bar{E}^{\ell}
+    &= \sum_{j = 0}^{J - 1} E_j^{\ell} \Delta t,
+    \\
+    \bar{I}^{\ell}
+    &= \sum_{j = 0}^{J - 1} I_j^{\ell} \Delta t,
+    \\
+    \bar{R}^{\ell}
+    &= \sum_{j = 0}^{J - 1} R_j^{\ell} \Delta t,
+    \\
+    \bar{\mu}_X^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \mu_j X_j^{\ell} \Delta t}
+      {\sum_{j = 0}^{J - 1} X_j^{\ell} \Delta t},
+    \\
+    \bar{\nu}_X^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \nu_j X_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} X_j^{\ell} \Delta t}.
+  \end{align}
+\end{subequations}
+Then
 \begin{subequations}
   \begin{align}
     \begin{split}
       \frac{\bar{M}^{\ell} - \bar{M}^{\ell - 1}}{\Delta t}
-      &= \Delta t \sum_{j = 1}^{J - 1}
-      \frac{M_j^{\ell} - M_{j - 1}^{\ell - 1}}{\Delta t}
-      + M_0^{\ell} - M_{J - 1}^{\ell - 1}
-      \\
-      &= - \Delta t \sum_{j = 1}^{J - 1}
-      \frac{(\omega + \mu_j) M_j^{\ell}
-        + (\omega + \mu_{j - 1}) M_{j - 1}^{\ell - 1}}{2}
-      \\ & \quad {}
-      - \frac{\Delta t}{2} (\omega + \mu_{J - 1}) M_{J - 1}^{\ell}
-      + M_0^{\ell}
-      \\
-      &= - \sum_{j = 0}^{J - 1}
-      (\omega + \mu_j) \frac{M_j^{\ell} + M_j^{\ell - 1}}{2}
-      \Delta t
-      \\ & \quad {}
-      + \sum_{j = 0}^{J - 1}
-      b^{\ell - 1 / 2} \nu_j \frac{R_j^{\ell} + R_j^{\ell - 1}}{2}
-      \Delta t
-      \\
       &= - \frac{(\omega + \bar{\mu}_M^{\ell}) \bar{M}^{\ell}
         + (\omega + \bar{\mu}_M^{\ell - 1}) \bar{M}^{\ell - 1}}{2}
       \\ & \quad {}
@@ -1149,34 +1115,8 @@ for $X \in \{N, M, S, E, I, R\}$ and $\pi \in \{\mu, \nu\}$. Then
     \\
     \begin{split}
       \frac{\bar{S}^{\ell} - \bar{S}^{\ell - 1}}{\Delta t}
-      &= \Delta t \sum_{j = 1}^{J - 1}
-      \frac{S_j^{\ell} - S_{j - 1}^{\ell - 1}}{\Delta t}
-      + S_0^{\ell} - S_{J - 1}^{\ell - 1}
-      \\
-      &= \Delta t \sum_{j = 1}^{J - 1}
-      \omega \frac{M_j^{\ell} + M_{j - 1}^{\ell - 1}}{2}
-      - \frac{(\lambda^{\ell} + \mu_j) S_j^{\ell}
-        + (\lambda^{\ell - 1} + \mu_{j - 1}) S_{j - 1}^{\ell - 1}}{2}
-      \\ & \quad {}
-      + \frac{\Delta t}{2}
-      \omega M_{J - 1}^{\ell - 1}
-      - \frac{\Delta t}{2}
-      (\lambda^{\ell - 1} + \mu_{J - 1}) S_{J - 1}^{\ell - 1}
-      + S_0^{\ell}
-      \\
-      &= \sum_{j = 0}^{J - 1} \left[
-        \omega \frac{M_j^{\ell} + M_j^{\ell - 1}}{2}
-        - \frac{(\lambda^{\ell} + \mu_j) S_j^{\ell}
-          + (\lambda^{\ell - 1} + \mu_j) S_j^{\ell - 1}}{2}
-      \right] \Delta t
-      \\ & \quad {}
-      + b^{\ell - 1 / 2}
-      \sum_{j = 0}^{J - 1}
-      \nu_j
-      \frac{N_j^{\ell} - R_j^{\ell} + N_j^{\ell - 1} - R_j^{\ell - 1}}{2}
-      \Delta t
-      \\
       &= \omega \frac{\bar{M}^{\ell} + \bar{M}^{\ell - 1}}{2}
+      \\ & \quad {}
       - \frac{(\lambda^{\ell} + \bar{\mu}_S^{\ell}) \bar{S}^{\ell}
         + (\lambda^{\ell - 1} + \bar{\mu}_S^{\ell - 1}) \bar{S}^{\ell - 1}}{2}
       \\ & \quad {}
@@ -1187,86 +1127,47 @@ for $X \in \{N, M, S, E, I, R\}$ and $\pi \in \{\mu, \nu\}$. Then
         - \bar{\nu}_N^{\ell - 1} \bar{R}^{\ell - 1}}{2},
     \end{split}
     \\
-    \begin{split}
-      \frac{\bar{E}^{\ell} - \bar{E}^{\ell - 1}}{\Delta t}
-      &= \Delta t \sum_{j = 1}^{J - 1}
-      \frac{E_j^{\ell} - E_{j - 1}^{\ell - 1}}{\Delta t}
-      + E_0^{\ell} - E_{J - 1}^{\ell - 1}
-      \\
-      &= \Delta t \sum_{j = 1}^{J - 1}
-      \frac{\lambda^{\ell} S_j^{\ell} + \lambda^{\ell - 1} S_{j - 1}^{\ell - 1}}{2}
-      - \frac{(\rho + \mu_j) E_j^{\ell}
-        + (\rho + \mu_{j - 1}) E_{j - 1}^{\ell - 1}}{2}
-      \\ & \quad {}
-      + \frac{\Delta t}{2}
-      \lambda^{\ell - 1} S_{J - 1}^{\ell - 1}
-      - \frac{\Delta t}{2} (\rho + \mu_{J - 1}) E_{J - 1}^{\ell - 1}
-      + E_0^{\ell}
-      \\
-      &= \sum_{j = 0}^{J - 1} \left[
-        \frac{\lambda^{\ell} S_j^{\ell} + \lambda^{\ell - 1} S_j^{\ell - 1}}{2}
-        - (\rho + \mu_j) \frac{E_j^{\ell} + E_j^{\ell - 1}}{2}
-      \right] \Delta t
-      \\
-      &= \frac{\lambda^{\ell} \bar{S}^{\ell}
-        + \lambda^{\ell - 1} \bar{S}^{\ell - 1}}{2}
-      - \frac{(\rho + \bar{\mu}_E^{\ell}) \bar{E}^{\ell}
-        + (\rho + \bar{\mu}_E^{\ell - 1}) \bar{E}^{\ell - 1}}{2},
-    \end{split}
+    \frac{\bar{E}^{\ell} - \bar{E}^{\ell - 1}}{\Delta t}
+    &= \frac{\lambda^{\ell} \bar{S}^{\ell}
+      + \lambda^{\ell - 1} \bar{S}^{\ell - 1}}{2}
+    - \frac{(\rho + \bar{\mu}_E^{\ell}) \bar{E}^{\ell}
+      + (\rho + \bar{\mu}_E^{\ell - 1}) \bar{E}^{\ell - 1}}{2},
     \\
-    \begin{split}
-      \frac{\bar{I}^{\ell} - \bar{I}^{\ell - 1}}{\Delta t}
-      &= \Delta t \sum_{j = 1}^{J - 1}
-      \frac{I_j^{\ell} - I_{j - 1}^{\ell - 1}}{\Delta t}
-      + I_0^{\ell} - I_{J - 1}^{\ell - 1}
-      \\
-      &= \Delta t \sum_{j = 1}^{J - 1}
-      \rho \frac{E_j^{\ell} + E_{j - 1}^{\ell - 1}}{2}
-      - \frac{(\gamma + \mu_j) I_j^{\ell}
-        + (\gamma + \mu_{j - 1}) I_{j - 1}^{\ell - 1}}{2}
-      \\ & \quad {}
-      + \frac{\Delta t}{2} \rho E_{J - 1}^{\ell - 1}
-      - \frac{\Delta t}{2} (\gamma + \mu_{J - 1}) I_{J - 1}^{\ell - 1}
-      + I_0^{\ell}
-      \\
-      &= \sum_{j = 0}^{J - 1} \left[
-        \rho \frac{E_j^{\ell} + E_j^{\ell - 1}}{2}
-        - (\gamma + \mu_j) \frac{I_j^{\ell} + I_j^{\ell - 1}}{2}
-      \right] \Delta t
-      \\
-      &= \rho \frac{\bar{E}^{\ell} + \bar{E}^{\ell - 1}}{2}
-      - \frac{(\gamma + \bar{\mu}_I^{\ell}) \bar{I}^{\ell}
-        + (\gamma + \bar{\mu}_I^{\ell - 1}) \bar{I}^{\ell - 1}}{2},
-    \end{split}
+    \frac{\bar{I}^{\ell} - \bar{I}^{\ell - 1}}{\Delta t}
+    &= \rho \frac{\bar{E}^{\ell} + \bar{E}^{\ell - 1}}{2}
+    - \frac{(\gamma + \bar{\mu}_I^{\ell}) \bar{I}^{\ell}
+      + (\gamma + \bar{\mu}_I^{\ell - 1}) \bar{I}^{\ell - 1}}{2},
     \\
-    \begin{split}
-      \frac{\bar{R}^{\ell} - \bar{R}^{\ell - 1}}{\Delta t}
-      &= \Delta t \sum_{j = 1}^{J - 1}
-      \frac{R_j^{\ell} - R_{j - 1}^{\ell - 1}}{\Delta t}
-      + R_0^{\ell} - R_{J - 1}^{\ell - 1}
-      \\
-      &= \Delta t \sum_{j = 1}^{J - 1}
-      \gamma \frac{I_j^{\ell} + I_{j - 1}^{\ell - 1}}{2}
-      - \frac{\mu_j R_j^{\ell} + \mu_{j - 1} R_{j - 1}^{\ell - 1}}{2}
-      \\ & \quad {}
-      + \frac{\Delta t}{2} \gamma I_{J - 1}^{\ell - 1}
-      - \frac{\Delta t}{2} \mu_{J - 1} R_{J - 1}^{\ell - 1}
-      + R_0^{\ell}
-      \\
-      &= \sum_{j = 0}^{J - 1} \left[
-        \gamma \frac{I_j^{\ell} + I_j^{\ell - 1}}{2}
-        - \mu_j \frac{R_j^{\ell} + R_j^{\ell - 1}}{2}
-      \right] \Delta t
-      \\
-      &= \gamma \frac{\bar{I}^{\ell} + \bar{I}^{\ell - 1}}{2}
-      - \frac{\bar{\mu}_R^{\ell} \bar{R}^{\ell}
-        + \bar{\mu}_R^{\ell - 1} \bar{R}^{\ell - 1}}{2},
-    \end{split}
+    \frac{\bar{R}^{\ell} - \bar{R}^{\ell - 1}}{\Delta t}
+    &= \gamma \frac{\bar{I}^{\ell} + \bar{I}^{\ell - 1}}{2}
+    - \frac{\bar{\mu}_R^{\ell} \bar{R}^{\ell}
+      + \bar{\mu}_R^{\ell - 1} \bar{R}^{\ell - 1}}{2},
   \end{align}
 \end{subequations}
 as expected.
 
-Now aggregating over immune state,
+
+\paragraph{Aggregating over immune state}
+
+Let
+\begin{equation}
+  \bar{N}(t)
+  = \bar{M}(t) + \bar{S}(t) + \bar{E}(t) + \bar{I}(t) + \bar{R}(t).
+\end{equation}
+Then
+\begin{equation}
+  \frac{\md}{\md t} \bar{N}(t)
+  = b(t) \bar{\nu}_N(t) \bar{N}(t)
+  - \bar{\mu}_N(t) \bar{N}(t).
+\end{equation}
+
+Let
+\begin{equation}
+  \bar{N}^{\ell}
+  = \bar{M}^{\ell} + \bar{S}^{\ell} + \bar{E}^{\ell}
+ + \bar{I}^{\ell} + \bar{R}^{\ell}.
+\end{equation}
+Then
 \begin{equation}
   \frac{\bar{N}^{\ell} - \bar{N}^{\ell - 1}}{\Delta t}
   = b^{\ell - 1 / 2}
@@ -1698,6 +1599,83 @@ we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
 Let
 \begin{subequations}
   \begin{align}
+    M(t)
+    &= \int_0^{+\infty} m(t, z) \md z,
+    \\
+    E(t)
+    &= \int_0^{+\infty} e(t, z) \md z,
+    \\
+    I(t)
+    &= \int_0^{+\infty} i(t, z) \md z,
+    \\
+    \bar{\omega}(t)
+    &= \frac{\int_0^{+\infty} \omega(z) m(t, z) \md z}
+      {\int_0^{+\infty} m(t, z) \md z},
+    \\
+    \bar{\rho}(t)
+    &= \frac{\int_0^{+\infty} \rho(z) e(t, z) \md z}
+      {\int_0^{+\infty} e(t, z) \md z},
+    \\
+    \bar{\gamma}(t)
+    &= \frac{\int_0^{+\infty} \gamma(z) i(t, z) \md z}
+      {\int_0^{+\infty} i(t, z) \md z}.
+  \end{align}
+\end{subequations}
+Then
+\begin{subequations}
+  \begin{align}
+    \begin{split}
+      \frac{\md}{\md t} M(t)
+      &= b(t) R(t)
+      - \int_0^{+\infty} \left[\omega(z) + \mu\right] m(t, z) \md z
+      \\
+      &= b(t) R(t)
+      - \left[\bar{\omega}(t) + \mu\right] M(t),
+    \end{split}
+    \\
+    \begin{split}
+      \frac{\md}{\md t} S(t)
+      &= b(t) \left[N(t) - R(t)\right]
+      + \int_0^{+\infty} \omega(z) m(t, z) \md z
+      - [\lambda(t) + \mu] S(t)
+      \\
+      &= b(t) \left[N(t) - R(t)\right]
+      + \bar{\omega}(t) M(t)
+      - [\lambda(t) + \mu] S(t),
+    \end{split}
+    \\
+    \begin{split}
+      \frac{\md}{\md t} E(t)
+      &= \lambda(t) S(t)
+      - \int_0^{+\infty} \left[\rho(z) + \mu\right] e(t, z) \md z
+      \\
+      &= \lambda(t) S(t)
+      - \left[\bar{\rho}(t) + \mu\right] E(t),
+    \end{split}
+    \\
+    \begin{split}
+      \frac{\md}{\md t} I(t)
+      &= \int_0^{+\infty} \rho(z) e(t, z) \md z
+      - \int_0^{+\infty} \left[\gamma(z) + \mu\right] i(t, z) \md z
+      \\
+      &= \bar{\rho}(t) E(t)
+      - \left[\bar{\gamma}(t) + \mu\right] I(t),
+    \end{split}
+    \\
+    \begin{split}
+      \frac{\md}{\md t} R(t)
+      &= \int_0^{+\infty} \gamma(z) i(t, z) \md z
+      - \mu R(t)
+      \\
+      &= \bar{\gamma}(t) I(t)
+      - \mu R(t).
+    \end{split}
+  \end{align}
+\end{subequations}
+
+Let
+\begin{subequations}
+  \begin{align}
     M^{\ell}
     &= \sum_{k = 0}^{K - 1} m_k^{\ell} \Delta t,
     \\
@@ -1706,9 +1684,7 @@ Let
     \\
     I^{\ell}
     &= \sum_{k = 0}^{K - 1} i_k^{\ell} \Delta t,
-  \end{align}
-  and
-  \begin{align}
+    \\
     \bar{\omega}^{\ell}
     &= \frac{\sum_{k = 0}^{K - 1} \omega_k m_k^{\ell} \Delta t}
       {\sum_{k = 0}^{K - 1} m_k^{\ell} \Delta t},
@@ -1834,13 +1810,30 @@ Then
 \end{subequations}
 as expected.
 
-Now aggregating over immune state,
+
+\paragraph{Aggregating over immune state}
+
+Let
 \begin{equation}
-  \begin{split}
-    \frac{N^{\ell} - N^{\ell - 1}}{\Delta t}
-    &= b^{\ell - 1 / 2} \frac{N^{\ell} + N^{\ell - 1}}{2}
-    - \mu \frac{N^{\ell} + N^{\ell - 1}}{2},
-  \end{split}
+  N(t)
+  = M(t) + S(t) + E(t) + I(t) + R(t).
+\end{equation}
+Then
+\begin{equation}
+  \frac{\md}{\md t} N(t)
+  = b(t) N(t) - \mu N(t).
+\end{equation}
+
+Let
+\begin{equation}
+  N^{\ell}
+  = M^{\ell} + S^{\ell} + E^{\ell} + I^{\ell} + R^{\ell}.
+\end{equation}
+Then
+\begin{equation}
+  \frac{N^{\ell} - N^{\ell - 1}}{\Delta t}
+  = b^{\ell - 1 / 2} \frac{N^{\ell} + N^{\ell - 1}}{2}
+  - \mu \frac{N^{\ell} + N^{\ell - 1}}{2},
 \end{equation}
 as expected.
 
@@ -1965,21 +1958,10 @@ For each $1 \leq j \leq J - 2$, each $1 \leq k \leq K - 2$, and each
 $\ell \geq 1$, the Crank--Nicolson method on characteristics is
 \begin{subequations}
   \begin{align}
-    \begin{split}
-      M_0^{\ell}
-      &=
-      b^{\ell - 1 / 2}
-      \frac{1}{2}
-      \Bigg(
-      \sum_{j = 1}^{J - 1}
-      \frac{\nu_j R_j^{\ell} + \nu_{j - 1} R_{j - 1}^{\ell}}{2}
-      \Delta t
-      \\ & \quad\quad\quad\quad\quad\quad {}
-      + \sum_{j = 1}^{J - 1}
-      \frac{\nu_j R_j^{\ell - 1} + \nu_{j - 1} R_{j - 1}^{\ell - 1}}{2}
-      \Delta t
-      \Bigg),
-    \end{split}
+    \left[1 + \frac{\Delta t}{2} (\omega_0 + \mu_0)\right] M_0^{\ell}
+    &= b^{\ell - 1 / 2}
+    \sum_{j = 0}^{J - 1} \nu_j \frac{R_j^{\ell} + R_j^{\ell - 1}}{2}
+    \Delta t,
     \\
     \frac{M_j^{\ell} - M_{j - 1}^{\ell - 1}}{\Delta t}
     &=
@@ -2000,23 +1982,15 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
     \end{split}
     \\
     \begin{split}
-      S_0^{\ell}
+      \left[1 + \frac{\Delta t}{2} (\lambda^{\ell} + \mu_0)\right] S_0^{\ell}
       &=
       b^{\ell - 1 / 2}
-      \frac{1}{2}
-      \Bigg(
-      \sum_{j = 1}^{J - 1}
-      \frac{\nu_j (N_j^{\ell} - R_j^{\ell})
-        + \nu_{j - 1} (N_{j - 1}^{\ell} - R_{j - 1}^{\ell})}
+      \sum_{j = 0}^{J - 1} \nu_j
+      \frac{N_j^{\ell} - R_j^{\ell} + N_j^{\ell - 1} - R_j^{\ell - 1}}
       {2}
       \Delta t
-      \\ & \quad\quad\quad\quad\quad\quad {}
-      + \sum_{j = 1}^{J - 1}
-      \frac{\nu_j (N_j^{\ell - 1} - R_j^{\ell - 1})
-        + \nu_{j - 1} (N_{j - 1}^{\ell - 1} - R_{j - 1}^{\ell - 1})}
-      {2}
-      \Delta t
-      \Bigg),
+      \\ & \quad {}
+      + \frac{\Delta t}{2} \omega_0 M_0^{\ell},
     \end{split}
     \\
     \begin{split}
@@ -2043,6 +2017,7 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
       {2}
       \\ & \quad {}
       + \frac{1}{2} \omega_{J - 1} M_{J - 1}^{\ell - 1}
+      \\ & \quad {}
       + \left[\frac{1}{\Delta t}
         - \frac{1}{2} (\lambda^{\ell - 1} + \mu_{J - 1})\right]
       S_{J - 1}^{\ell - 1},
@@ -2050,8 +2025,7 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
     \\
     e_{0, 0}^{\ell}
     &=
-    \frac{\lambda^{\ell} S_0^{\ell}}
-    {2},
+    \frac{1}{2} \lambda^{\ell} S_0^{\ell},
     \\
     e_{0, k}^{\ell}
     &= 0,
@@ -2099,19 +2073,9 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
     \begin{split}
       i_{j, 0}^{\ell}
       &=
-      \frac{1}{2} \Bigg(
-      \sum_{k = 1}^{K - 1}
-      \frac{\rho_k e_{j, k}^{\ell}
-        + \rho_{k - 1} e_{j, k - 1}^{\ell}}
-      {2}
+      \sum_{k = 0}^{K - 1} \rho_k
+      \frac{e_{j, k}^{\ell} + e_{j, k}^{\ell - 1}} {2}
       \Delta t
-      \\ & \quad\quad\quad {}
-      + \sum_{k = 1}^{K - 1}
-      \frac{\rho_k e_{j - 1, k}^{\ell - 1}
-        + \rho_{k - 1} e_{j - 1, k - 1}^{\ell - 1}}
-      {2}
-      \Delta t
-      \Bigg),
     \end{split}
     \\
     i_{J - 1, 0}^{\ell}
@@ -2132,60 +2096,505 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
     \frac{i_{J - 1, K - 1}^{\ell} - i_{J - 2, K - 2}^{\ell - 1}}{\Delta t}
     &= ?,
     \\
-    R_0^{\ell}
-    &= 0,
+    \left[1 + \frac{\Delta t}{2} \mu_0\right] R_0^{\ell}
+    &= 0 + ?,
     \\
     \begin{split}
       \frac{R_j^{\ell} - R_{j - 1}^{\ell - 1}}{\Delta t}
-      &=
-      \frac{1}{2} \Bigg(
-      \sum_{k = 1}^{K - 1}
-      \frac{\gamma_k i_{j, k}^{\ell}
-        + \gamma_{k - 1} i_{j, k - 1}^{\ell}}
+      &= \sum_{k = 0}^{K - 1} \gamma_k
+      \frac{i_{j, k}^{\ell} + i_{j, k}^{\ell - 1}}
       {2}
       \Delta t
-      \\ & \quad\quad\quad {}
-      + \sum_{k = 1}^{K - 1}
-      \frac{\gamma_k i_{j - 1, k}^{\ell - 1}
-        + \gamma_{k - 1} i_{j - 1, k - 1}^{\ell - 1}}
-      {2}
-      \Delta t
-      \Bigg)
-      \\ & \quad {}
       - \frac{\mu_j R_j^{\ell}
         + \mu_{j - 1} R_{j - 1}^{\ell - 1}}
       {2},
     \end{split}
     \\
-    \frac{R_{J - 1}^{\ell} - R_{J - 2}^{\ell - 1}}{\Delta t}
-    &= ?,
+    \begin{split}
+      \frac{R_{J - 1}^{\ell} - R_{J - 2}^{\ell - 1}}{\Delta t}
+      &= \sum_{k = 0}^{K - 1} \gamma_k
+      \frac{i_{J - 1, k}^{\ell} + i_{J - 1, k}^{\ell - 1}}
+      {2}
+      \Delta t
+      \\ & \quad {}
+      - \frac{\mu_{J - 1} R_{J - 1}^{\ell}
+        + \mu_{J - 2} R_{J - 2}^{\ell - 1}}
+      {2}
+      \\ & \quad {}
+      + \left[
+        \frac{1}{\Delta t}
+        - \frac{1}{2} \mu_{J - 1}
+      \right] R_{J - 1}^{\ell - 1},
+    \end{split}
   \end{align}
   with force of infection
   \begin{equation}
     \lambda^l =
-    \beta
-    \sum_{j = 1}^{J - 1}
-    \sum_{k = 1}^{K - 1}
-    \frac{i_{j, k}^{\ell}
-      + i_{j, k - 1}^{\ell}
-      + i_{j - 1, k}^{\ell}
-      + i_{j - 1, k - 1}^{\ell}}
-    {4}
+    \beta \sum_{j = 0}^{J - 1} \sum_{k = 0}^{K - 1} i_{j, k}^{\ell}
     (\Delta t)^2,
   \end{equation}
   and population size
   \begin{equation}
     N_j^{\ell} =
     M_j^{\ell} + S_j^{\ell} + R_j^{\ell}
-    + \sum_{k = 1}^{K - 1}
-    \frac{e_{j, k}^{\ell} + i_{j, k}^{\ell}
-      + e_{j, k - 1}^{\ell} + i_{j, k - 1}^{\ell}}
-    {2}
+    + \sum_{k = 0}^{K - 1}
+    \left(e_{j, k}^{\ell} + i_{j, k}^{\ell}\right)
     \Delta t.
   \end{equation}
 \end{subequations}
 
 
+\subsubsection{Aggregating over time since entry}
+
+Let
+\begin{subequations}
+  \begin{align}
+    E(t, a)
+    &= \int_0^{+\infty} e(t, a, z) \md z,
+    \\
+    I(t, a)
+    &= \int_0^{+\infty} i(t, a, z) \md z,
+    \\
+    \bar{\rho}(t, a)
+    &= \frac{\int_0^{+\infty} \rho(z) e(t, a, z) \md z}
+      {\int_0^{+\infty} e(t, a, z) \md z},
+    \\
+    \bar{\gamma}(t, a)
+    &= \frac{\int_0^{+\infty} \gamma(z) i(t, a, z) \md z}
+      {\int_0^{+\infty} i(t, a, z) \md z}.
+  \end{align}
+\end{subequations}
+Then
+\begin{subequations}
+  \begin{align}
+    M(t, 0) &=
+    b(t) \int_0^{+\infty} \nu(a) R(t, a) \md a,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    M(t, a) &=
+    - \omega(a) M(t, a) - \mu(a) M(t, a),
+    \\
+    S(t, 0) &=
+    b(t) \int_0^{+\infty} \nu(a) \left[N(t, a) - R(t, a)\right] \md a,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    S(t, a) &=
+    \omega(a) M(t, a) - \lambda(t) S(t, a) - \mu(a) S(t, a),
+    \\
+    E(t, 0) &= 0,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    E(t, a)
+    &= \lambda(t) S(t, a)
+    - \bar{\rho}(t, a) E(t, a) - \mu(a) E(t, a),
+    \\
+    I(t, 0) &= 0,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    I(t, a)
+    &= \bar{\rho}(t, a) E(t, a)
+    - \bar{\gamma}(t, a) I(t, a) - \mu(a) I(t, a),
+    \\
+    R(t, 0) &= 0,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    R(t, a)
+    &= \bar{\gamma}(t, a) I(t, a) - \mu(a) R(t, a).
+  \end{align}
+\end{subequations}
+
+Let
+\begin{subequations}
+  \begin{align}
+    E_j^{\ell}
+    &= \sum_{k = 0}^{K - 1} e_{j, k}^{\ell} \Delta t,
+    \\
+    I_j^{\ell}
+    &= \sum_{k = 0}^{K - 1} i_{j, k}^{\ell} \Delta t,
+    \\
+    \bar{\rho}_j^{\ell}
+    &= \frac{\sum_{k = 0}^{K - 1} \rho_k e_{j, k}^{\ell} \Delta t}
+      {\sum_{k = 0}^{K - 1} e_{j, k}^{\ell} \Delta t},
+    \\
+    \bar{\gamma}_j^{\ell}
+    &= \frac{\sum_{k = 0}^{K - 1} \gamma_k i_{j, k}^{\ell} \Delta t}
+      {\sum_{k = 0}^{K - 1} i_{j, k}^{\ell} \Delta t}.
+  \end{align}
+\end{subequations}
+Then
+\begin{subequations}
+  \begin{align}
+    \left[1 + \frac{\Delta t}{2} (\omega_0 + \mu_0)\right] M_0^{\ell}
+    &= b^{\ell - 1 / 2}
+    \sum_{j = 0}^{J - 1} \nu_j \frac{R_j^{\ell} + R_j^{\ell - 1}}{2}
+    \Delta t,
+    \\
+    \frac{M_j^{\ell} - M_{j - 1}^{\ell - 1}}{\Delta t}
+    &=
+    - \frac{(\omega_j + \mu_j) M_j^{\ell}
+      + (\omega_{j - 1} + \mu_{j - 1}) M_{j - 1}^{\ell - 1}}
+    {2},
+    \\
+    \begin{split}
+      \frac{M_{J - 1}^{\ell} - M_{J - 2}^{\ell - 1}}{\Delta t}
+      &=
+      - \frac{(\omega_{J - 1} + \mu_{J - 1}) M_{J - 1}^{\ell}
+        + (\omega_{J - 2} + \mu_{J - 2}) M_{J - 2}^{\ell - 1}}
+      {2}
+      \\ & \quad {}
+      +  \left[\frac{1}{\Delta t}
+        - \frac{1}{2} (\omega_{J - 1} + \mu_{J - 1})\right]
+      M_{J - 1}^{\ell - 1},
+    \end{split}
+    \\
+    \begin{split}
+      \left[1 + \frac{\Delta t}{2} (\lambda^{\ell} + \mu_0)\right] S_0^{\ell}
+      &=
+      b^{\ell - 1 / 2}
+      \sum_{j = 0}^{J - 1} \nu_j
+      \frac{N_j^{\ell} - R_j^{\ell} + N_j^{\ell - 1} - R_j^{\ell - 1}}
+      {2}
+      \Delta t
+      \\ & \quad {}
+      + \frac{\Delta t}{2} \omega_0 M_0^{\ell},
+    \end{split}
+    \\
+    \begin{split}
+      \frac{S_j^{\ell} - S_{j - 1}^{\ell - 1}}{\Delta t}
+      &=
+      \frac{\omega_j M_j^{\ell}
+        + \omega_{j - 1} M_{j - 1}^{\ell - 1}}
+      {2}
+      \\ & \quad {}
+      - \frac{(\lambda^{\ell} + \mu_j) S_j^{\ell}
+        + (\lambda^{\ell - 1} + \mu_{j - 1}) S_{j - 1}^{\ell - 1}}
+      {2},
+    \end{split}
+    \\
+    \begin{split}
+      \frac{S_{J - 1}^{\ell} - S_{J - 2}^{\ell - 1}}{\Delta t}
+      &=
+      \frac{\omega_{J - 1} M_{J - 1}^{\ell}
+        + \omega_{J - 2} M_{J - 2}^{\ell - 1}}
+      {2}
+      \\ & \quad {}
+      - \frac{(\lambda^{\ell} + \mu_{J - 1}) S_{J - 1}^{\ell}
+        + (\lambda^{\ell - 1} + \mu_{J - 2}) S_{J - 2}^{\ell - 1}}
+      {2}
+      \\ & \quad {}
+      + \frac{1}{2} \omega_{J - 1} M_{J - 1}^{\ell - 1}
+      \\ & \quad {}
+      + \left[\frac{1}{\Delta t}
+        - \frac{1}{2} (\lambda^{\ell - 1} + \mu_{J - 1})\right]
+      S_{J - 1}^{\ell - 1},
+    \end{split}
+    \\
+    ...
+    \\
+    \left[1 + \frac{\Delta t}{2} \mu_0\right] R_0^{\ell}
+    &= 0 + ?,
+    \\
+    \begin{split}
+      \frac{R_j^{\ell} - R_{j - 1}^{\ell - 1}}{\Delta t}
+      &= \sum_{k = 0}^{K - 1} \gamma_k
+      \frac{i_{j, k}^{\ell} + i_{j, k}^{\ell - 1}}
+      {2}
+      \Delta t
+      - \frac{\mu_j R_j^{\ell}
+        + \mu_{j - 1} R_{j - 1}^{\ell - 1}}
+      {2}
+      \\
+      &= \frac{\bar{\gamma}_j^{\ell} I_j^{\ell}
+        + \bar{\gamma}_j^{\ell - 1} I_j^{\ell - 1}}
+      {2}
+      - \frac{\mu_j R_j^{\ell}
+        + \mu_{j - 1} R_{j - 1}^{\ell - 1}}
+      {2},
+    \end{split}
+    \\
+    \begin{split}
+      \frac{R_{J - 1}^{\ell} - R_{J - 2}^{\ell - 1}}{\Delta t}
+      &= \sum_{k = 0}^{K - 1} \gamma_k
+      \frac{i_{J - 1, k}^{\ell} + i_{J - 1, k}^{\ell - 1}}
+      {2}
+      \Delta t
+      \\ & \quad {}
+      - \frac{\mu_{J - 1} R_{J - 1}^{\ell}
+        + \mu_{J - 2} R_{J - 2}^{\ell - 1}}
+      {2}
+      \\ & \quad {}
+      + \left[
+        \frac{1}{\Delta t}
+        - \frac{1}{2} \mu_{J - 1}
+      \right] R_{J - 1}^{\ell - 1}
+      \\
+      &= \frac{\bar{\gamma}_{J - 1}^{\ell} I_{J - 1}^{\ell}
+        + \bar{\gamma}_{J - 1}^{\ell - 1} I_{J - 1}^{\ell - 1}}
+      {2}
+      \\ & \quad {}
+      - \frac{\mu_{J - 1} R_{J - 1}^{\ell}
+        + \mu_{J - 2} R_{J - 2}^{\ell - 1}}
+      {2}
+      \\ & \quad {}
+      + \left[
+        \frac{1}{\Delta t}
+        - \frac{1}{2} \mu_{J - 1}
+      \right] R_{J - 1}^{\ell - 1},
+    \end{split}
+  \end{align}
+\end{subequations}
+as expected?
+
+
+\paragraph{Aggregating over immune state}
+
+Let
+\begin{equation}
+  N(t, a)
+  = M(t, a) + S(t, a) + E(t, a) + I(t, a) + R(t, a).
+\end{equation}
+Then
+\begin{subequations}
+  \begin{align}
+    N(t, 0)
+    &= b(t) \int_0^{+\infty} \nu(a) N(t, a) \md a,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    N(t, a)
+    &= - \mu(a) N(t, a).
+  \end{align}
+\end{subequations}
+
+Let
+\begin{equation}
+  N_j^{\ell}
+  = M_j^{\ell} + S_j^{\ell} + E_j^{\ell} + I_j^{\ell} + R_j^{\ell}.
+\end{equation}
+Then
+\begin{subequations}
+  \begin{align}
+    \left[1 + \frac{\Delta t}{2} \mu_0\right] N_0^{\ell}
+    &= ?,
+    \\
+    \frac{N_j^{\ell} - N_{j - 1}^{\ell - 1}}{\Delta t}
+    &= ?,
+    \\
+    \frac{N_{J - 1}^{\ell} - N_{J - 2}^{\ell - 1}}{\Delta t}
+    &= ?,
+  \end{align}
+\end{subequations}
+as expected?
+
+
+\subparagraph{Aggregating over age}
+
+Let
+\begin{subequations}
+  \begin{align}
+    \bar{N}(t)
+    &= \int_0^{+\infty} N(t, a) \md a,
+    \\
+    \bar{\mu}_N(t)
+    &= \frac{\int_0^{+\infty} \mu(a) N(t, a) \md a}
+    {\int_0^{+\infty} N(t, a) \md a},
+    \\
+    \bar{\nu}_N(t)
+    &= \frac{\int_0^{+\infty} \nu(a) N(t, a) \md a}
+    {\int_0^{+\infty} N(t, a) \md a}.
+  \end{align}
+\end{subequations}
+Then
+\begin{equation}
+  \frac{\md}{\md t} \bar{N}(t)
+  = b(t) \bar{\nu}_N(t) \bar{N}(t)
+  - \bar{\mu}_N(t) \bar{N}(t).
+\end{equation}
+
+Let
+\begin{subequations}
+  \begin{align}
+    \bar{N}^{\ell}
+    &= \sum_{j = 0}^{J - 1} N_j^{\ell} \Delta t,
+    \\
+    \bar{\mu}_N^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \mu_j N_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} N_j^{\ell} \Delta t},
+    \\
+    \bar{\nu}_N^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \nu_j N_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} N_j^{\ell} \Delta t}.
+  \end{align}
+\end{subequations}
+Then
+\begin{equation}
+  \frac{\bar{N}^{\ell} - \bar{N}^{\ell - 1}}{\Delta t}
+  = ?,
+\end{equation}
+as expected?
+
+
+\paragraph{Aggregating over age}
+
+Let
+\begin{subequations}
+  \begin{align}
+    \bar{M}(t) &= \int_0^{+\infty} M(t, a) \md a,
+    \\
+    \bar{S}(t) &= \int_0^{+\infty} S(t, a) \md a,
+    \\
+    \bar{E}(t) &= \int_0^{+\infty} E(t, a) \md a,
+    \\
+    \bar{I}(t) &= \int_0^{+\infty} I(t, a) \md a,
+    \\
+    \bar{R}(t) &= \int_0^{+\infty} R(t, a) \md a,
+    \\
+    \bar{\mu}_X(t)
+    &= \frac{\int_0^{+\infty} \mu(a) X(t, a) \md a}
+    {\int_0^{+\infty} X(t, a) \md a},
+    \\
+    \bar{\nu}_X(t)
+    &= \frac{\int_0^{+\infty} \nu(a) X(t, a) \md a}
+    {\int_0^{+\infty} X(t, a) \md a},
+    \\
+    \bar{\omega}(t)
+    &= \frac{\int_0^{+\infty} \omega(a) M(t, a) \md a}
+    {\int_0^{+\infty} M(t, a) \md a},
+    \\
+    \bar{\bar{\rho}}(t)
+    &= \frac{\int_0^{+\infty} \bar{\rho}(t, a) E(t, a) \md a}
+    {\int_0^{+\infty} E(t, a) \md a},
+    \\
+    \bar{\bar{\gamma}}(t)
+    &= \frac{\int_0^{+\infty} \bar{\gamma}(t, a) I(t, a) \md a}
+    {\int_0^{+\infty} I(t, a) \md a}.
+  \end{align}
+\end{subequations}
+Then
+\begin{subequations}
+  \begin{align}
+    \frac{\md}{\md t} \bar{M}(t)
+    &= b(t) \bar{\nu}_R(t) \bar{R}(t)
+    - \left[\bar{\omega}(t) + \bar{\mu}_M(t)\right]
+    \bar{M}(t),
+    \\
+    \begin{split}
+      \frac{\md}{\md t} \bar{S}(t)
+      &= b(t) \left[\bar{\nu}_N(t) \bar{N}(t)
+        - \bar{\nu}_R(t) \bar{R}(t)\right]
+      \\ & \quad {}
+      + \bar{\omega}(t) \bar{M}(t)
+      - \lambda(t) \bar{S}(t)
+      - \bar{\mu}_S(t) \bar{S}(t),
+    \end{split}
+    \\
+    \frac{\md}{\md t} \bar{E}(t)
+    &= \lambda(t) \bar{S}(t)
+    - \bar{\bar{\rho}}(t) \bar{E}(t)
+    - \bar{\mu}_E(t) \bar{E}(t),
+    \\
+    \frac{\md}{\md t} \bar{I}(t)
+    &= \bar{\bar{\rho}}(t) \bar{E}(t)
+      - \bar{\bar{\gamma}}(t) \bar{I}(t)
+      - \bar{\mu}_I(t) \bar{I}(t),
+    \\
+    \frac{\md}{\md t} \bar{R}(t)
+    &= \bar{\bar{\gamma}}(t) \bar{I}(t)
+    - \bar{\mu}_R(t) \bar{R}(t).
+  \end{align}
+\end{subequations}
+
+Let
+\begin{subequations}
+  \begin{align}
+    \bar{M}^{\ell} &= \sum_{j = 0}^{J - 1} M_j^{\ell} \Delta t,
+    \\
+    \bar{S}^{\ell} &= \sum_{j = 0}^{J - 1} S_j^{\ell} \Delta t,
+    \\
+    \bar{E}^{\ell} &= \sum_{j = 0}^{J - 1} E_j^{\ell} \Delta t,
+    \\
+    \bar{I}^{\ell} &= \sum_{j = 0}^{J - 1} I_j^{\ell} \Delta t,
+    \\
+    \bar{R}^{\ell} &= \sum_{j = 0}^{J - 1} R_j^{\ell} \Delta t,
+    \\
+    \bar{\mu}_X^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \mu_j X_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} X_j^{\ell} \Delta t},
+    \\
+    \bar{\nu}_X^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \nu_j X_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} X_j^{\ell} \Delta t},
+    \\
+    \bar{\omega}^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \omega_j M_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} M_j^{\ell} \Delta t},
+    \\
+    \bar{\bar{\rho}}^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \bar{\rho}_j^{\ell} E_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} E_j^{\ell} \Delta t},
+    \\
+    \bar{\bar{\gamma}}^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \bar{\gamma}_j^{\ell} I_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} I_j^{\ell} \Delta t}.
+  \end{align}
+\end{subequations}
+Then
+\begin{subequations}
+  \begin{align}
+    \frac{\bar{M}^{\ell} - \bar{M}^{\ell - 1}}{\Delta t}
+    &= ?,
+    \\
+    \frac{\bar{S}^{\ell} - \bar{S}^{\ell - 1}}{\Delta t}
+    &= ?,
+    \\
+    \frac{\bar{E}^{\ell} - \bar{E}^{\ell - 1}}{\Delta t}
+    &= ?,
+    \\
+    \frac{\bar{I}^{\ell} - \bar{I}^{\ell - 1}}{\Delta t}
+    &= ?,
+    \\
+    \frac{\bar{R}^{\ell} - \bar{R}^{\ell - 1}}{\Delta t}
+    &= ?,
+  \end{align}
+\end{subequations}
+as expected?
+
+
+\subparagraph{Aggregating over immune state}
+
+Let
+\begin{equation}
+  \bar{N}(t)
+  = \bar{M}(t) + \bar{S}(t) + \bar{E}(t)
+  + \bar{I}(t) + \bar{R}(t).
+\end{equation}
+Then
+\begin{equation}
+  \frac{\md}{\md t} \bar{N}(t)
+  = b(t) \bar{\nu}_N(t) \bar{N}(t)
+  - \bar{\mu}_N(t) \bar{N}(t).
+\end{equation}
+
+Let
+\begin{equation}
+  \bar{N}^{\ell}
+  = \bar{M}^{\ell} + \bar{S}^{\ell} + \bar{E}^{\ell}
+  + \bar{I}^{\ell} + \bar{R}^{\ell}.
+\end{equation}
+Then
+\begin{equation}
+  \frac{\bar{N}^{\ell} - \bar{N}^{\ell - 1}}{\Delta t}
+  = ?,
+\end{equation}
+as expected?
+
+
 \printbibliography
+
 
 \end{document}
