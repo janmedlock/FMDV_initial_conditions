@@ -2294,7 +2294,7 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
     \begin{split}
       \frac{R_j^{\ell} - R_{j - 1}^{\ell - 1}}{\Delta t}
       &= \sum_{k = 0}^{K - 1} \gamma_k
-      \frac{i_{j, k}^{\ell} + i_{j, k}^{\ell - 1}}
+      \frac{i_{j, k}^{\ell} + i_{j - 1, k}^{\ell - 1}}
       {2}
       \Delta t
       \\ & \quad {}
@@ -2306,7 +2306,7 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
     \begin{split}
       \frac{R_{J - 1}^{\ell} - R_{J - 2}^{\ell - 1}}{\Delta t}
       &= \sum_{k = 0}^{K - 1} \gamma_k
-      \frac{i_{J - 1, k}^{\ell} + i_{J - 1, k}^{\ell - 1}}
+      \frac{i_{J - 1, k}^{\ell} + i_{J - 2, k}^{\ell - 1}}
       {2}
       \Delta t
       \\ & \quad {}
@@ -2381,8 +2381,7 @@ entry gives
     \\
     \begin{split}
       \frac{M_{J - 1}^{\ell} - M_{J - 2}^{\ell - 1}}{\Delta t}
-      &=
-      - \frac{(\omega_{J - 1} + \mu_{J - 1}) M_{J - 1}^{\ell}
+      &= - \frac{(\omega_{J - 1} + \mu_{J - 1}) M_{J - 1}^{\ell}
         + (\omega_{J - 2} + \mu_{J - 2}) M_{J - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
@@ -2393,8 +2392,7 @@ entry gives
     \\
     \begin{split}
       \left[1 + \frac{\Delta t}{2} (\lambda^{\ell} + \mu_0)\right] S_0^{\ell}
-      &=
-      b^{\ell - 1 / 2}
+      &= b^{\ell - 1 / 2}
       \sum_{j = 0}^{J - 1} \nu_j
       \frac{N_j^{\ell} - R_j^{\ell} + N_j^{\ell - 1} - R_j^{\ell - 1}}
       {2}
@@ -2405,8 +2403,7 @@ entry gives
     \\
     \begin{split}
       \frac{S_j^{\ell} - S_{j - 1}^{\ell - 1}}{\Delta t}
-      &=
-      \frac{\omega_j M_j^{\ell}
+      &= \frac{\omega_j M_j^{\ell}
         + \omega_{j - 1} M_{j - 1}^{\ell - 1}}
       {2}
       \\ & \quad {}
@@ -2417,8 +2414,7 @@ entry gives
     \\
     \begin{split}
       \frac{S_{J - 1}^{\ell} - S_{J - 2}^{\ell - 1}}{\Delta t}
-      &=
-      \frac{\omega_{J - 1} M_{J - 1}^{\ell}
+      &= \frac{\omega_{J - 1} M_{J - 1}^{\ell}
         + \omega_{J - 2} M_{J - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
@@ -2476,7 +2472,7 @@ entry gives
         + \bar{\rho}_{j - 1}^{\ell - 1} E_{j - 1}^{\ell - 1}} {2}
       \\ & \quad {}
       - \frac{(\bar{\gamma}_j^{\ell} + \mu_j) I_j^{\ell}
-        + (\bar{\gamma}_j^{\ell - 1} + \mu_{j - 1}) I_{j - 1}^{\ell - 1}}
+        + (\bar{\gamma}_{j - 1}^{\ell - 1} + \mu_{j - 1}) I_{j - 1}^{\ell - 1}}
       {2},
     \end{split}
     \\
@@ -2502,7 +2498,7 @@ entry gives
     \\
     \frac{R_j^{\ell} - R_{j - 1}^{\ell - 1}}{\Delta t}
     &= \frac{\bar{\gamma}_j^{\ell} I_j^{\ell}
-      + \bar{\gamma}_j^{\ell - 1} I_j^{\ell - 1}}
+      + \bar{\gamma}_{j - 1}^{\ell - 1} I_{j - 1}^{\ell - 1}}
       {2}
       - \frac{\mu_j R_j^{\ell}
       + \mu_{j - 1} R_{j - 1}^{\ell - 1}}
@@ -2511,7 +2507,7 @@ entry gives
     \begin{split}
       \frac{R_{J - 1}^{\ell} - R_{J - 2}^{\ell - 1}}{\Delta t}
       &= \frac{\bar{\gamma}_{J - 1}^{\ell} I_{J - 1}^{\ell}
-        + \bar{\gamma}_{J - 1}^{\ell - 1} I_{J - 1}^{\ell - 1}}
+        + \bar{\gamma}_{J - 2}^{\ell - 1} I_{J - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
       - \frac{\mu_{J - 1} R_{J - 1}^{\ell}
@@ -2545,17 +2541,26 @@ immune state gives
   \label{numerics_age_and_time_since_entry_structured_agg_tse_state}
   \begin{align}
     \left[1 + \frac{\Delta t}{2} \mu_0\right] N_0^{\ell}
-    &= ?,
+    &= b^{\ell - 1 / 2}
+    \sum_{j = 0}^{J - 1} \nu_j \frac{N_j^{\ell} + N_j^{\ell - 1}}{2}
+    \Delta t,
     \\
     \frac{N_j^{\ell} - N_{j - 1}^{\ell - 1}}{\Delta t}
-    &= ?,
+    &= - \frac{\mu_j N_j^{\ell} + \mu_{j - 1} N_{j - 1}^{\ell - 1}}{2},
     \\
-    \frac{N_{J - 1}^{\ell} - N_{J - 2}^{\ell - 1}}{\Delta t}
-    &= ?,
+    \begin{split}
+      \frac{N_{J - 1}^{\ell} - N_{J - 2}^{\ell - 1}}{\Delta t}
+      &= - \frac{\mu_{J - 1} N_{J - 1}^{\ell}
+        + \mu_{J - 2} N_{J - 2}^{\ell - 1}}
+      {2}
+      \\ & \quad {}
+      + \left[\frac{1}{\Delta t} - \frac{1}{2} \mu_{J - 1}\right]
+      N_{J - 1}^{\ell - 1},
+    \end{split}
   \end{align}
 \end{subequations}
 which is identical to our Crank--Nicolson scheme applied to model
-\eqref{model_age_and_time_since_entry_structured_agg_tse_state}?
+\eqref{model_age_and_time_since_entry_structured_agg_tse_state}.
 
 
 \subparagraph{Aggregating over age}
@@ -2581,10 +2586,13 @@ over age gives
 \begin{equation}
   \label{numerics_age_and_time_since_entry_structured_agg_tse_state_age}
   \frac{\bar{N}^{\ell} - \bar{N}^{\ell - 1}}{\Delta t}
-  = ?,
+  = b^{\ell - 1 / 2} \frac{\bar{\nu}_N^{\ell} \bar{N}^{\ell}
+    + \bar{\nu}_N^{\ell - 1} \bar{N}^{\ell - 1}}{2}
+  - \frac{\bar{\mu}_N^{\ell} \bar{N}^{\ell}
+    + \bar{\mu}_N^{\ell - 1} \bar{N}^{\ell - 1}}{2},
 \end{equation}
 which is identical to our Crank--Nicolson scheme applied to model
-\eqref{model_age_and_time_since_entry_structured_agg_tse_state_age}?
+\eqref{model_age_and_time_since_entry_structured_agg_tse_state_age}.
 
 
 \paragraph{Aggregating over age}
