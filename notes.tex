@@ -1368,82 +1368,8 @@ over immune state gives
 
 The total population follows
 \begin{equation}
-  \begin{split}
-    \frac{\md}{\md t} N(t)
-    &= \frac{\md}{\md t} S(t)
-    + \frac{\md}{\md t} R(t)
-    + \frac{\md}{\md t} \int_0^{+\infty} m(t, z) + e(t, z) + i(t, z) \md z
-    \\
-    &= \frac{\md}{\md t} S(t)
-    + \frac{\md}{\md t} R(t)
-    + \int_0^{+\infty} \frac{\partial}{\partial t} m(t, z)
-    + \frac{\partial}{\partial t} e(t, z)
-    + \frac{\partial}{\partial t} i(t, z) \md z
-    \\
-    &=
-    b(t) \left[N(t) - R(t)\right]
-    + \int_0^{+\infty} \omega(z) m(t, z) \md z
-    - \lambda(t) S(t) - \mu S(t)
-    \\ & \quad {}
-    + \int_0^{+\infty} \gamma(z) i(t, z) \md z
-    - \mu R(t)
-    \\ & \quad {}
-    - \int_0^{+\infty}
-    \frac{\partial}{\partial z} m(t, z)
-    + \omega(z) m(t, z)
-    + \mu m(t, z)
-    \md z
-    \\ & \quad {}
-    - \int_0^{+\infty}
-    \frac{\partial}{\partial z} e(t, z)
-    + \rho(z) e(t, z)
-    + \mu e(t, z)
-    \md z
-    \\ & \quad {}
-    - \int_0^{+\infty}
-    \frac{\partial}{\partial z} i(t, z)
-    + \gamma(z) i(t, z)
-    + \mu i(t, z)
-    \md z
-    \\
-    &=
-    b(t) \left[N(t) - R(t)\right]
-    \\ & \quad {}
-    - \mu \left[
-      S(t) + R(t)
-      + \int_0^{+\infty}
-      m(t, z) + e(t, z) + i(t, z)
-      \md z
-    \right]
-    \\ & \quad {}
-    - \lambda(t) S(t)
-    - \int_0^{+\infty}
-    \rho(z) e(t, z)
-    \md z
-    \\ & \quad {}
-    - m(t, +\infty) - e(t, +\infty) - i(t, +\infty)
-    + m(t, 0) + e(t, 0) + i(t, 0)
-    \\
-    &=
-    b(t) \left[N(t) - R(t)\right]
-    - \mu N(t)
-    \\ & \quad {}
-    - \lambda(t) S(t)
-    - \int_0^{+\infty}
-    \rho(z) e(t, z)
-    \md z
-    \\ & \quad {}
-    + b(t) R(t)
-    + \lambda(t) S(t)
-    + \int_0^{+\infty} \rho(z) e(t, z) \md z
-    \\
-    &= b(t) N(t) - \mu N(t)
-    \\
-    &= \left[
-      \bar{b} - \mu
-      + \bar{b} \sigma \sqrt{2} \cos\left(2 \pi t / T\right)
-    \right] N(t).
-  \end{split}
+  \frac{\md}{\md t} N(t)
+  = b(t) N(t) - \mu N(t).
 \end{equation}
 This is the same as model \eqref{model_unstructured_total} for the
 total population for the unstructured model: as we did for that model,
@@ -1594,40 +1520,13 @@ gives
 \begin{subequations}
   \label{numerics_time_since_entry_structured_agg_tse}
   \begin{align}
-    \begin{split}
-      \frac{M^{\ell}  - M^{\ell - 1}}{\Delta t}
-      &= \Delta t \sum_{k = 1}^{K - 1}
-      \frac{m_k^{\ell} - m_{k - 1}^{\ell - 1}}{\Delta t}
-      + m_0^{\ell} - m_{K - 1}^{\ell - 1}
-      \\
-      &= - \Delta t \sum_{k = 1}^{K - 1}
-      \frac{(\omega_k + \mu) m_k^{\ell}
-        + (\omega_{k - 1} + \mu) m_{k - 1}^{\ell - 1}}{2}
-      \\ & \quad {}
-      - \frac{\Delta t}{2} (\omega_{K - 1} + \mu) m_{K - 1}^{\ell - 1}
-      + m_0^{\ell}
-      \\
-      &= - \sum_{k = 0}^{K - 1}
-      (\omega_k + \mu) \frac{m_k^{\ell} + m_k^{\ell - 1}}{2}
-      \Delta t
-      + b^{\ell - 1 / 2} \frac{R^{\ell} + R^{\ell - 1}}{2}
-      \\
-      &= - \frac{(\bar{\omega}^{\ell} + \mu) M^{\ell}
-        + (\bar{\omega}^{\ell - 1} + \mu) M^{\ell - 1}}{2}
+    \frac{M^{\ell}  - M^{\ell - 1}}{\Delta t}
+    &= - \frac{(\bar{\omega}^{\ell} + \mu) M^{\ell}
+      + (\bar{\omega}^{\ell - 1} + \mu) M^{\ell - 1}}{2}
       + b^{\ell - 1 / 2} \frac{R^{\ell} + R^{\ell - 1}}{2},
-    \end{split}
     \\
     \begin{split}
       \frac{S^{\ell} - S^{\ell - 1}}{\Delta t}
-      &= b^{\ell - 1 / 2}
-      \frac{N^{\ell} - R^{\ell} + N^{\ell - 1} - R^{\ell - 1}}{2}
-      + \sum_{k = 0}^{K - 1} \omega_k
-      \frac{m_k^{\ell} + m_k^{\ell - 1}}{2}
-      \Delta t
-      \\ & \quad {}
-      - \frac{(\lambda^{\ell} + \mu) S^{\ell}
-        + (\lambda^{\ell - 1} + \mu) S^{\ell - 1}}{2}
-      \\
       &= b^{\ell - 1 / 2}
       \frac{N^{\ell} - R^{\ell} + N^{\ell - 1} - R^{\ell - 1}}{2}
       + \frac{\bar{\omega}^{\ell} M^{\ell}
@@ -1637,68 +1536,22 @@ gives
         + (\lambda^{\ell - 1} + \mu) S^{\ell - 1}}{2},
     \end{split}
     \\
-    \begin{split}
-      \frac{E^{\ell}  - E^{\ell - 1}}{\Delta t}
-      &= \Delta t \sum_{k = 1}^{K - 1}
-      \frac{E_k^{\ell} - E_{k - 1}^{\ell - 1}}{\Delta t}
-      + e_0^{\ell} - e_{K - 1}^{\ell - 1}
-      \\
-      &= - \Delta t \sum_{k = 1}^{K - 1}
-      \frac{(\rho_k + \mu) e_k^{\ell}
-      + (\rho_{k - 1} + \mu) e_{k - 1}^{\ell - 1}}{2}
-      \\ & \quad {}
-      - \frac{\Delta t}{2} (\rho_{K - 1} + \mu) e_{K - 1}^{\ell - 1}
-      + e_0^{\ell}
-      \\
-      &= - \sum_{k = 0}^{K - 1}
-      (\rho_k + \mu) \frac{e_k^{\ell} + e_k^{\ell - 1}}{2}
-      \Delta t
+    \frac{E^{\ell}  - E^{\ell - 1}}{\Delta t}
+    &= - \frac{(\bar{\rho}^{\ell} + \mu) E^{\ell}
+      + (\bar{\rho}^{\ell - 1} + \mu) E^{\ell - 1}}{2}
       + \frac{\lambda^{\ell} S^{\ell}
-        + \lambda^{\ell - 1} S^{\ell - 1}}{2}
-      \\
-      &= - \frac{(\bar{\rho}^{\ell} + \mu) E^{\ell}
-        + (\bar{\rho}^{\ell - 1} + \mu) E^{\ell - 1}}{2}
-      + \frac{\lambda^{\ell} S^{\ell}
-        + \lambda^{\ell - 1} S^{\ell - 1}}{2}
-    \end{split}
+      + \lambda^{\ell - 1} S^{\ell - 1}}{2},
     \\
-    \begin{split}
-      \frac{I^{\ell}  - I^{\ell - 1}}{\Delta t}
-      &= \Delta t \sum_{k = 1}^{K - 1}
-      \frac{I_k^{\ell} - I_{k - 1}^{\ell - 1}}{\Delta t}
-      + i_0^{\ell} - i_{K - 1}^{\ell - 1}
-      \\
-      &= - \Delta t \sum_{k = 1}^{K - 1}
-      \frac{(\gamma_k + \mu) i_k^{\ell}
-        + (\gamma_{k - 1} + \mu) i_{k - 1}^{\ell - 1}}{2}
-      \\ & \quad {}
-      - \frac{\Delta t}{2} (\gamma_{K - 1} + \mu) i_{K - 1}^{\ell - 1}
-      + i_0^{\ell}
-      \\
-      &= - \sum_{k = 0}^{K - 1}
-      (\gamma_k + \mu) \frac{i_k^{\ell} + i_k^{\ell - 1}}{2}
-      \Delta t
-      + \sum_{k = 0}^{K - 1} \rho_k
-      \frac{e_k^{\ell} + e_k^{\ell - 1}}{2}
-      \Delta t
-      \\
-      &= - \frac{(\bar{\gamma}^{\ell} + \mu) I^{\ell}
-        + (\bar{\gamma}^{\ell - 1} + \mu) I^{\ell - 1}}{2}
+    \frac{I^{\ell}  - I^{\ell - 1}}{\Delta t}
+    &= - \frac{(\bar{\gamma}^{\ell} + \mu) I^{\ell}
+      + (\bar{\gamma}^{\ell - 1} + \mu) I^{\ell - 1}}{2}
       + \frac{\bar{\rho}^{\ell} E^{\ell}
-        + \bar{\rho}^{\ell - 1} E^{\ell - 1}}{2},
-    \end{split}
+      + \bar{\rho}^{\ell - 1} E^{\ell - 1}}{2},
     \\
-    \begin{split}
-      \frac{R^{\ell} - R^{\ell - 1}}{\Delta t}
-      &= \sum_{k = 0}^{K - 1} \gamma_k
-      \frac{i_k^{\ell} + i_k^{\ell - 1}}{2}
-      \Delta t
-      - \mu \frac{R^{\ell} + R^{\ell - 1}}{2}
-      \\
-      &= \frac{\bar{\gamma}^{\ell} I^{\ell}
-        + \bar{\gamma}^{\ell - 1} I^{\ell - 1}}{2}
+    \frac{R^{\ell} - R^{\ell - 1}}{\Delta t}
+    &= \frac{\bar{\gamma}^{\ell} I^{\ell}
+      + \bar{\gamma}^{\ell - 1} I^{\ell - 1}}{2}
       - \mu \frac{R^{\ell} + R^{\ell - 1}}{2},
-    \end{split}
   \end{align}
 \end{subequations}
 which is identical to our Crank--Nicolson scheme applied to model
@@ -2461,6 +2314,11 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
         + \mu_{J - 2} R_{J - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
+      + \sum_{k = 0}^{K - 1} \gamma_k
+      \frac{i_{J - 1, k}^{\ell - 1}}
+      {2}
+      \Delta t
+      \\ & \quad {}
       + \left[
         \frac{1}{\Delta t}
         - \frac{1}{2} \mu_{J - 1}
@@ -2575,245 +2433,83 @@ entry gives
       S_{J - 1}^{\ell - 1},
     \end{split}
     \\
-    \begin{split}
-      \left[1 + \frac{\Delta t}{2} (\bar{\rho}_0^{\ell} + \mu_0)\right]
-      E_0^{\ell}
-      &=
-      \sum_{k = 0}^{K - 1}
-      \left[1 + \frac{\Delta t}{2} (\rho_k + \mu_0)\right]
-      e_{0, k}^{\ell} \Delta t
-      \\
-      &= \frac{\Delta t}{2} \lambda^{\ell} S_0^{\ell},
-    \end{split}
+    \left[1 + \frac{\Delta t}{2} (\bar{\rho}_0^{\ell} + \mu_0)\right]
+    E_0^{\ell}
+    &= \frac{\Delta t}{2} \lambda^{\ell} S_0^{\ell},
     \\
     \begin{split}
       \frac{E_j^{\ell} - E_{j - 1}^{\ell - 1}}{\Delta t}
-      &= \Delta t \sum_{k = 1}^{K - 1}
-      \frac{e_{j, k}^{\ell} - e_{j - 1, k - 1}^{\ell - 1}}{\Delta t}
-      + e_{j, 0}^{\ell} - e_{j - 1, K - 1}^{\ell - 1}
-      \\
-      &= - \Delta t \sum_{k = 1}^{K - 1}
-      \frac{(\rho_k + \mu_j) e_{j, k}^{\ell}
-        + (\rho_{k - 1} + \mu_{j - 1}) e_{j - 1, k - 1}^{\ell - 1}}
-      {2}
-      \\ & \quad {}
-      - \frac{\Delta t}{2} (\rho_{K - 1} + \mu_{j - 1}) e_{j - 1, K - 1}^{\ell - 1}
-      + e_{j, 0}^{\ell}
-      \\
-      &= - \sum_{k = 0}^{K - 1}
-      \frac{(\rho_k + \mu_j) e_{j, k}^{\ell}
-        + (\rho_k + \mu_{j - 1}) e_{j - 1, k}^{\ell - 1}}
-      {2}
-      \Delta t
-      \\ & \quad {}
-      + \frac{\lambda^{\ell} S_j^{\ell}
+      &= \frac{\lambda^{\ell} S_j^{\ell}
         + \lambda^{\ell - 1} S_{j - 1}^{\ell - 1}}
       {2}
-      \\
-      &= - \frac{(\bar{\rho}_j^{\ell} + \mu_j) E_j^{\ell}
+      \\ & \quad {}
+      - \frac{(\bar{\rho}_j^{\ell} + \mu_j) E_j^{\ell}
         + (\bar{\rho}_{j - 1}^{\ell - 1} + \mu_{j - 1}) E_{j - 1}^{\ell - 1}}
-      {2}
-      \\ & \quad {}
-      + \frac{\lambda^{\ell} S_j^{\ell}
-        + \lambda^{\ell - 1} S_{j - 1}^{\ell - 1}}
       {2},
     \end{split}
     \\
     \begin{split}
       \frac{E_{J - 1}^{\ell} - E_{J - 2}^{\ell - 1}}{\Delta t}
-      &= \Delta t \sum_{k = 1}^{K - 1}
-      \frac{e_{J - 1, k}^{\ell} - e_{J - 2, k - 1}^{\ell - 1}}{\Delta t}
-      + e_{J - 1, 0}^{\ell} - e_{J - 2, K - 1}^{\ell - 1}
-      \\
-      &= - \Delta t \sum_{k = 1}^{K - 1}
-      \frac{(\rho_k + \mu_{J - 1}) e_{J - 1, k}^{\ell}
-        + (\rho_{k - 1} + \mu_{J - 2}) e_{J - 2, k - 1}^{\ell - 1}}
-      {2}
-      \\ & \quad {}
-      + \Delta t \sum_{k = 1}^{K - 1} \left[
-        \frac{1}{\Delta t} - \frac{1}{2} (\rho_{k - 1} + \mu_{J - 1})
-      \right] e_{J - 1, k - 1}^{\ell - 1}
-      \\ & \quad {}
-      + \left[1 - \frac{\Delta t}{2} (\rho_{K - 1} + \mu_{J - 1})\right]
-      e_{J - 1, K - 1}^{\ell - 1}
-      \\ & \quad {}
-      - \frac{\Delta t}{2} (\rho_{K - 1} + \mu_{J - 2})
-      e_{J - 2, K - 1}^{\ell - 1}
-      + e_{J - 1, 0}^{\ell}
-      \\
-      &= - \sum_{k = 0}^{K - 1}
-      \frac{(\rho_k + \mu_{J - 1}) e_{J - 1, k}^{\ell}
-        + (\rho_k + \mu_{J - 2}) e_{J - 2, k}^{\ell - 1}}
-      {2} \Delta t
-      \\ & \quad {}
-      + \sum_{k = 0}^{K - 1}
-      \left[\frac{1}{\Delta t} - \frac{1}{2} (\rho_k + \mu_{J - 1})\right]
-      e_{J - 1, k}^{\ell - 1} \Delta t
-      \\ & \quad {}
-      + \frac{\lambda^{\ell} S_{J - 1}^{\ell}
+      &= \frac{\lambda^{\ell} S_{J - 1}^{\ell}
         + \lambda^{\ell - 1} S_{J - 2}^{\ell - 1}}
       {2}
-      + \frac{1}{2} \lambda^{\ell - 1} S_{J - 1}^{\ell - 1}
-      \\
-      &= - \frac{(\bar{\rho}_{J - 1}^{\ell} + \mu_{J - 1}) E_{J - 1}^{\ell}
+      \\ & \quad {}
+      - \frac{(\bar{\rho}_{J - 1}^{\ell} + \mu_{J - 1}) E_{J - 1}^{\ell}
         + (\bar{\rho}_{J - 2}^{\ell - 1} + \mu_{J - 2}) E_{J - 2}^{\ell - 1}}
       {2}
+      \\ & \quad {}
+      + \frac{\lambda^{\ell - 1} S_{J - 1}^{\ell - 1}}{2}
       \\ & \quad {}
       + \left[
         \frac{1}{\Delta t}
         - \frac{1}{2} (\bar{\rho}_{J - 1}^{\ell - 1} + \mu_{J - 1})
-      \right] E_{J - 1}^{\ell - 1}
-      \\ & \quad {}
-      + \frac{\lambda^{\ell} S_{J - 1}^{\ell}
-        + \lambda^{\ell - 1} S_{J - 2}^{\ell - 1}}
-      {2}
-      + \frac{\lambda^{\ell - 1} S_{J - 1}^{\ell - 1}}{2},
+      \right] E_{J - 1}^{\ell - 1},
     \end{split}
     \\
-    \begin{split}
-      \left[1 + \frac{\Delta t}{2} (\bar{\gamma}_0^{\ell} + \mu_0)\right]
-      I_0^{\ell}
-      &=
-      \sum_{k = 0}^{K - 1}
-      \left[1 + \frac{\Delta t}{2} (\gamma_k + \mu_0)\right]
-      i_{0, k}^{\ell} \Delta t
-      \\
-      & = \Delta t \sum_{k = 0}^{K - 1}
-      \frac{\rho_k e_{0, k}^{\ell}} {2}
-      \Delta t
-      \\
-      & = \frac{\Delta t}{2} \bar{\rho}_0^{\ell} E_0^{\ell},
-    \end{split}
+    \left[1 + \frac{\Delta t}{2} (\bar{\gamma}_0^{\ell} + \mu_0)\right]
+    I_0^{\ell}
+    &= \frac{\Delta t}{2} \bar{\rho}_0^{\ell} E_0^{\ell},
     \\
     \begin{split}
       \frac{I_j^{\ell} - I_{j - 1}^{\ell - 1}}{\Delta t}
-      &= \Delta t \sum_{k = 1}^{K - 1}
-      \frac{i_{j, k}^{\ell} - i_{j - 1, k - 1}^{\ell - 1}}{\Delta t}
-      + i_{j, 0}^{\ell} - i_{j - 1, K - 1}^{\ell - 1}
-      \\
-      &= - \Delta t \sum_{k = 1}^{K - 1}
-      \frac{(\gamma_k + \mu_j) i_{j, k}^{\ell}
-        + (\gamma_{k - 1} + \mu_{j - 1}) i_{j - 1, k - 1}^{\ell - 1}}
-      {2}
+      &= \frac{\bar{\rho}_j^{\ell} E_j^{\ell}
+        + \bar{\rho}_{j - 1}^{\ell - 1} E_{j - 1}^{\ell - 1}} {2}
       \\ & \quad {}
-      - \frac{\Delta t}{2} (\gamma_{K - 1} + \mu_{j - 1})
-      i_{j - 1, K - 1}^{\ell - 1}
-      + i_{j, 0}^{\ell}
-      \\
-      &= - \sum_{k = 0}^{K - 1}
-      \frac{(\gamma_k + \mu_j) i_{j, k}^{\ell}
-        + (\gamma_k + \mu_{j - 1}) i_{j - 1, k}^{\ell - 1}}
-      {2}
-      \Delta t
-      \\ & \quad {}
-      + \sum_{k = 0}^{K - 1} \rho_k
-      \frac{e_{j, k}^{\ell} + e_{j - 1, k}^{\ell - 1}} {2}
-      \Delta t
-      \\
-      &= - \frac{(\bar{\gamma}_j^{\ell} + \mu_j) I_j^{\ell}
+      - \frac{(\bar{\gamma}_j^{\ell} + \mu_j) I_j^{\ell}
         + (\bar{\gamma}_j^{\ell - 1} + \mu_{j - 1}) I_{j - 1}^{\ell - 1}}
-      {2}
-      \\ & \quad {}
-      + \frac{\bar{\rho}_j^{\ell} E_j^{\ell}
-        + \bar{\rho}_{j - 1}^{\ell - 1} E_{j - 1}^{\ell - 1}} {2},
-    \end{split}
-    \\
-    \begin{split}
-      \frac{I_{J - 1}^{\ell} - I_{J - 2}^{\ell - 1}}{\Delta t}
-      &= \Delta t \sum_{k = 1}^{K - 1}
-      \frac{i_{J - 1, k}^{\ell} - i_{J - 2, k - 1}^{\ell - 1}}{\Delta t}
-      + i_{J - 1, 0}^{\ell} - i_{J - 2, K - 1}^{\ell - 1}
-      \\
-      &= - \Delta t \sum_{k = 1}^{K - 1}
-      \frac{(\gamma_k + \mu_{J - 1}) i_{J - 1, k}^{\ell}
-        + (\gamma_{k - 1} + \mu_{J - 2}) i_{J - 2, k - 1}^{\ell - 1}}
-      {2}
-      \\ & \quad {}
-      + \Delta t \sum_{k = 1}^{K - 1} \left[
-        \frac{1}{\Delta t} - \frac{1}{2} (\gamma_{k - 1} + \mu_{J - 1})
-      \right] i_{J - 1, k - 1}^{\ell - 1}
-      \\ & \quad {}
-      + \left[
-        1 - \frac{\Delta t}{2} (\gamma_{K - 1} + \mu_{J - 1})
-      \right] i_{J - 1, K - 1}^{\ell - 1}
-      \\ & \quad {}
-      - \frac{\Delta t}{2} (\gamma_{K - 1} + \mu_{J - 2})
-      i_{J - 2, K - 1}^{\ell - 1}
-      + i_{J - 1, 0}^{\ell}
-      \\
-      &= - \sum_{k = 0}^{K - 1}
-      \frac{(\gamma_k + \mu_{J - 1}) i_{J - 1, k}^{\ell}
-        + (\gamma_k + \mu_{J - 2}) i_{J - 2, k}^{\ell - 1}}
-      {2} \Delta t
-      \\ & \quad {}
-      + \sum_{k = 0}^{K - 1} \left[
-        \frac{1}{\Delta t} - \frac{1}{2} (\gamma_k + \mu_{J - 1})
-      \right] i_{J - 1, k}^{\ell - 1} \Delta t
-      \\ & \quad {}
-      + \sum_{k = 0}^{K - 1} \rho_k
-      \frac{e_{J - 1, k}^{\ell} + e_{J - 2, k}^{\ell - 1}} {2}
-      \Delta t
-      + \sum_{k = 0}^{K - 1} \rho_k
-      \frac{e_{J - 1, k}^{\ell - 1}} {2}
-      \Delta t
-      \\
-      &= - \frac{(\bar{\gamma}_{J - 1}^{\ell} + \mu_{J - 1}) I_{J - 1}^{\ell}
-        + (\bar{\gamma}_{J - 2}^{\ell - 1} + \mu_{J - 2}) I_{J - 2}^{\ell - 1}}
-      {2}
-      \\ & \quad {}
-      + \left[
-        \frac{1}{\Delta t}
-        - \frac{1}{2} (\bar{\gamma}_{J - 1}^{\ell - 1} + \mu_{J - 1})
-      \right] I_{J - 1}^{\ell - 1}
-      \\ & \quad {}
-      + \frac{\bar{\rho}_{J - 1}^{\ell} E_{J - 1}^{\ell}
-        + \bar{\rho}_{J - 2}^{\ell - 1} E_{J - 2}^{\ell - 1}} {2}
-      + \frac{\bar{\rho}_{J - 1}^{\ell - 1} E_{J - 1}^{\ell - 1}} {2},
-    \end{split}
-    \\
-    \begin{split}
-      \left[1 + \frac{\Delta t}{2} \mu_0\right] R_0^{\ell}
-      &= \frac{\Delta t}{2} \sum_{k = 0}^{K - 1}
-      \gamma_k i_{0, k}^{\ell} \Delta t
-      \\
-      &= \frac{\Delta t}{2} \bar{\gamma}_0^{\ell} I_0^{\ell},
-    \end{split}
-    \\
-    \begin{split}
-      \frac{R_j^{\ell} - R_{j - 1}^{\ell - 1}}{\Delta t}
-      &= \sum_{k = 0}^{K - 1} \gamma_k
-      \frac{i_{j, k}^{\ell} + i_{j, k}^{\ell - 1}}
-      {2}
-      \Delta t
-      \\ & \quad {}
-      - \frac{\mu_j R_j^{\ell}
-        + \mu_{j - 1} R_{j - 1}^{\ell - 1}}
-      {2}
-      \\
-      &= \frac{\bar{\gamma}_j^{\ell} I_j^{\ell}
-        + \bar{\gamma}_j^{\ell - 1} I_j^{\ell - 1}}
-      {2}
-      - \frac{\mu_j R_j^{\ell}
-        + \mu_{j - 1} R_{j - 1}^{\ell - 1}}
       {2},
     \end{split}
     \\
     \begin{split}
-      \frac{R_{J - 1}^{\ell} - R_{J - 2}^{\ell - 1}}{\Delta t}
-      &= \sum_{k = 0}^{K - 1} \gamma_k
-      \frac{i_{J - 1, k}^{\ell} + i_{J - 1, k}^{\ell - 1}}
-      {2}
-      \Delta t
+      \frac{I_{J - 1}^{\ell} - I_{J - 2}^{\ell - 1}}{\Delta t}
+      &= \frac{\bar{\rho}_{J - 1}^{\ell} E_{J - 1}^{\ell}
+        + \bar{\rho}_{J - 2}^{\ell - 1} E_{J - 2}^{\ell - 1}} {2}
       \\ & \quad {}
-      - \frac{\mu_{J - 1} R_{J - 1}^{\ell}
-        + \mu_{J - 2} R_{J - 2}^{\ell - 1}}
+      - \frac{(\bar{\gamma}_{J - 1}^{\ell} + \mu_{J - 1}) I_{J - 1}^{\ell}
+        + (\bar{\gamma}_{J - 2}^{\ell - 1} + \mu_{J - 2}) I_{J - 2}^{\ell - 1}}
       {2}
+      \\ & \quad {}
+      + \frac{\bar{\rho}_{J - 1}^{\ell - 1} E_{J - 1}^{\ell - 1}} {2}
       \\ & \quad {}
       + \left[
         \frac{1}{\Delta t}
-        - \frac{1}{2} \mu_{J - 1}
-      \right] R_{J - 1}^{\ell - 1}
-      \\
+        - \frac{1}{2} (\bar{\gamma}_{J - 1}^{\ell - 1} + \mu_{J - 1})
+      \right] I_{J - 1}^{\ell - 1},
+    \end{split}
+    \\
+    \left[1 + \frac{\Delta t}{2} \mu_0\right] R_0^{\ell}
+    &= \frac{\Delta t}{2} \bar{\gamma}_0^{\ell} I_0^{\ell},
+    \\
+    \frac{R_j^{\ell} - R_{j - 1}^{\ell - 1}}{\Delta t}
+    &= \frac{\bar{\gamma}_j^{\ell} I_j^{\ell}
+      + \bar{\gamma}_j^{\ell - 1} I_j^{\ell - 1}}
+      {2}
+      - \frac{\mu_j R_j^{\ell}
+      + \mu_{j - 1} R_{j - 1}^{\ell - 1}}
+      {2},
+    \\
+    \begin{split}
+      \frac{R_{J - 1}^{\ell} - R_{J - 2}^{\ell - 1}}{\Delta t}
       &= \frac{\bar{\gamma}_{J - 1}^{\ell} I_{J - 1}^{\ell}
         + \bar{\gamma}_{J - 1}^{\ell - 1} I_{J - 1}^{\ell - 1}}
       {2}
@@ -2821,6 +2517,8 @@ entry gives
       - \frac{\mu_{J - 1} R_{J - 1}^{\ell}
         + \mu_{J - 2} R_{J - 2}^{\ell - 1}}
       {2}
+      \\ & \quad {}
+      + \frac{\bar{\gamma}_{J - 1}^{\ell - 1} I_{J - 1}^{\ell - 1}}{2}
       \\ & \quad {}
       + \left[
         \frac{1}{\Delta t}

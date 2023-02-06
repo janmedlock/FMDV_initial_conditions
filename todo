@@ -3,12 +3,10 @@
   * Write code
 
 * Time-since-entry model
-  * Remove intermediate steps in aggregation
   * Write code
 
 * Combination model
   * Check aggregates
-  * Remove intermediate steps in aggregation
   * Write numerical method as linear algebra
   * Write code
 
