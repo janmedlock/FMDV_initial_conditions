@@ -2637,24 +2637,57 @@ age gives
 \begin{subequations}
   \label{numerics_age_and_time_since_entry_structured_agg_tse_age}
   \begin{align}
-    \frac{\bar{M}^{\ell} - \bar{M}^{\ell - 1}}{\Delta t}
-    &= ?,
+    \begin{split}
+      \frac{\bar{M}^{\ell} - \bar{M}^{\ell - 1}}{\Delta t}
+      &= b^{\ell - 1 / 2} \frac{\bar{\nu}_R^{\ell} \bar{R}^{\ell}
+        + \bar{\nu}_R^{\ell - 1} \bar{R}^{\ell - 1}}{2}
+      \\ & \quad {}
+      - \frac{(\bar{\omega}^{\ell} + \bar{\mu}_M^{\ell}) \bar{M}^{\ell}
+        + (\bar{\omega}^{\ell - 1} + \bar{\mu}_M^{\ell - 1}) \bar{M}^{\ell - 1}}
+      {2},
+    \end{split}
     \\
-    \frac{\bar{S}^{\ell} - \bar{S}^{\ell - 1}}{\Delta t}
-    &= ?,
+    \begin{split}
+      \frac{\bar{S}^{\ell} - \bar{S}^{\ell - 1}}{\Delta t}
+      &= b^{\ell - 1 / 2}
+      \frac{\bar{\nu}_N^{\ell} \bar{N}^{\ell}
+        - \bar{\nu}_R^{\ell} \bar{R}^{\ell}
+        + \bar{\nu}_N^{\ell - 1} \bar{N}^{\ell - 1}
+        - \bar{\nu}_N^{\ell - 1} \bar{R}^{\ell - 1}}{2}
+      \\ & \quad {}
+      + \frac{\bar{\omega}^{\ell} \bar{M}^{\ell}
+        + \bar{\omega}^{\ell - 1} \bar{M}^{\ell - 1}}{2}
+      \\ & \quad {}
+      - \frac{(\lambda^{\ell} + \bar{\mu}_S^{\ell}) \bar{S}^{\ell}
+        + (\lambda^{\ell - 1} + \bar{\mu}_S^{\ell - 1}) \bar{S}^{\ell - 1}}{2},
+    \end{split}
     \\
     \frac{\bar{E}^{\ell} - \bar{E}^{\ell - 1}}{\Delta t}
-    &= ?,
+    &= \frac{\lambda^{\ell} \bar{S}^{\ell}
+      + \lambda^{\ell - 1} \bar{S}^{\ell - 1}}{2}
+    - \frac{(\bar{\bar{\rho}}^{\ell} + \bar{\mu}_E^{\ell}) \bar{E}^{\ell}
+      + (\bar{\bar{\rho}}^{\ell - 1} + \bar{\mu}_E^{\ell - 1}) \bar{E}^{\ell - 1}}
+    {2},
     \\
     \frac{\bar{I}^{\ell} - \bar{I}^{\ell - 1}}{\Delta t}
-    &= ?,
+    &= \frac{\bar{\bar{\rho}}^{\ell} \bar{E}^{\ell}
+      + \bar{\bar{\rho}}^{\ell - 1} \bar{E}^{\ell - 1}} {2}
+    - \frac{(\bar{\bar{\gamma}}^{\ell} + \bar{\mu}_I^{\ell}) \bar{I}^{\ell}
+      + (\bar{\bar{\gamma}}^{\ell - 1} + \bar{\mu}_I^{\ell - 1})
+      \bar{I}^{\ell - 1}}
+    {2},
     \\
     \frac{\bar{R}^{\ell} - \bar{R}^{\ell - 1}}{\Delta t}
-    &= ?,
+    &= \frac{\bar{\bar{\gamma}}^{\ell} \bar{I}^{\ell}
+      + \bar{\bar{\gamma}}^{\ell - 1} \bar{I}^{\ell - 1}}
+    {2}
+    - \frac{\bar{\mu}_R^{\ell} \bar{R}^{\ell}
+      + \bar{\mu}_R^{\ell - 1} \bar{R}^{\ell - 1}}
+    {2},
   \end{align}
 \end{subequations}
 which is identical to our Crank--Nicolson scheme applied to model
-\eqref{model_age_and_time_since_entry_structured_agg_tse_age}?
+\eqref{model_age_and_time_since_entry_structured_agg_tse_age}.
 
 
 \subparagraph{Aggregating over immune state}
@@ -2671,10 +2704,14 @@ immune state gives
 \begin{equation}
   \label{numerics_age_and_time_since_entry_structured_agg_tse_age_state}
   \frac{\bar{N}^{\ell} - \bar{N}^{\ell - 1}}{\Delta t}
-  = ?,
+  = b^{\ell - 1 / 2}
+  \frac{\bar{\nu}_N^{\ell} \bar{N}^{\ell}
+    + \bar{\nu}_N^{\ell - 1} \bar{N}^{\ell - 1}}{2}
+  - \frac{\bar{\mu}_N^{\ell} \bar{N}^{\ell}
+    + \bar{\mu}_N^{\ell - 1} \bar{N}^{\ell - 1}}{2},
 \end{equation}
 which is identical to our Crank--Nicolson scheme applied to model
-\eqref{model_age_and_time_since_entry_structured_agg_tse_age_state}?
+\eqref{model_age_and_time_since_entry_structured_agg_tse_age_state}.
 
 
 \printbibliography
