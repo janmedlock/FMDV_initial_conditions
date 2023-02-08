@@ -245,33 +245,33 @@ Let
       0 & 0 & 0 & 0 & 0
     \end{bmatrix}.
   \end{align}
+  Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
+  we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
+  \begin{multline}
+    \left[
+      \mat{H}
+      - \frac{\Delta t}{2}
+      \left(
+        \mat{F}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right]
+    \vec{x}^{\ell}
+    \\
+    =
+    \left[
+      \mat{H}
+      + \frac{\Delta t}{2}
+      \left(
+        \mat{F}
+        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right]
+    \vec{x}^{\ell - 1}.
+  \end{multline}
 \end{subequations}
-Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
-we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
-\begin{multline}
-  \left[
-    \mat{H}
-    - \frac{\Delta t}{2}
-    \left(
-      \mat{F}
-      + \vec{\beta} \vec{x}^{\ell} \mat{T}
-      + b^{\ell - 1 / 2} \mat{B}
-    \right)
-  \right]
-  \vec{x}^{\ell}
-  \\
-  =
-  \left[
-    \mat{H}
-    + \frac{\Delta t}{2}
-    \left(
-      \mat{F}
-      + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
-      + b^{\ell - 1 / 2} \mat{B}
-    \right)
-  \right]
-  \vec{x}^{\ell - 1}.
-\end{multline}
 
 
 \section{Age-structured model}
@@ -629,76 +629,29 @@ Let
     \end{bmatrix},
     \\
   \end{align}
+  Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
+  \begin{equation}
+    \left[
+      \mat{H}_0
+      - \frac{\Delta t}{2}
+      \left(
+        \mat{F}_0
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right]
+    \mat{\Phi}^{\ell}
+    =
+    \left[
+      \mat{H}_1
+      + \frac{\Delta t}{2}
+      \left(
+        \mat{F}_1
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right]
+    \mat{\Phi}^{\ell - 1}.
+  \end{equation}
 \end{subequations}
-Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
-\begin{equation}
-  \left[
-    \mat{H}_0
-    - \frac{\Delta t}{2}
-    \left(
-      \mat{F}_0
-      + b^{\ell - 1 / 2} \mat{B}
-    \right)
-  \right]
-  \mat{\Phi}^{\ell}
-  =
-  \left[
-    \mat{H}_1
-    + \frac{\Delta t}{2}
-    \left(
-      \mat{F}_1
-      + b^{\ell - 1 / 2} \mat{B}
-    \right)
-  \right]
-  \mat{\Phi}^{\ell - 1}.
-\end{equation}
-
-\textbf{TODO: Simplify this as in the code by separating the C–N step
-  $\mat{\hat{\Phi}}^{\ell} = \mat{C} \mat{\Phi}^{\ell - 1}$
-  and the birth step
-  $\left(1 + \frac{\Delta t}{2} \mu_0\right) \vec{\Phi}_0^{\ell} =
-  b^{\ell - 1 / 2}\vec{b}_0
-  \frac{\mat{\hat{\Phi}}^{\ell} + \mat{\hat{\Phi}}^{\ell - 1}}{2}$.}
-\begin{subequations}
-  \begin{align}
-    \begin{split}
-      \mat{C}
-      &= \left(\mat{H}_0
-        - \frac{\Delta t}{2} \mat{F}_0\right)^{-1}
-      \left(\mat{H}_1
-        + \frac{\Delta t}{2} \mat{F}_1\right)
-      \\
-      &=
-      \begin{bmatrix}
-        0 & \cdots & \cdots & 0 & 0
-        \\
-        \frac{1 - \frac{\Delta t}{2} \mu_0}
-        {1 + \frac{\Delta t}{2} \mu_1}
-        & \ddots & & \vdots & \vdots
-        \\
-        0 & \ddots & \ddots & \vdots & \vdots
-        \\
-        \vdots & \ddots & \ddots & 0 & 0
-        \\
-        0 & \cdots & 0 &
-        \frac{1 - \frac{\Delta t}{2} \mu_{J - 2}}
-        {1 + \frac{\Delta t}{2} \mu_{J - 1}}
-        & \frac{1 - \frac{\Delta t}{2} \mu_{J - 1}}
-        {1 + \frac{\Delta t}{2} \mu_{J - 1}}
-      \end{bmatrix}.
-    \end{split}
-  \end{align}
-\end{subequations}
-Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
-\begin{equation}
-  \mat{\Phi}^{\ell}
-  =
-  \left[\mat{C}
-    +  \frac{\Delta t}{2} b^{\ell - 1 / 2} \mat{B}
-    \left(\mat{I} + \mat{C}\right)
-  \right]
-  \mat{\Phi}^{\ell - 1}.
-\end{equation}
 
 Using this numerical scheme, we solved for the monodromy matrix, the
 fundamental solution after one period:
@@ -1185,30 +1138,30 @@ Let
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
     \end{bmatrix}.
   \end{align}
+  Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
+  we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
+  \begin{multline}
+    \left[
+      \mat{H}_0
+      - \frac{\Delta t}{2}
+      \left(
+        \mat{F}_0
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_0
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right] \vec{x}^{\ell}
+    \\
+    = \left[
+      \mat{H}_1
+      + \frac{\Delta t}{2}
+      \left(
+        \mat{F}_1
+        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_1
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right] \vec{x}^{\ell - 1}.
+  \end{multline}
 \end{subequations}
-Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
-we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
-\begin{multline}
-  \left[
-    \mat{H}_0
-    - \frac{\Delta t}{2}
-    \left(
-      \mat{F}_0
-      + \vec{\beta} \vec{x}^{\ell} \mat{T}_0
-      + b^{\ell - 1 / 2} \mat{B}
-    \right)
-  \right] \vec{x}^{\ell}
-  \\
-  = \left[
-    \mat{H}_1
-    + \frac{\Delta t}{2}
-    \left(
-      \mat{F}_1
-      + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_1
-      + b^{\ell - 1 / 2} \mat{B}
-    \right)
-  \right] \vec{x}^{\ell - 1}.
-\end{multline}
 
 
 \section{Time-since-entry-structured model}
@@ -1719,30 +1672,30 @@ Let
       \mat{0} & 0 & \mat{0} & \mat{0} & 0
     \end{bmatrix}.
   \end{align}
+  Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
+  we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
+  \begin{multline}
+    \left[
+      \mat{H}_0
+      - \frac{\Delta t}{2}
+      \left(
+        \mat{F}_0
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right] \vec{x}^{\ell}
+    \\
+    = \left[
+      \mat{H}_1
+      + \frac{\Delta t}{2}
+      \left(
+        \mat{F}_1
+        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right] \vec{x}^{\ell - 1}.
+  \end{multline}
 \end{subequations}
-Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
-we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
-\begin{multline}
-  \left[
-    \mat{H}_0
-    - \frac{\Delta t}{2}
-    \left(
-      \mat{F}_0
-      + \vec{\beta} \vec{x}^{\ell} \mat{T}
-      + b^{\ell - 1 / 2} \mat{B}
-    \right)
-  \right] \vec{x}^{\ell}
-  \\
-  = \left[
-    \mat{H}_1
-    + \frac{\Delta t}{2}
-    \left(
-      \mat{F}_1
-      + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
-      + b^{\ell - 1 / 2} \mat{B}
-    \right)
-  \right] \vec{x}^{\ell - 1}.
-\end{multline}
 
 
 \section{Age- and time-since-entry-structured model}

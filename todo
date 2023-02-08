@@ -1,5 +1,4 @@
 * Age-structured model
-  * Update Floquet solver code to notes
   * Write code
 
 * Time-since-entry model
@@ -7,7 +6,7 @@
 
 * Combination model
   * Write numerical method as linear algebra
-    Kronecker product: `\otimes`, `numpy.kron()`
+    * Kronecker product: `\otimes`, `numpy.kron()`
   * Write code
 
 * Can I find a limit-cycle of say period 6 then see if it is actually

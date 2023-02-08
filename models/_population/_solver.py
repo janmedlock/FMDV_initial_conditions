@@ -5,7 +5,6 @@ import scipy.integrate
 import scipy.optimize
 import scipy.sparse
 
-from . import _sparse
 from .. import _utility
 
 
@@ -26,40 +25,27 @@ class _Solver:
         assert numpy.isclose(self.times[-1], self.period)
         self._sol_cur = numpy.empty((len(self.ages), ) * 2)
         self._sol_new = numpy.empty((len(self.ages), ) * 2)
-        self._init_crank_nicolson()
-        self._init_birth()
+        self._init_matrices()
 
-    def _init_crank_nicolson(self):
-        '''Build the matrix used for the Crank–Nicolson step.'''
+    def _init_matrices(self):
+        '''Build the matrices used for stepping forward in time.'''
+        J = len(self.ages)
+        H0 = _utility.sparse.diags({0: numpy.ones(J)})
+        H1 = _utility.sparse.diags({
+            -1: numpy.ones(J - 1),
+            0: numpy.hstack([numpy.zeros(J - 1), 1]),
+        })
         mu = self.death.rate(self.ages)
-        HF0_diags = {0: numpy.hstack([1,
-                                      1 + mu[1:] * self.time_step / 2])}
-        HF1_diags = {-1: 1 - mu[:-1] * self.time_step / 2,
-                     # Keep the last age group from ageing out.
-                     0: numpy.hstack([numpy.zeros(len(self.ages) - 1),
-                                      1 - mu[-1] * self.time_step / 2])}
-        # HF0 = _sparse.diags(HF0_diags)
-        # HF1 = _sparse.diags(HF1_diags)
-        # HF0_inv = scipy.sparse.linalg.inv(HF0)
-        # C = HF0_inv @ HF1
-        # `C` will not be a `scipy.sparse` matrix without using
-        # `scipy.sparse._sparsetools.csr_matmat()' or similar.
-        # Instead, use the sparsity patterns of HF0 & HF1 to directly
-        # construct `C`.
-        C_diags = {-1: HF1_diags[-1] / HF0_diags[0][1:],
-                   0: HF1_diags[0] / HF0_diags[0]}
-        C = _sparse.diags(C_diags)
-        self._CN = _sparse.csr_array(C)
-
-    def _init_birth(self):
-        '''Build the vector used for the integral step.'''
-        v = self.age_step * numpy.ones(len(self.ages))
-        v[[0, -1]] /= 2
-        nu = self.birth.maternity(self.ages)
-        self._birth_integral = v * nu / 2
-        # Temporary storage for efficiency.
-        self._temp_cur = numpy.empty(len(self.ages))
-        self._temp_new = numpy.empty(len(self.ages))
+        F0 = _utility.sparse.diags({0: -mu})
+        F1 = _utility.sparse.diags({
+            -1: -mu[:-1],
+            0: numpy.hstack([numpy.zeros(J - 1), -mu[-1]]),
+        })
+        self._HF0 = scipy.sparse.csr_array(H0 - self.time_step / 2 * F0)
+        self._HF1 = scipy.sparse.csr_array(H1 + self.time_step / 2 * F1)
+        B = scipy.sparse.lil_array((J, J))
+        B[0] = self.birth.maternity(self.ages)
+        self._B = scipy.sparse.csr_array(B)
 
     def _set_initial_condition(self):
         '''Set the initial condition.'''
@@ -68,40 +54,21 @@ class _Solver:
         self._sol_new[:] = 0
         numpy.fill_diagonal(self._sol_new, 1)
 
-    def _step_crank_nicolson(self):
-        '''Do the Crank–Nicolson step.'''
-        # self._sol_new[:] = self._CN @ self._sol_cur
-        # Avoid building a new matrix.
-        self._sol_new[:] = 0
-        # self._sol_new += self._CN @ self._sol_cur
-        self._CN.matvecs(self._sol_cur, self._sol_new)
-
-    def _step_birth(self, t_cur, birth_scaling):
-        '''Do the birth step.'''
-        t_mid = t_cur + self.time_step / 2
-        # self._sol_new[0] = (birth_scaling
-        #                     * self.birth.rate(t_mid)
-        #                     * (self._birth_integral @ self._sol_cur
-        #                        + self._birth_integral @ self._sol_new))
-        # Avoid building new vectors.
-        # self._temp_cur[:] = self._birth_integral @ self._sol_cur
-        numpy.dot(self._birth_integral, self._sol_cur,
-                  out=self._temp_cur)
-        # self._temp_new[:] = self._birth_integral @ self._sol_new
-        numpy.dot(self._birth_integral, self._sol_new,
-                  out=self._temp_new)
-        self._temp_new += self._temp_cur
-        self._temp_new *= birth_scaling * self.birth.rate(t_mid)
-        self._sol_new[0] = self._temp_new
-
     def _step(self, t_cur, birth_scaling):
         '''Do a step of the solver.'''
         # Update so that what was the new value of the solution is now
         # the current value and what was the current value of the
         # solution will be storage space for the new value.
         (self._sol_cur, self._sol_new) = (self._sol_new, self._sol_cur)
-        self._step_crank_nicolson()
-        self._step_birth(t_cur, birth_scaling)
+        t_mid = t_cur + self.time_step / 2
+        B_mid =  (self.age_step / 2
+                  * birth_scaling
+                  * self.birth.rate(t_mid)
+                  * self._B)
+        HFB0 = self._HF0 - B_mid
+        HFB1 = self._HF1 + B_mid
+        self._sol_new[:] = scipy.sparse.linalg.spsolve(HFB0,
+                                                       HFB1 @ self._sol_cur)
 
     def solve_monodromy(self, birth_scaling=1):
         '''Get the monodromy matrix Psi = Phi(T), where Phi is the
