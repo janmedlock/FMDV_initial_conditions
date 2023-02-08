@@ -23,52 +23,52 @@ class _Solver:
         self.ages = _utility.build_t(0, age_max, self.age_step)
         self.times = _utility.build_t(0, self.period, self.time_step)
         assert numpy.isclose(self.times[-1], self.period)
-        self._sol_cur = numpy.empty((len(self.ages), ) * 2)
-        self._sol_new = numpy.empty((len(self.ages), ) * 2)
-        self._init_matrices()
+        J = len(self.ages)
+        self.sol_cur = numpy.empty((J, J))
+        self.sol_new = numpy.empty((J, J))
+        self._build_matrices()
 
-    def _init_matrices(self):
+    def _build_matrices(self):
         '''Build the matrices used for stepping forward in time.'''
         J = len(self.ages)
-        H0 = _utility.sparse.diags({0: numpy.ones(J)})
-        H1 = _utility.sparse.diags({
-            -1: numpy.ones(J - 1),
-            0: numpy.hstack([numpy.zeros(J - 1), 1]),
-        })
+        self.H0 = _utility.sparse.diags(
+            {0: numpy.ones(J)},
+            format='csr')
+        self.H1 = _utility.sparse.diags(
+            {-1: numpy.ones(J - 1),
+             0: numpy.hstack([numpy.zeros(J - 1), 1])},
+            format='csr')
         mu = self.death.rate(self.ages)
-        F0 = _utility.sparse.diags({0: -mu})
-        F1 = _utility.sparse.diags({
-            -1: -mu[:-1],
-            0: numpy.hstack([numpy.zeros(J - 1), -mu[-1]]),
-        })
-        self._HF0 = scipy.sparse.csr_array(H0 - self.time_step / 2 * F0)
-        self._HF1 = scipy.sparse.csr_array(H1 + self.time_step / 2 * F1)
+        self.F0 = _utility.sparse.diags(
+            {0: -mu},
+            format='csr')
+        self.F1 = _utility.sparse.diags(
+            {-1: -mu[:-1],
+             0: numpy.hstack([numpy.zeros(J - 1), -mu[-1]])},
+            format='csr')
         B = scipy.sparse.lil_array((J, J))
         B[0] = self.birth.maternity(self.ages)
-        self._B = scipy.sparse.csr_array(B)
+        self.B = B.tocsr()
 
     def _set_initial_condition(self):
         '''Set the initial condition.'''
-        # self._sol_new[:] = numpy.eye(len(self.ages))
+        # self.sol_new[:] = numpy.eye(len(self.ages))
         # Avoid building a new matrix.
-        self._sol_new[:] = 0
-        numpy.fill_diagonal(self._sol_new, 1)
+        self.sol_new[:] = 0
+        numpy.fill_diagonal(self.sol_new, 1)
 
     def _step(self, t_cur, birth_scaling):
         '''Do a step of the solver.'''
         # Update so that what was the new value of the solution is now
         # the current value and what was the current value of the
         # solution will be storage space for the new value.
-        (self._sol_cur, self._sol_new) = (self._sol_new, self._sol_cur)
+        (self.sol_cur, self.sol_new) = (self.sol_new, self.sol_cur)
         t_mid = t_cur + self.time_step / 2
-        B_mid =  (self.age_step / 2
-                  * birth_scaling
-                  * self.birth.rate(t_mid)
-                  * self._B)
-        HFB0 = self._HF0 - B_mid
-        HFB1 = self._HF1 + B_mid
-        self._sol_new[:] = scipy.sparse.linalg.spsolve(HFB0,
-                                                       HFB1 @ self._sol_cur)
+        bB = birth_scaling * self.birth.rate(t_mid) * self.B
+        HFB0 = self.H0 - self.time_step / 2 * (self.F0 + bB)
+        HFB1 = self.H1 + self.time_step / 2 * (self.F1 + bB)
+        self.sol_new[:] = scipy.sparse.linalg.spsolve(HFB0,
+                                                      HFB1 @ self.sol_cur)
 
     def solve_monodromy(self, birth_scaling=1):
         '''Get the monodromy matrix Psi = Phi(T), where Phi is the
@@ -78,7 +78,7 @@ class _Solver:
         self._set_initial_condition()
         for t_cur in self.times[:-1]:
             self._step(t_cur, birth_scaling)
-        return self._sol_new
+        return self.sol_new
 
     def population_growth_rate(self, birth_scaling):
         '''Get the population growth rate.'''
