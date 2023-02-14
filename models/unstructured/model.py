@@ -94,8 +94,7 @@ class Model(model.AgeIndependent):
         return _solver.Solver(self, t_step)
 
     def solve(self, t_span, t_step,
-              y_start=None, t=None, y=None,
-              _solution_wrap=True):
+              y_start=None, t=None, y=None, _solution_wrap=True):
         '''Solve the ODEs.'''
         if y_start is None:
             y_start = self.build_initial_conditions()

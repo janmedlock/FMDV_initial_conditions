@@ -107,7 +107,7 @@ class Solver:
 
 def solve(model, t_span, time_step, y_0,
           t=None, y=None, _solution_wrap=True):
-    '''Solve the ODE defined by the derivatives in `model`.'''
+    '''Solve the `model` system of ODEs.'''
     solver = Solver(model, time_step)
     return solver(t_span, y_0,
                   t=t, y=y, _solution_wrap=_solution_wrap)
