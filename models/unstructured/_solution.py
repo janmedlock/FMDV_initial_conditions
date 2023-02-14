@@ -12,8 +12,8 @@ def Solution(y, t=None, states=None):
     if t is None:
         return pandas.Series(y, index=states)
     else:
-        index = pandas.Index(t, name='time')
-        return pandas.DataFrame(y, index=index, columns=states)
+        t = pandas.Index(t, name='time')
+        return pandas.DataFrame(y, index=t, columns=states)
 
 
 class _SolutionAccessorBase:
