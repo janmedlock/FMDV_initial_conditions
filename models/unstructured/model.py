@@ -1,7 +1,5 @@
 '''Based on our FMDV work, this is an unstructured model.'''
 
-import functools
-
 import numpy
 
 from . import _equilibrium
