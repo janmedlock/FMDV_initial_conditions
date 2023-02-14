@@ -15,33 +15,59 @@ class Solver:
         self.time_step = time_step
         self._build_matrices()
 
+    def _beta(self):
+        beta = (self.model.transmission.rate
+                * numpy.array((0, 0, 0, 1, 0)))
+        return beta
+
+    def _H(self):
+        n = len(self.model.states)
+        H = numpy.identity(n)
+        return H
+
+    def _F(self):
+        mu = self.model.death_rate_mean
+        omega = 1 / self.model.waning.mean
+        rho = 1 / self.model.progression.mean
+        gamma = 1 / self.model.recovery.mean
+        F = numpy.array([
+            [- (omega + mu), 0, 0, 0, 0],
+            [omega, - mu, 0, 0, 0],
+            [0, 0, - (rho + mu), 0, 0],
+            [0, 0, rho, - (gamma + mu), 0],
+            [0, 0, 0, gamma, - mu]
+        ])
+        return F
+
+    @staticmethod
+    def _T():
+        T = numpy.array([
+            [0, 0, 0, 0, 0],
+            [0, - 1, 0, 0, 0],
+            [0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0]
+        ])
+        return T
+
+    @staticmethod
+    def _B():
+        B = numpy.array([
+            [0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0]
+        ])
+        return B
+
     def _build_matrices(self):
         n = len(self.model.states)
-        self.beta = (self.model.transmission.rate
-                     * numpy.array((0, 0, 0, 1, 0)))
-        self.H = numpy.identity(n)
-        # Rates.
-        death = self.model.death_rate_mean
-        waning = 1 / self.model.waning.mean
-        progression = 1 / self.model.progression.mean
-        recovery = 1 / self.model.recovery.mean
-        self.F = numpy.array((
-            (- (waning + death), 0, 0, 0, 0),
-            (waning, - death, 0, 0, 0),
-            (0, 0, - (progression + death), 0, 0),
-            (0, 0, progression, - (recovery + death), 0),
-            (0, 0, 0, recovery, - death)
-        ))
-        self.T = numpy.array(((0, 0, 0, 0, 0),
-                              (0, -1, 0, 0, 0),
-                              (0, 1, 0, 0, 0),
-                              (0, 0, 0, 0, 0),
-                              (0, 0, 0, 0, 0)))
-        self.B = numpy.array(((0, 0, 0, 0, 1),
-                              (1, 1, 1, 1, 0),
-                              (0, 0, 0, 0, 0),
-                              (0, 0, 0, 0, 0),
-                              (0, 0, 0, 0, 0)))
+        self.beta = self._beta()
+        self.H = self._H()
+        self.F = self._F()
+        self.T = self._T()
+        self.B = self._B()
 
     def _objective(self, y_new, HFB0, HFBTy1):
         lambdaT0 = (self.beta @ y_new) * self.T

@@ -8,6 +8,10 @@ import scipy.sparse
 from .. import _utility
 
 
+# Common sparse array format.
+_SPARSE_ARRAY = scipy.sparse.csr_array
+
+
 class _Solver:
     '''Solver for the monodromy matrix of a linear age-structured
     model for the population size with age-dependent death rate,
@@ -28,27 +32,41 @@ class _Solver:
         self.sol_new = numpy.empty((J, J))
         self._build_matrices()
 
+    def _FqXW(self, q, pi):
+        J = len(self.ages)
+        if numpy.isscalar(pi):
+            pi = pi * numpy.ones(J)
+        if q == 0:
+            diags = {0: pi}
+        elif q == 1:
+            diags = {-1: pi[:-1],
+                     0: numpy.hstack([numpy.zeros(J - 1), pi[-1]])}
+        else:
+            raise ValueError(f'{q=}!')
+        FqXW = _utility.sparse.diags(diags)
+        return _SPARSE_ARRAY(FqXW)
+
+    def _Hq(self, q):
+        return self._FqXW(q, 1)
+
+    def _Fq(self, q):
+        mu = self.death.rate(self.ages)
+        return self._FqXW(q, - mu)
+
+    def _B(self):
+        J = len(self.ages)
+        nu = self.birth.maternity(self.ages)
+        B = scipy.sparse.lil_array((J, J))
+        B[0] = nu
+        return _SPARSE_ARRAY(B)
+
     def _build_matrices(self):
         '''Build the matrices used for stepping forward in time.'''
-        J = len(self.ages)
-        self.H0 = _utility.sparse.diags(
-            {0: numpy.ones(J)},
-            format='csr')
-        self.H1 = _utility.sparse.diags(
-            {-1: numpy.ones(J - 1),
-             0: numpy.hstack([numpy.zeros(J - 1), 1])},
-            format='csr')
-        mu = self.death.rate(self.ages)
-        self.F0 = _utility.sparse.diags(
-            {0: -mu},
-            format='csr')
-        self.F1 = _utility.sparse.diags(
-            {-1: -mu[:-1],
-             0: numpy.hstack([numpy.zeros(J - 1), -mu[-1]])},
-            format='csr')
-        B = scipy.sparse.lil_array((J, J))
-        B[0] = self.birth.maternity(self.ages)
-        self.B = B.tocsr()
+        self.H0 = self._Hq(0)
+        self.H1 = self._Hq(1)
+        self.F0 = self._Fq(0)
+        self.F1 = self._Fq(1)
+        self.B = self._B()
 
     def _set_initial_condition(self):
         '''Set the initial condition.'''
