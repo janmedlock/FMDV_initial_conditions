@@ -26,6 +26,7 @@ class Solver:
         zeros = _SPARSE_ARRAY((1, J))
         ones = numpy.ones((1, J))
         beta = (self.model.transmission.rate
+                * self.age_step
                 * scipy.sparse.bmat([[zeros, zeros, zeros, ones, zeros]]))
         return _SPARSE_ARRAY(beta)
 
