@@ -50,9 +50,9 @@ class Model(model.AgeIndependent):
         I_bar = 0.01
         R = 0
         S = 1 - M_bar - E_bar - I_bar - R
-        # Even spread over time since entry.
-        (m, e, i) = numpy.outer((M_bar, E_bar, I_bar),
-                                1 / K / self.z_step * numpy.ones(K))
+        # All in the first time since entry.
+        n = numpy.hstack([1 / self.z_step, numpy.zeros(K - 1)])
+        (m, e, i) = numpy.outer((M_bar, E_bar, I_bar), n)
         return numpy.hstack((m, S, e, i, R))
 
     def solver(self):
