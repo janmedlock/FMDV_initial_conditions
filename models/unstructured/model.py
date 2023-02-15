@@ -23,6 +23,56 @@ class Model(model.AgeIndependent):
             t = pandas.Index(t, name='time')
             return pandas.DataFrame(y, index=t, columns=states)
 
+    @staticmethod
+    def build_initial_conditions():
+        '''Build the initial conditions.'''
+        M = 0
+        E = 0
+        I = 0.01
+        R = 0
+        S = 1 - M - E - I - R
+        return (M, S, E, I, R)
+
+    def solver(self, t_step):
+        '''Only initialize the solver once.'''
+        return _solver.Solver(self, t_step)
+
+    def solve(self, t_span, t_step,
+              y_start=None, t=None, y=None, _solution_wrap=True):
+        '''Solve the ODEs.'''
+        if y_start is None:
+            y_start = self.build_initial_conditions()
+        solver = self.solver(t_step)
+        soln = solver(t_span, y_start,
+                      t=t, y=y, _solution_wrap=_solution_wrap)
+        _utility.assert_nonnegative(soln)
+        return soln
+
+    def find_equilibrium(self, y_0_guess):
+        '''Find an equilibrium of the model.'''
+        eql = _equilibrium.find(self, 0, y_0_guess)
+        _utility.assert_nonnegative(eql)
+        return eql
+
+    def get_eigenvalues(self, eql):
+        '''Get the eigenvalues of the Jacobian.'''
+        return _equilibrium.eigenvalues(self, 0, eql)
+
+    def find_limit_cycle(self, period_0, t_0, t_step, y_0_guess):
+        '''Find a limit cycle of the model.'''
+        lcy = _limit_cycle.find_subharmonic(self, period_0, t_0, t_step,
+                                            y_0_guess)
+        _utility.assert_nonnegative(lcy)
+        return lcy
+
+    def get_characteristic_multipliers(self, lcy):
+        '''Get the characteristic multipliers.'''
+        return _limit_cycle.characteristic_multipliers(self, lcy)
+
+    def get_characteristic_exponents(self, lcy):
+        '''Get the characteristic exponents.'''
+        return _limit_cycle.characteristic_exponents(self, lcy)
+
     def __call__(self, t, y):
         '''The right-hand-side of the model ODEs.'''
         (M, S, E, I, R) = y
@@ -89,53 +139,3 @@ class Model(model.AgeIndependent):
                           1 / self.recovery.mean,
                           - self.death_rate_mean))
         return numpy.vstack((dM, dS, dE, dI, dR))
-
-    @staticmethod
-    def build_initial_conditions():
-        '''Build the initial conditions.'''
-        M = 0
-        E = 0
-        I = 0.01
-        R = 0
-        S = 1 - M - E - I - R
-        return (M, S, E, I, R)
-
-    def solver(self, t_step):
-        '''Only initialize the solver once.'''
-        return _solver.Solver(self, t_step)
-
-    def solve(self, t_span, t_step,
-              y_start=None, t=None, y=None, _solution_wrap=True):
-        '''Solve the ODEs.'''
-        if y_start is None:
-            y_start = self.build_initial_conditions()
-        solver = self.solver(t_step)
-        soln = solver(t_span, y_start,
-                      t=t, y=y, _solution_wrap=_solution_wrap)
-        _utility.assert_nonnegative(soln)
-        return soln
-
-    def find_equilibrium(self, y_0_guess):
-        '''Find an equilibrium of the model.'''
-        eql = _equilibrium.find(self, 0, y_0_guess)
-        _utility.assert_nonnegative(eql)
-        return eql
-
-    def get_eigenvalues(self, eql):
-        '''Get the eigenvalues of the Jacobian.'''
-        return _equilibrium.eigenvalues(self, 0, eql)
-
-    def find_limit_cycle(self, period_0, t_0, t_step, y_0_guess):
-        '''Find a limit cycle of the model.'''
-        lcy = _limit_cycle.find_subharmonic(self, period_0, t_0, t_step,
-                                            y_0_guess)
-        _utility.assert_nonnegative(lcy)
-        return lcy
-
-    def get_characteristic_multipliers(self, lcy):
-        '''Get the characteristic multipliers.'''
-        return _limit_cycle.characteristic_multipliers(self, lcy)
-
-    def get_characteristic_exponents(self, lcy):
-        '''Get the characteristic exponents.'''
-        return _limit_cycle.characteristic_exponents(self, lcy)

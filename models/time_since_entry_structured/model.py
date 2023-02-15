@@ -35,12 +35,6 @@ class Model(model.AgeIndependent):
             t = pandas.Index(t, name='time')
             return pandas.DataFrame(y, index=t, columns=states_z)
 
-    def __call__(self, t, y):
-        raise NotImplementedError
-
-    def jacobian(self, t, y):
-        raise NotImplementedError
-
     def build_initial_conditions(self):
         '''Build the initial conditions.'''
         K = len(self.z)
@@ -69,3 +63,9 @@ class Model(model.AgeIndependent):
                       t=t, y=y, _solution_wrap=_solution_wrap)
         _utility.assert_nonnegative(soln)
         return soln
+
+    def __call__(self, t, y):
+        raise NotImplementedError
+
+    def jacobian(self, t, y):
+        raise NotImplementedError
