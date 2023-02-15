@@ -220,10 +220,10 @@ Let
     \\
     \mat{F} &=
     \begin{bmatrix}
-      - (\omega + \mu) & 0 & 0 & 0 & 0 \\
+      - \omega - \mu & 0 & 0 & 0 & 0 \\
       \omega & - \mu & 0 & 0 & 0 \\
-      0 & 0 & - (\rho + \mu) & 0 & 0 \\
-      0 & 0 & \rho & - (\gamma + \mu) & 0 \\
+      0 & 0 & - \rho - \mu & 0 & 0 \\
+      0 & 0 & \rho & - \gamma - \mu & 0 \\
       0 & 0 & 0 & \gamma & - \mu
     \end{bmatrix},
     \\
@@ -1064,20 +1064,21 @@ Let
     \\
     \mat{F}_q &=
     \begin{bmatrix}
-      - \mat{F}_{q, XW}(\omega + \vec{\mu}) & \mat{0} & \mat{0} & \mat{0}
-      & \mat{0}
-      \\
-      \mat{F}_{q, XW}(\omega) & - \mat{F}_{q, XW}(\vec{\mu})
+      \mat{F}_{q, XW}(- \omega - \vec{\mu}) & \mat{0}
       & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{0} & - \mat{F}_{q, XW}(\rho + \vec{\mu}) & \mat{0}
-      & \mat{0}
+      \mat{F}_{q, XW}(\omega) & \mat{F}_{q, XW}(- \vec{\mu})
+      & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0}
+      & \mat{F}_{q, XW}(- \rho - \vec{\mu})
+      & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{F}_{q, XW}(\rho)
-      & - \mat{F}_{q, XW}(\gamma + \vec{\mu}) & \mat{0}
+      & \mat{F}_{q, XW}(- \gamma - \vec{\mu}) & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{F}_{q, XW}(\gamma)
-      & - \mat{F}_{q, XW}(\vec{\mu})
+      & \mat{F}_{q, XW}(- \vec{\mu})
     \end{bmatrix},
     \\
     \mat{T}_{0, XW} &=
@@ -1614,16 +1615,16 @@ Let
     \\
     \mat{F}_q &=
     \begin{bmatrix}
-      - \mat{F}_{q, yy}(\vec{\omega} + \mu) & \vec{0} & \mat{0} & \mat{0}
+      \mat{F}_{q, yy}(- \vec{\omega} - \mu) & \vec{0} & \mat{0} & \mat{0}
       & \vec{0}
       \\
       \vec{f}_{Xy}(\vec{\omega}) & - \mu & \vec{0} & \vec{0} & 0
       \\
-      \mat{0} & \vec{0} & - \mat{F}_{q, yy}(\vec{\rho} + \mu) & \mat{0}
-      & \vec{0}
+      \mat{0} & \vec{0} & \mat{F}_{q, yy}(- \vec{\rho} - \mu)
+      & \mat{0} & \vec{0}
       \\
       \mat{0} & \vec{0} & \mat{F}_{yz}(\vec{\rho})
-      & - \mat{F}_{q, yy}(\vec{\gamma} + \mu) & \vec{0}
+      & \mat{F}_{q, yy}(- \vec{\gamma} - \mu) & \vec{0}
       \\
       \vec{0} & 0 & \vec{0} & \vec{f}_{Xy}(\vec{\gamma}) & - \mu
     \end{bmatrix},

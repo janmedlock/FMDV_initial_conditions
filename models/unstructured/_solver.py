@@ -30,10 +30,10 @@ class Solver:
         rho = 1 / self.model.progression.mean
         gamma = 1 / self.model.recovery.mean
         F = numpy.array([
-            [- (omega + mu), 0, 0, 0, 0],
+            [- omega - mu, 0, 0, 0, 0],
             [omega, - mu, 0, 0, 0],
-            [0, 0, - (rho + mu), 0, 0],
-            [0, 0, rho, - (gamma + mu), 0],
+            [0, 0, - rho - mu, 0, 0],
+            [0, 0, rho, - gamma - mu, 0],
             [0, 0, 0, gamma, - mu]
         ])
         return F

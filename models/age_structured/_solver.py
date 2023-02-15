@@ -58,10 +58,10 @@ class Solver:
         gamma = 1 / self.model.recovery.mean
         FqXW = functools.partial(self._FqXW, q)
         Fq = scipy.sparse.bmat([
-            [FqXW(- (omega + mu)), None, None, None, None],
+            [FqXW(- omega - mu), None, None, None, None],
             [FqXW(omega), FqXW(- mu), None, None, None],
-            [None, None, FqXW(- (rho + mu)), None, None],
-            [None, None, FqXW(rho), FqXW(- (gamma + mu)), None],
+            [None, None, FqXW(- rho - mu), None, None],
+            [None, None, FqXW(rho), FqXW(- gamma - mu), None],
             [None, None, None, FqXW(gamma), FqXW(- mu)]
         ])
         return _SPARSE_ARRAY(Fq)

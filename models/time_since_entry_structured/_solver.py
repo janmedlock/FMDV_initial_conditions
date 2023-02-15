@@ -35,7 +35,8 @@ class Solver:
 
     def _Hq(self, q):
         Hqyy = self._Hqyy(q)
-        Hq = scipy.sparse.block_diag((Hqyy, [[1]], Hqyy, Hqyy, [[1]]))
+        HXX = [[1]]
+        Hq = scipy.sparse.block_diag((Hqyy, HXX, Hqyy, Hqyy, HXX))
         return _SPARSE_ARRAY(Hq)
 
     def _Fqyy(self, q, psi):
@@ -50,6 +51,10 @@ class Solver:
         else:
             raise ValueError(f'{q=}!')
         return _utility.sparse.diags(diags)
+
+    @staticmethod
+    def _fXX(pi):
+        return [[pi]]
 
     def _Fyz(self, psi):
         K = len(self.model.z)
@@ -71,14 +76,15 @@ class Solver:
         rho = self.model.progression.rate(self.model.z)
         gamma = self.model.recovery.rate(self.model.z)
         Fqyy = functools.partial(self._Fqyy, q)
+        fXX = self._fXX
         Fyz = self._Fyz
         fXy = self._fXy
         Fq = scipy.sparse.bmat([
-            [Fqyy(- (omega + mu)), None, None, None, None],
-            [fXy(omega), [[- mu]], None, None, None],
-            [None, None, Fqyy(- (rho + mu)), None, None],
-            [None, None, Fyz(rho), Fqyy(- (gamma + mu)), None],
-            [None, None, None, fXy(gamma), [[- mu]]]
+            [Fqyy(- omega - mu), None, None, None, None],
+            [fXy(omega), fXX(- mu), None, None, None],
+            [None, None, Fqyy(- rho - mu), None, None],
+            [None, None, Fyz(rho), Fqyy(- gamma - mu), None],
+            [None, None, None, fXy(gamma), fXX(- mu)]
         ])
         return _SPARSE_ARRAY(Fq)
 
@@ -90,16 +96,18 @@ class Solver:
 
     def _T(self):
         K = len(self.model.z)
+        tXX = numpy.array([[1]])
         tyX = self._tyX()
-        Zeros = _SPARSE_ARRAY((K, K))
+        zerosKK = _SPARSE_ARRAY((K, K))
         zerosK1 = _SPARSE_ARRAY((K, 1))
         zeros1K = _SPARSE_ARRAY((1, K))
+        zeros11 = _SPARSE_ARRAY((1, 1))
         T = scipy.sparse.bmat([
-            [Zeros, zerosK1, Zeros, Zeros, zerosK1],
-            [zeros1K, [[- 1]], zeros1K, zeros1K, [[0]]],
-            [Zeros, tyX, Zeros, Zeros, zerosK1],
-            [Zeros, zerosK1, Zeros, Zeros, zerosK1],
-            [zeros1K, [[0]], zeros1K, zeros1K, [[0]]]
+            [zerosKK, zerosK1, zerosKK, zerosKK, zerosK1],
+            [zeros1K, - tXX, zeros1K, zeros1K, zeros11],
+            [zerosKK, tyX, zerosKK, zerosKK, zerosK1],
+            [zerosKK, zerosK1, zerosKK, zerosKK, zerosK1],
+            [zeros1K, zeros11, zeros1K, zeros1K, zeros11]
         ])
         return _SPARSE_ARRAY(T)
 
@@ -115,17 +123,19 @@ class Solver:
 
     def _B(self):
         K = len(self.model.z)
+        bXX = [[1]]
         byX = self._byX()
         bXy = self._bXy()
-        Zeros = _SPARSE_ARRAY((K, K))
+        zerosKK = _SPARSE_ARRAY((K, K))
         zerosK1 = _SPARSE_ARRAY((K, 1))
         zeros1K = _SPARSE_ARRAY((1, K))
+        zeros11 = _SPARSE_ARRAY((1, 1))
         B = scipy.sparse.bmat([
-            [Zeros, zerosK1, Zeros, Zeros, byX],
-            [bXy, [[1]], bXy, bXy, [[0]]],
-            [Zeros, zerosK1, Zeros, Zeros, zerosK1],
-            [Zeros, zerosK1, Zeros, Zeros, zerosK1],
-            [zeros1K, [[0]], zeros1K, zeros1K, [[0]]]
+            [zerosKK, zerosK1, zerosKK, zerosKK, byX],
+            [bXy, bXX, bXy, bXy, zeros11],
+            [zerosKK, zerosK1, zerosKK, zerosKK, zerosK1],
+            [zerosKK, zerosK1, zerosKK, zerosKK, zerosK1],
+            [zeros1K, zeros11, zeros1K, zeros1K, zeros11]
         ])
         return _SPARSE_ARRAY(B)
 
