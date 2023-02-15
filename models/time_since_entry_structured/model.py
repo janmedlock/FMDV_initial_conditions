@@ -18,17 +18,24 @@ class Model(model.AgeIndependent):
         self.z_step = z_step
         self.z = _utility.build_t(0, z_max, self.z_step)
 
+    def _index_states_z(self):
+        # Build a `pandas.DataFrame()` with columns 'state' and
+        # 'time_since_entry' to be converted into a `pandas.MultiIndex()`.
+        zvals = lambda state: (self.z
+                               if state in self.states_with_z
+                               else [numpy.NaN])
+        dfr = pandas.concat(
+            pandas.DataFrame({'state': state,
+                              'time_since_entry': zvals(state)})
+            for state in self.states
+        )
+        # Make 'state' categorical and ordered.
+        dtype = {'state': pandas.CategoricalDtype(self.states, ordered=True)}
+        return pandas.MultiIndex.from_frame(dfr.astype(dtype))
+
     def Solution(self, y, t=None):
         '''A solution.'''
-        tuples = []
-        for state in self.states:
-            if state in self.states_with_z:
-                tuples.extend((state, z) for z in self.z)
-            else:
-                tuples.append((state, None))
-        states_z = pandas.MultiIndex.from_tuples(tuples,
-                                                 names=['state',
-                                                        'time_since_entry'])
+        states_z = self._index_states_z()
         if t is None:
             return pandas.Series(y, index=states_z)
         else:

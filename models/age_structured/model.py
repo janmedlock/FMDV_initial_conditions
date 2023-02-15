@@ -19,8 +19,10 @@ class Model(model.Base):
 
     def Solution(self, y, t=None):
         '''A solution.'''
-        states_ages = pandas.MultiIndex.from_product((self.states, self.ages),
-                                                     names=['state', 'age'])
+        states = pandas.CategoricalIndex(self.states, self.states,
+                                         ordered=True, name='state')
+        ages = pandas.Index(self.ages, name='age')
+        states_ages = pandas.MultiIndex.from_product((states, ages))
         if t is None:
             return pandas.Series(y, index=states_ages)
         else:

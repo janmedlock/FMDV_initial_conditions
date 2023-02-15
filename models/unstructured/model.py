@@ -5,7 +5,6 @@ import pandas
 
 from . import _equilibrium
 from . import _limit_cycle
-from . import _solution
 from . import _solver
 from .. import model
 from .. import _utility
@@ -16,7 +15,8 @@ class Model(model.AgeIndependent):
 
     def Solution(self, y, t=None):
         '''A solution.'''
-        states = pandas.Index(self.states, name='state')
+        states = pandas.CategoricalIndex(self.states, self.states,
+                                         ordered=True, name='state')
         if t is None:
             return pandas.Series(y, index=states)
         else:
