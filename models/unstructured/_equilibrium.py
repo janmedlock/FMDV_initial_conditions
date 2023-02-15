@@ -3,7 +3,6 @@
 import numpy
 import scipy.optimize
 
-from . import _solution
 from .. import _utility
 
 
@@ -21,7 +20,7 @@ def find(model, t, y_guess):
                                  args=(model, t, transform))
     assert result.success, f'{result}'
     y = transform.inverse(result.x)
-    return _solution.Solution(y, states=model.states)
+    return model.Solution(y)
 
 
 def eigenvalues(model, t, equilibrium):

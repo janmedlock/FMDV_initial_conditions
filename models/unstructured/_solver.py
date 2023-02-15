@@ -3,7 +3,6 @@
 import numpy
 import scipy.optimize
 
-from . import _solution
 from .. import _utility
 
 
@@ -91,7 +90,7 @@ class Solver:
                  t=None, y=None, _solution_wrap=True):
         '''Solve. `y` is storage for the solution, which will be built if not
         provided. `_solution_wrap=False` skips wrapping the solution in
-        `_solution.Solution()` for speed.'''
+        `model.Solution()` for speed.'''
         if t is None:
             t = _utility.build_t(*t_span, self.time_step)
         if y is None:
@@ -100,7 +99,7 @@ class Solver:
         for ell in range(1, len(t)):
             self._step(t[ell - 1], y[ell - 1], y[ell])
         if _solution_wrap:
-            return _solution.Solution(y, t, states=self.model.states)
+            return self.model.Solution(y, t)
         else:
             return y
 

@@ -2,6 +2,8 @@
 
 import scipy.stats
 
+from . import _utility
+
 
 class Progression:
     '''Progression for exposed to infectious.'''
@@ -14,4 +16,4 @@ class Progression:
 
     def rate(self, time_since_entry):
         '''Progression rate.'''
-        return self._rv.hazard(time_since_entry)
+        return _utility.hazard(self._rv, time_since_entry)

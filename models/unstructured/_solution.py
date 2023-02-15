@@ -1,19 +1,8 @@
-'''Classes to hold solutions and points in state space.'''
+'''Classes to plot solutions and points in state space.'''
 
 import cycler
 import matplotlib.pyplot
 import pandas
-
-
-def Solution(y, t=None, states=None):
-    '''A solution.'''
-    if states is not None:
-        states = pandas.Index(states, name='state')
-    if t is None:
-        return pandas.Series(y, index=states)
-    else:
-        t = pandas.Index(t, name='time')
-        return pandas.DataFrame(y, index=t, columns=states)
 
 
 class _SolutionAccessorBase:

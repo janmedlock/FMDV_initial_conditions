@@ -2,6 +2,8 @@
 
 import scipy.stats
 
+from . import _utility
+
 
 class Recovery:
     '''Recovery from infectious to recovered.'''
@@ -14,4 +16,4 @@ class Recovery:
 
     def rate(self, time_since_entry):
         '''Recovery rate.'''
-        return self._rv.hazard(time_since_entry)
+        return _utility.hazard(self._rv, time_since_entry)

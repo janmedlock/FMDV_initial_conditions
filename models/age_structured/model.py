@@ -1,6 +1,7 @@
 '''Based on our FMDV work, this is an age-structured model.'''
 
 import numpy
+import pandas
 
 from . import _solver
 from .. import model
@@ -17,12 +18,15 @@ class Model(model.Base):
         self.age_max = age_max
         self.ages = _utility.build_t(0, self.age_max, self.age_step)
 
-    @staticmethod
-    def stack(arrs):
-        return numpy.concatenate(arrs)
-
-    def split(self, y):
-        return numpy.split(y, len(self.states))
+    def Solution(self, y, t=None):
+        '''A solution.'''
+        states_ages = pandas.MultiIndex.from_product((self.states, self.ages),
+                                                     names=['state', 'age'])
+        if t is None:
+            return pandas.Series(y, index=states_ages)
+        else:
+            t = pandas.Index(t, name='time')
+            return pandas.DataFrame(y, index=t, columns=states_ages)
 
     def __call__(self, t, y):
         raise NotImplementedError
@@ -39,7 +43,7 @@ class Model(model.Base):
 
     def build_initial_conditions(self):
         '''Build the initial conditions.'''
-        # Means over age in each immune state.
+        # Totals over age in each immune state.
         M_bar = 0
         E_bar = 0
         I_bar = 0.01

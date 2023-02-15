@@ -2,6 +2,8 @@
 
 import scipy.stats
 
+from . import _utility
+
 
 class Waning:
     '''Waning of maternal immunity.'''
@@ -14,4 +16,4 @@ class Waning:
 
     def rate(self, time_since_entry):
         '''Waning rate.'''
-        return self._rv.hazard(time_since_entry)
+        return _utility.hazard(self._rv, time_since_entry)

@@ -1,9 +1,11 @@
 '''Based on our FMDV work, this is an unstructured model.'''
 
 import numpy
+import pandas
 
 from . import _equilibrium
 from . import _limit_cycle
+from . import _solution
 from . import _solver
 from .. import model
 from .. import _utility
@@ -11,6 +13,15 @@ from .. import _utility
 
 class Model(model.AgeIndependent):
     '''Unstructured model.'''
+
+    def Solution(self, y, t=None):
+        '''A solution.'''
+        states = pandas.Index(self.states, name='state')
+        if t is None:
+            return pandas.Series(y, index=states)
+        else:
+            t = pandas.Index(t, name='time')
+            return pandas.DataFrame(y, index=t, columns=states)
 
     def __call__(self, t, y):
         '''The right-hand-side of the model ODEs.'''

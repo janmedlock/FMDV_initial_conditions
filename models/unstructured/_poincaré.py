@@ -2,7 +2,6 @@
 
 import numpy
 
-from . import _solution
 from .. import _utility
 
 
@@ -34,6 +33,6 @@ class Map:
         self.solve(y_0, y=y, _solution_wrap=False)
         y_period = y[-1]
         if _solution_wrap:
-            return _solution.Solution(y_period, states=self.model.states)
+            return self.model.Solution(y_period)
         else:
             return y_period

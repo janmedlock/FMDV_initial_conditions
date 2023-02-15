@@ -6,7 +6,6 @@ import numpy
 import scipy.optimize
 import scipy.sparse
 
-from . import _solution
 from .. import _utility
 
 
@@ -120,7 +119,6 @@ class Solver:
 
     def _step(self, t_cur, y_cur, y_new):
         '''Do a step.'''
-        print(t_cur)
         lambdaT1 = (self.beta @ y_cur) * self.T1
         t_mid = t_cur + 0.5 * self.time_step
         bB = self.model.birth.rate(t_mid) * self.B
@@ -136,7 +134,7 @@ class Solver:
                  t=None, y=None, _solution_wrap=True):
         '''Solve. `y` is storage for the solution, which will be built if not
         provided. `_solution_wrap=False` skips wrapping the solution in
-        `_solution.Solution()` for speed.'''
+        `model.Solution()` for speed.'''
         if t is None:
             t = _utility.build_t(*t_span, self.time_step)
         if y is None:
@@ -145,8 +143,7 @@ class Solver:
         for ell in range(1, len(t)):
             self._step(t[ell - 1], y[ell - 1], y[ell])
         if _solution_wrap:
-            return _solution.Solution(y, self.model.ages, t,
-                                      states=self.model.states)
+            return self.model.Solution(y, t)
         else:
             return y
 
