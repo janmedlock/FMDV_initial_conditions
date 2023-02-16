@@ -23,6 +23,20 @@ class _Birth:
                             & (age < self.age_menopause)),
                            1, 0)
 
+    @property
+    def amplitude(self):
+        return self.variation * numpy.sqrt(2)
+
+    @property
+    def rate_min(self):
+        '''Birth rate minimum.'''
+        return self.mean * (1 - self.amplitude)
+
+    @property
+    def rate_max(self):
+        '''Birth rate maximum.'''
+        return self.mean * (1 + self.amplitude)
+
     def _mean_for_zero_population_growth(self, death):
         '''Get the value for `self.mean` that gives zero population
         growth rate.'''
@@ -63,9 +77,8 @@ class BirthPeriodic(_Birth):
 
     def rate(self, t):
         '''Periodic birth rate.'''
-        amplitude = self.variation * numpy.sqrt(2)
         theta = 2 * numpy.pi * t / self.period
-        return self.mean * (1 + amplitude * numpy.cos(theta))
+        return self.mean * (1 + self.amplitude * numpy.cos(theta))
 
 
 def Birth(parameters, death):

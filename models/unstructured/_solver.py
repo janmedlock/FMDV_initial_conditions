@@ -13,6 +13,7 @@ class Solver:
         self.model = model
         self.time_step = time_step
         self._build_matrices()
+        self._check_matrices()
 
     def _beta(self):
         beta = (self.model.transmission.rate
@@ -67,6 +68,23 @@ class Solver:
         self.F = self._F()
         self.T = self._T()
         self.B = self._B()
+
+    def _check_matrices(self):
+        assert _utility.is_nonnegative(self.beta)
+        assert _utility.is_Z_matrix(self.H)
+        assert _utility.is_nonnegative(self.H)
+        assert _utility.is_Metzler_matrix(self.F)
+        assert _utility.is_Metzler_matrix(self.T)
+        assert _utility.is_Metzler_matrix(self.B)
+        assert _utility.is_nonnegative(self.B)
+        HFB0 = (self.H
+                - self.time_step / 2 * (self.F
+                                        + self.model.birth.rate_max * self.B))
+        assert _utility.is_M_matrix(HFB0)
+        HFB1 = (self.H
+                + self.time_step / 2 * (self.F
+                                        + self.model.birth.rate_min * self.B))
+        assert _utility.is_nonnegative(HFB1)
 
     def _objective(self, y_new, HFB0, HFBTy1):
         lambdaT0 = (self.beta @ y_new) * self.T

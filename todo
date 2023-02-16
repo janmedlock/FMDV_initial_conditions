@@ -1,12 +1,10 @@
 * Age-structured model
   * Debug code
     * Tune Krylov solver
-    * Check positivity
 
 * Time-since-entry model
   * Debug code
     * Tune Krylov solver
-    * Check positivity
 
 * Combination model
   * Write numerical method as linear algebra

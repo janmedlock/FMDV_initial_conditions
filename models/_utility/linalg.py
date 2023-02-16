@@ -35,3 +35,61 @@ def get_dominant_eigen(A, which='LR', return_eigenvector=True,
         return (l0, v0)
     else:
         return l0
+
+
+def is_positive(arr):
+    '''Check whether all entries are positive.'''
+    # `(arr > 0).all()` doesn't work with sparse matrices.
+    return arr.min() > 0
+
+
+def is_nonnegative(arr):
+    '''Check whether all entries are nonnegative.'''
+    # `(arr >= 0).all()` doesn't work with sparse matrices.
+    return arr.min() >= 0
+
+
+def is_negative(arr):
+    '''Check whether all entries are negative.'''
+    return is_positive(-arr)
+
+
+def is_nonpositive(arr):
+    '''Check whether all entries are nonpositive.'''
+    return is_nonnegative(-arr)
+
+
+def is_Z_matrix(arr):
+    '''Check whether `arr` is a Z-matrix.'''
+    # Set the diagonal to 0 then check whether the rest are nonpositive.
+    diag = arr.diagonal()
+    if isinstance(arr, scipy.sparse.spmatrix):
+        diag = scipy.sparse.diags(diag, format=arr.format)
+    else:
+        diag = numpy.diagflat(diag)
+    offdiag = arr - diag
+    return is_nonpositive(offdiag)
+
+
+def is_Metzler_matrix(arr):
+    '''Check whether `arr` is a Metzler matrix.'''
+    return is_Z_matrix(-arr)
+
+
+def is_M_matrix(arr):
+    '''Check whether `arr` is an M-matrix.'''
+    if is_Z_matrix(arr):
+        eigval_min = get_dominant_eigen(arr, which='SR',
+                                        return_eigenvector=False)
+        return eigval_min.real >= 0
+    else:
+        return False
+
+
+def is_nonsingular_M_matrix(arr):
+    '''Check whether `arr` is a non-singular M-matrix.'''
+    if is_Z_matrix(arr):
+        eigval_min = eigval_extremal(arr, which='SR')
+        return (eigval_min.real >= 0) and (eigval_min != 0)
+    else:
+        return False

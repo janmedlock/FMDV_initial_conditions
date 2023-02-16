@@ -20,6 +20,7 @@ class Solver:
         self.model = model
         self.z_step = self.time_step = model.z_step
         self._build_matrices()
+        self._check_matrices()
 
     def _beta(self):
         K = len(self.model.z)
@@ -147,6 +148,23 @@ class Solver:
         self.F1 = self._Fq(1)
         self.T = self._T()
         self.B = self._B()
+
+    def _check_matrices(self):
+        assert _utility.is_nonnegative(self.beta)
+        assert _utility.is_Z_matrix(self.H0)
+        assert _utility.is_nonnegative(self.H1)
+        assert _utility.is_Metzler_matrix(self.F0)
+        assert _utility.is_Metzler_matrix(self.T)
+        assert _utility.is_Metzler_matrix(self.B)
+        assert _utility.is_nonnegative(self.B)
+        HFB0 = (self.H0
+                - self.time_step / 2 * (self.F0
+                                        + self.model.birth.rate_max * self.B))
+        assert _utility.is_M_matrix(HFB0)
+        HFB1 = (self.H1
+                + self.time_step / 2 * (self.F1
+                                        + self.model.birth.rate_min * self.B))
+        assert _utility.is_nonnegative(HFB1)
 
     def _objective(self, y_new, HFB0, HFBTy1):
         lambdaT0 = (self.beta @ y_new) * self.T
