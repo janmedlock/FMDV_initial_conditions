@@ -161,8 +161,10 @@ class Solver:
         HFB0 = self.H0 - self.time_step / 2 * (self.F0 + bB)
         HFBT1 = self.H1 + self.time_step / 2 * (self.F1 + lambdaT1 + bB)
         HFBTy1 = HFBT1 @ y_cur
-        result = scipy.optimize.root(self._objective, y_cur,
-                                     args=(HFB0, HFBTy1))
+        result = scipy.optimize.root(
+            self._objective, y_cur, args=(HFB0, HFBTy1),
+            method='krylov',
+        )
         assert result.success, f't={t_cur}: {result}'
         y_new[:] = result.x
 
