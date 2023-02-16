@@ -1,7 +1,6 @@
 '''Models of population size.'''
 
 import numpy
-import scipy.integrate
 import scipy.optimize
 import scipy.sparse
 
@@ -114,7 +113,7 @@ class _Solver:
         (_, v0) = _utility.get_dominant_eigen(monodromy, which='LM',
                                               return_eigenvector=True)
         # Normalize `v0` in place so that its integral over ages is 1.
-        v0 /= scipy.integrate.trapz(v0, self.ages)
+        v0 /= v0.sum() * self.age_step
         return (self.ages, v0)
 
 
