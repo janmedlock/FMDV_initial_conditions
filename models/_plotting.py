@@ -5,6 +5,9 @@ import matplotlib.pyplot
 import pandas
 
 
+_ACCESSOR_NAME = 'solution'
+
+
 class _SolutionAccessorBase:
     '''Common code for `_SolutionSeriesAccessor()` and
     `_SolutionDataFrameAccessor()`.'''
@@ -44,7 +47,7 @@ class _SolutionAccessorBase:
                                **axis_labels)
 
 
-@pandas.api.extensions.register_series_accessor('solution')
+@pandas.api.extensions.register_series_accessor(_ACCESSOR_NAME)
 class _SolutionSeriesAccessor(_SolutionAccessorBase):
     '''API for a point in state space.'''
 
@@ -57,7 +60,7 @@ class _SolutionSeriesAccessor(_SolutionAccessorBase):
         return ax
 
 
-@pandas.api.extensions.register_dataframe_accessor('solution')
+@pandas.api.extensions.register_dataframe_accessor(_ACCESSOR_NAME)
 class _SolutionDataFrameAccessor(_SolutionAccessorBase):
     '''API for state vs. time.'''
 

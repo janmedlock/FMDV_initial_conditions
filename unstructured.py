@@ -4,6 +4,7 @@ periodic birth rate.'''
 
 import matplotlib.pyplot
 
+import models
 import models.unstructured
 
 

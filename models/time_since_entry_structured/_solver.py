@@ -185,7 +185,6 @@ class Solver:
         lambdaT1 = (self.beta @ y_cur) * self.T
         HFBT1 = self.H1 + self.time_step / 2 * (self.F1 + lambdaT1 + bB)
         HFBTy1 = HFBT1 @ y_cur
-        print(f'{t_cur=}')
         result = scipy.optimize.root(
             self._objective, y_cur, args=(HFB0, HFBTy1),
             method='krylov',
