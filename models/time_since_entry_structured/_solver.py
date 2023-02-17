@@ -120,7 +120,7 @@ class Solver:
 
     def _bXy(self):
         K = len(self.model.z)
-        return 1 / self.z_step * numpy.ones((1, K))
+        return self.z_step * numpy.ones((1, K))
 
     def _B(self):
         K = len(self.model.z)
