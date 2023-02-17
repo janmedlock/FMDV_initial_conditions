@@ -6,9 +6,10 @@ import models.time_since_entry_structured
 
 
 if __name__ == '__main__':
+    (t_start, t_end) = (0, 1)
+
     model_constant = models.time_since_entry_structured.Model(
         birth_variation=0)
-    print(model_constant.birth.mean)
+    solution_constant = model_constant.solve((t_start, t_end))
 
-    model = models.time_since_entry_structured.Model()
-    print(model.birth.mean)
+    # model = models.time_since_entry_structured.Model()

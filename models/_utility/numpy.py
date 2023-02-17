@@ -1,6 +1,7 @@
 '''Numerical utilities.'''
 
 import numpy
+import pandas
 
 
 def arange(start, stop, step, endpoint=True, dtype=None):
@@ -37,3 +38,16 @@ def sort_by_real_part(arr):
 def assert_nonnegative(y):
     '''Check that `y` is non-negative.'''
     assert (y >= 0).all(axis=None)
+
+
+def rate_make_finite(rates):
+    '''Set any 'inf' values in `rates` to the closest previous finite
+    value.'''
+    if numpy.ndim(rates) != 1:
+        raise NotImplementedError
+    rates = pandas.Series(rates)
+    rates[numpy.isposinf(rates)] = numpy.NaN
+    rates = rates.fillna(method='ffill') \
+                 .to_numpy()
+    assert numpy.isfinite(rates).all()
+    return rates

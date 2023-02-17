@@ -71,11 +71,16 @@ class Solver:
             psi = psi * numpy.ones(K)
         return self.z_step * psi
 
+    def _get_rate(self, which):
+        param = getattr(self.model, which)
+        rate = param.rate(self.model.z)
+        return _utility.rate_make_finite(rate)
+
     def _Fq(self, q):
         mu = self.model.death_rate_mean
-        omega = self.model.waning.rate(self.model.z)
-        rho = self.model.progression.rate(self.model.z)
-        gamma = self.model.recovery.rate(self.model.z)
+        omega = self._get_rate('waning')
+        rho = self._get_rate('progression')
+        gamma = self._get_rate('recovery')
         Fqyy = functools.partial(self._Fqyy, q)
         fXX = self._fXX
         Fyz = self._Fyz
@@ -180,6 +185,7 @@ class Solver:
         lambdaT1 = (self.beta @ y_cur) * self.T
         HFBT1 = self.H1 + self.time_step / 2 * (self.F1 + lambdaT1 + bB)
         HFBTy1 = HFBT1 @ y_cur
+        print(f'{t_cur=}')
         result = scipy.optimize.root(
             self._objective, y_cur, args=(HFB0, HFBTy1),
             method='krylov',
