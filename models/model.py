@@ -21,18 +21,18 @@ class Base:
     # immunity.
     states_with_antibodies = ['recovered']
 
+    # For easy indexing, whether each state has antibodies.
+    _states_have_antibodies = numpy.isin(states,
+                                         states_with_antibodies)
+
     def __init__(self, **kwds):
-        self.parameters = parameters.Parameters(**kwds)
-        self.death = death.Death(self.parameters)
-        self.birth = birth.Birth(self.parameters,
-                                 self.death)
-        self.progression = progression.Progression(self.parameters)
-        self.recovery = recovery.Recovery(self.parameters)
-        self.transmission = transmission.Transmission(self.parameters)
-        self.waning = waning.Waning(self.parameters)
-        # Whether each state has antibodies.
-        self._states_have_antibodies = numpy.isin(self.states,
-                                                  self.states_with_antibodies)
+        parameters_ = parameters.Parameters(**kwds)
+        self.death = death.Death(parameters_)
+        self.birth = birth.Birth(parameters_, self.death)
+        self.progression = progression.Progression(parameters_)
+        self.recovery = recovery.Recovery(parameters_)
+        self.transmission = transmission.Transmission(parameters_)
+        self.waning = waning.Waning(parameters_)
 
 
 class AgeIndependent(Base):
