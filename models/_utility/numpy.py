@@ -37,12 +37,12 @@ def sort_by_real_part(arr):
 
 def assert_nonnegative(y):
     '''Check that `y` is non-negative.'''
-    assert (y >= 0).all(axis=None)
+    assert numpy.all((y >= 0) | numpy.isclose(y, 0))
 
 
 def rate_make_finite(rates):
-    '''Set any 'inf' values in `rates` to the closest previous finite
-    value.'''
+    '''Set any positive infinity values in `rates` to the closest
+    previous finite value.'''
     if numpy.ndim(rates) != 1:
         raise NotImplementedError
     rates = pandas.Series(rates)
