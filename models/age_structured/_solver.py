@@ -113,6 +113,7 @@ class Solver:
         self.T0 = self._Tq(0)
         self.T1 = self._Tq(1)
         self.B = self._B()
+        self.krylov_M = self.H0 + self.time_step / 2 * self.F0
 
     def _check_matrices(self):
         assert _utility.is_nonnegative(self.beta)
@@ -147,6 +148,7 @@ class Solver:
         result = scipy.optimize.root(
             self._objective, y_cur, args=(HFB0, HFBTy1),
             method='krylov',
+            options=dict(jac_options=dict(inner_M=self.krylov_M))
         )
         assert result.success, f't={t_cur}: {result}'
         y_new[:] = result.x
