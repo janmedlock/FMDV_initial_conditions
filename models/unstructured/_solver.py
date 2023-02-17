@@ -93,10 +93,10 @@ class Solver:
 
     def _step(self, t_cur, y_cur, y_new):
         '''Do a step.'''
-        lambdaT1 = (self.beta @ y_cur) * self.T
         t_mid = t_cur + 0.5 * self.time_step
         bB = self.model.birth.rate(t_mid) * self.B
         HFB0 = self.H - self.time_step / 2 * (self.F + bB)
+        lambdaT1 = (self.beta @ y_cur) * self.T
         HFBT1 = self.H + self.time_step / 2 * (self.F + lambdaT1 + bB)
         HFBTy1 = HFBT1 @ y_cur
         result = scipy.optimize.root(self._objective, y_cur,

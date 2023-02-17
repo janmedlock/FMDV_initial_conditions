@@ -12,7 +12,7 @@ from .. import _utility
 class Model(model.Base):
     '''Age-structured model.'''
 
-    def __init__(self, age_step=0.1, age_max=50, **kwds):
+    def __init__(self, age_step=0.001, age_max=25, **kwds):
         super().__init__(**kwds)
         self.age_step = age_step
         self.ages = _utility.build_t(0, age_max, self.age_step)
