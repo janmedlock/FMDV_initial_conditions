@@ -15,11 +15,11 @@ if __name__ == '__main__':
         birth_variation=0)
     solution_constant = model_constant.solve((t_start, t_end))
     totals_constant = solution_constant.time_since_entry.aggregate()
-    ax_solution = totals_constant.solution.plot_solution()
+    ax_solution = totals_constant.plotting.solution()
 
     model = models.time_since_entry_structured.Model()
     solution = model.solve((t_start, t_end))
     totals = solution.time_since_entry.aggregate()
-    totals.solution.plot_solution(ax=ax_solution, legend=False)
+    totals.plotting.solution(ax=ax_solution, legend=False)
 
     matplotlib.pyplot.show()

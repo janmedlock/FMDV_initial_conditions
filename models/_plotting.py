@@ -1,16 +1,15 @@
-'''Classes to plot solutions and points in state space.'''
+'''`pandas` accessors to plot solutions and points in state space.'''
 
 import cycler
 import matplotlib.pyplot
 import pandas
 
 
-_ACCESSOR_NAME = 'solution'
+_ACCESSOR_NAME = 'plotting'
 
 
-class _SolutionAccessorBase:
-    '''Common code for `_SolutionSeriesAccessor()` and
-    `_SolutionDataFrameAccessor()`.'''
+class _BaseAccessor:
+    '''Common code for `SeriesAccessor()` and `DataFrameAccessor()`.'''
 
     def __init__(self, pandas_obj):
         self._obj = pandas_obj
@@ -48,10 +47,10 @@ class _SolutionAccessorBase:
 
 
 @pandas.api.extensions.register_series_accessor(_ACCESSOR_NAME)
-class _SolutionSeriesAccessor(_SolutionAccessorBase):
+class SeriesAccessor(_BaseAccessor):
     '''API for a point in state space.'''
 
-    def plot_state(self, states=None, ax=None, **kwds):
+    def state(self, states=None, ax=None, **kwds):
         '''Plot the point in state space.'''
         states = self._get_states(states)
         if ax is None:
@@ -61,7 +60,7 @@ class _SolutionSeriesAccessor(_SolutionAccessorBase):
 
 
 @pandas.api.extensions.register_dataframe_accessor(_ACCESSOR_NAME)
-class _SolutionDataFrameAccessor(_SolutionAccessorBase):
+class DataFrameAccessor(_BaseAccessor):
     '''API for state vs. time.'''
 
     def _prop_cycler_solution(self, states):
@@ -75,14 +74,14 @@ class _SolutionDataFrameAccessor(_SolutionAccessorBase):
         fig = matplotlib.pyplot.figure()
         return fig.add_subplot(prop_cycle=self._prop_cycler_solution(states))
 
-    def plot_solution(self, states=None, ax=None, **kwds):
+    def solution(self, states=None, ax=None, **kwds):
         '''Plot the solution vs time.'''
         states = self._get_states(states)
         if ax is None:
             ax = self._make_axes_solution(states)
         return self._obj[states].plot(ax=ax, **kwds)
 
-    def plot_state(self, states=None, ax=None, **kwds):
+    def state(self, states=None, ax=None, **kwds):
         '''Make a phase plot.'''
         states = self._get_states(states)
         if ax is None:

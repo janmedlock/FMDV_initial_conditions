@@ -16,14 +16,14 @@ if __name__ == '__main__':
     # model_constant = models.age_structured.Model(birth_variation=0)
     # solution_constant = model_constant.solve((t_start, t_end))
     # totals_constant = solution_constant.age.aggregate()
-    # ax_solution = totals.solution.plot_solution()
+    # ax_solution = totals.plotting.solution()
 
     model = models.age_structured.Model()
     t0 = time.time()
     solution = model.solve((t_start, t_end))
     print('Runtime {} sec.'.format(time.time() - t0))
     totals = solution.age.aggregate()
-    # totals.solution.plot_solution(ax=ax_solution, legend=False)
-    totals.solution.plot_solution()
+    # totals.plotting.solution(ax=ax_solution, legend=False)
+    totals.plotting.solution()
 
     matplotlib.pyplot.show()
