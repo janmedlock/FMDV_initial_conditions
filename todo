@@ -1,4 +1,5 @@
-* Rework Jacobian and monodromy solver using automatic differentiation
+* Unstructured model
+  * Rework Jacobian and fundamental solver using automatic differentiation
 
 * Time-since-entry model
   * Bootstrap an equilibrium from the unstructured model
