@@ -4,7 +4,7 @@ import numpy
 import scipy.optimize
 import scipy.sparse
 
-from .. import _utility
+from . import _utility
 
 
 # Common sparse array format.
