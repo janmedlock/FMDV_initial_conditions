@@ -10,3 +10,8 @@ def diags(diags, *args, **kwds):
                               tuple(diags.keys()),
                               *args,
                               **kwds)
+
+
+def equals(a, b):
+    '''Whether the sparse matrices `a` and `b` are equal.'''
+    return (a.shape == b.shape) & ((a != b).nnz == 0)

@@ -8,10 +8,6 @@ import models.age_structured
 import models._utility
 
 
-def sparse_equals(a, b):
-    return (a.shape == b.shape) & ((a != b).nnz == 0)
-
-
 def beta(solver):
     J = len(solver.model.ages)
     zeros = scipy.sparse.csr_array((1, J))
@@ -97,14 +93,14 @@ def B(solver):
 
 
 def check_matrices(solver):
-    assert sparse_equals(beta(solver), solver.beta)
-    assert sparse_equals(Hq(solver, 0), solver.H0)
-    assert sparse_equals(Hq(solver, 1), solver.H1)
-    assert sparse_equals(Fq(solver, 0), solver.F0)
-    assert sparse_equals(Fq(solver, 1), solver.F1)
-    assert sparse_equals(Tq(solver, 0), solver.T0)
-    assert sparse_equals(Tq(solver, 1), solver.T1)
-    assert sparse_equals(B(solver), solver.B)
+    assert models._utility.sparse.equals(beta(solver), solver.beta)
+    assert models._utility.sparse.equals(Hq(solver, 0), solver.H0)
+    assert models._utility.sparse.equals(Hq(solver, 1), solver.H1)
+    assert models._utility.sparse.equals(Fq(solver, 0), solver.F0)
+    assert models._utility.sparse.equals(Fq(solver, 1), solver.F1)
+    assert models._utility.sparse.equals(Tq(solver, 0), solver.T0)
+    assert models._utility.sparse.equals(Tq(solver, 1), solver.T1)
+    assert models._utility.sparse.equals(B(solver), solver.B)
 
 
 if __name__ == '__main__':

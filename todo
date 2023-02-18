@@ -1,10 +1,12 @@
-* Age-structured model
-  * Debug code
-    * Tune Krylov solver
+* Rework Jacobian and monodromy solver using automatic differentiation
 
 * Time-since-entry model
-  * Debug code
-    * Tune Krylov solver
+  * Bootstrap an equilibrium from the unstructured model
+    * Use survival function to fill out new dimension
+
+* Age-structured model
+  * Bootstrap an equilibrium from the unstructured model
+    * Use survival function to fill out new dimension
 
 * Combination model
   * Write numerical method as linear algebra
