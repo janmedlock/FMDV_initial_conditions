@@ -17,20 +17,25 @@ class _VariationalSolver:
 
     def step(self, t_cur, phi_cur, t_new, phi_new):
         '''Crank–Nicolson step.'''
+        # The Crank–Nicolson scheme is
+        # (phi_new - phi_cur) / t_step
+        # = (J(t_new) @ phi_new + J(t_cur) @ phi_cur) / 2.
+        # Define
+        # IJ0 = I - t_step / 2 * J(t_new),
+        # and
+        # IJphi1 = [I + t_step / 2 * J(t_cur)] @ phi_cur,
+        # so that
+        # IJ0 @ phi_new = IJphi1.
         t_step = t_new - t_cur
-        # self.B[:] = (self.eye + t_step / 2 * self.jacobian(t_cur)) @ phi_cur
-        # As above, but avoid building new arrays.
-        numpy.multiply(t_step / 2, self.jacobian_val, out=self.B)
-        numpy.add(self.eye, self.B, out=self.temp)
-        numpy.dot(self.temp, phi_cur, out=self.B)
-        # self.A[:] = self.eye - t_step / 2 * self.jacobian(t_new)
-        # As above, but avoid building new arrays.
-        # `self.jacobian_val` will get used in the next call of `_step()`.
+        # `self.jacobian_val = self.jacobian(t_cur)` from the previous
+        # call of `_step()` (or from initialization in `solve()` in
+        # the first call of `_step()`).
+        self.IJphi1[:] = (self.eye + t_step / 2 * self.jacobian_val) @ phi_cur
+        # `self.jacobian_val` will get used again in the next call of
+        # `_step()`.
         self.jacobian_val = self.jacobian(t_new)
-        numpy.multiply(- t_step / 2, self.jacobian_val, out=self.temp)
-        numpy.add(self.eye, self.temp, out=self.A)
-        # Solve self.A @ phi_new = self.B for phi_new.
-        phi_new[:] = scipy.linalg.solve(self.A, self.B,
+        self.IJ0[:] = self.eye - t_step / 2 * self.jacobian_val
+        phi_new[:] = scipy.linalg.solve(self.IJ0, self.IJphi1,
                                         overwrite_a=True,
                                         overwrite_b=True)
 
@@ -41,9 +46,8 @@ class _VariationalSolver:
         phi = numpy.empty((len(t), n, n))
         phi[0] = self.eye = numpy.eye(n)
         # Initialize temporary storage used in `step()`.
-        self.A = numpy.empty((n, n))
-        self.B = numpy.empty((n, n))
-        self.temp = numpy.empty((n, n))
+        self.IJ0 = numpy.empty((n, n))
+        self.IJphi1 = numpy.empty((n, n))
         self.jacobian_val = self.jacobian(t[0])
         for k in range(1, len(t)):
             self.step(t[k - 1], phi[k - 1], t[k], phi[k])
