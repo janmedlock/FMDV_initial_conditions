@@ -3,7 +3,7 @@
 import numpy
 
 
-class TransformConstantSum:
+class ConstantSum:
     '''Reduce the dimension of `y` by 1 using its sum.'''
 
     def __init__(self, y):

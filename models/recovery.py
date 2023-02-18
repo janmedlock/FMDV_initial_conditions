@@ -3,7 +3,7 @@
 from . import _utility
 
 
-class Recovery(_utility.WaitingTimeGamma):
+class Recovery(_utility.waiting_time.Gamma):
     '''Recovery from infectious to recovered.'''
 
     def __init__(self, parameters):

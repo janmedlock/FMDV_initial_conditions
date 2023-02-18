@@ -1,8 +1,7 @@
 '''Utilities.'''
 
-from .classes import *
 from .linalg import *
-from .numpy import *
+from .numerical import *
 from . import sparse
-from .stats import *
-from .transform import *
+from . import transform
+from . import waiting_time

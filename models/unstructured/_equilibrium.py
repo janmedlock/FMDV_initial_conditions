@@ -6,19 +6,19 @@ import scipy.optimize
 from .. import _utility
 
 
-def _objective(x, model, t, transform):
-    y = transform.inverse(x)
-    dy = model(t, y)
-    return transform(dy)
+def _objective(x, solver, transform, t):
+    y_cur = transform.inverse(x)
+    y_new = solver.step(t, y_cur)
+    return transform(y_new) - x
 
 
-def find(model, t, y_guess):
-    '''Find an equilibrium while keeping `y_guess.sum()` constant.'''
-    transform = _utility.TransformConstantSum(y_guess)
-    result = scipy.optimize.root(_objective,
-                                 transform(y_guess),
-                                 args=(model, t, transform))
-    assert result.success, f'{result}'
+def find(model, y_guess, t):
+    '''Find an equilibrium.'''
+    # Find an equilibirium `y` while keeping `y.sum()` constant.
+    transform = _utility.transform.ConstantSum(y_guess)
+    result = scipy.optimize.root(_objective, transform(y_guess),
+                                 args=(model._solver, transform, t))
+    assert result.success, result
     y = transform.inverse(result.x)
     return model.Solution(y)
 

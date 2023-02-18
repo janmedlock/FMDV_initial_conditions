@@ -1,5 +1,8 @@
 * Unstructured model
-  * Rework Jacobian and fundamental solver using automatic differentiation
+  * Rework `model.jacobian()` to use `model._solver` and automatic
+    differentiation
+    * `_equilibrium.eigenvalues()`
+    * `_fundamental.solution()`
 
 * Time-since-entry model
   * Bootstrap an equilibrium from the unstructured model

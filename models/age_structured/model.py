@@ -12,16 +12,17 @@ from .. import _utility
 class Model(model.Base):
     '''Age-structured model.'''
 
-    def __init__(self, age_step=0.001, age_max=25, **kwds):
+    def __init__(self, a_step=0.001, a_max=25, **kwds):
         super().__init__(**kwds)
-        self.age_step = age_step
-        self.ages = _utility.build_t(0, age_max, self.age_step)
+        self.a_step = a_step
+        self.a = _utility.build_t(0, a_max, self.a_step)
+        self._solver = _solver.Solver(self)
 
     def Solution(self, y, t=None):
         '''A solution.'''
         states = pandas.CategoricalIndex(self.states, self.states,
                                          ordered=True, name='state')
-        ages = pandas.Index(self.ages, name='age')
+        ages = pandas.Index(self.a, name='age')
         states_ages = pandas.MultiIndex.from_product((states, ages))
         if t is None:
             return pandas.Series(y, index=states_ages)
@@ -31,11 +32,11 @@ class Model(model.Base):
 
     def stable_age_density(self, *args, **kwds):
         '''Get the stable age density.'''
-        (ages, v0) = _population.stable_age_density(self.birth, self.death,
-                                                    *args, **kwds)
-        # Interpolate the logarithm of `v0` to `self.ages`.
+        (a, v0) = _population.stable_age_density(self.birth, self.death,
+                                                 *args, **kwds)
+        # Interpolate the logarithm of `v0` to `self.a`.
         assert numpy.all(v0 > 0)
-        logn = numpy.interp(self.ages, ages, numpy.log(v0))
+        logn = numpy.interp(self.a, a, numpy.log(v0))
         return numpy.exp(logn)
 
     def build_initial_conditions(self, *args, **kwds):
@@ -50,23 +51,12 @@ class Model(model.Base):
         # X_bar * N then stacked in one big vector.
         return numpy.kron((M_bar, S_bar, E_bar, I_bar, R_bar), N)
 
-    def solver(self):
-        '''Only initialize the solver once.'''
-        return _solver.Solver(self)
-
     def solve(self, t_span,
               y_start=None, t=None, y=None, _solution_wrap=True):
         '''Solve the ODEs.'''
         if y_start is None:
             y_start = self.build_initial_conditions()
-        solver = self.solver()
-        soln = solver(t_span, y_start,
-                      t=t, y=y, _solution_wrap=_solution_wrap)
+        soln = self._solver.solve(t_span, y_start,
+                                  t=t, y=y, _solution_wrap=_solution_wrap)
         _utility.assert_nonnegative(soln)
         return soln
-
-    def __call__(self, t, y):
-        raise NotImplementedError
-
-    def jacobian(self, t, y):
-        raise NotImplementedError

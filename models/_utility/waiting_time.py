@@ -1,10 +1,10 @@
-'''Statistical helper functions.'''
+'''Waiting times.'''
 
 import numpy
 import scipy.stats
 
 
-class WaitingTimeGamma:
+class Gamma:
     '''A gamma-distributed waiting time.'''
 
     def __init__(self, mean, shape):

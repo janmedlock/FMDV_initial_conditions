@@ -17,11 +17,11 @@ class _BaseAccessor:
     @staticmethod
     def _aggregate_one(obj, axis):
         '''Integrate one group over time since entry.'''
-        zvals = obj.axes[axis].get_level_values(_LEVEL)
-        if len(zvals) == 1:
+        z = obj.axes[axis].get_level_values(_LEVEL)
+        if len(z) == 1:
             z_step = 1
         else:
-            z_step = numpy.mean(numpy.diff(zvals))
+            z_step = numpy.mean(numpy.diff(z))
         return obj.sum(axis=axis) * z_step
 
     def aggregate(self):

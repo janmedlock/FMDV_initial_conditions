@@ -17,9 +17,9 @@ class _BaseAccessor:
     @staticmethod
     def _aggregate_one(obj, axis):
         '''Integrate one group over age.'''
-        ages = obj.axes[axis].get_level_values(_LEVEL)
-        age_step = numpy.mean(numpy.diff(ages))
-        return obj.sum(axis=axis) * age_step
+        a = obj.axes[axis].get_level_values(_LEVEL)
+        a_step = numpy.mean(numpy.diff(a))
+        return obj.sum(axis=axis) * a_step
 
     def aggregate(self):
         '''Integrate over age.'''

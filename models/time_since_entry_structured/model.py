@@ -17,6 +17,7 @@ class Model(model.AgeIndependent):
         super().__init__(**kwds)
         self.z_step = z_step
         self.z = _utility.build_t(0, z_max, self.z_step)
+        self._solver = _solver.Solver(self)
 
     def _index_states_z(self):
         # Build a `pandas.DataFrame()` with columns 'state' and
@@ -56,23 +57,12 @@ class Model(model.AgeIndependent):
         (m, e, i) = numpy.outer((M_bar, E_bar, I_bar), n)
         return numpy.hstack((m, S, e, i, R))
 
-    def solver(self):
-        '''Only initialize the solver once.'''
-        return _solver.Solver(self)
-
     def solve(self, t_span,
               y_start=None, t=None, y=None, _solution_wrap=True):
         '''Solve the ODEs.'''
         if y_start is None:
             y_start = self.build_initial_conditions()
-        solver = self.solver()
-        soln = solver(t_span, y_start,
-                      t=t, y=y, _solution_wrap=_solution_wrap)
+        soln = self._solver.solve(t_span, y_start,
+                                  t=t, y=y, _solution_wrap=_solution_wrap)
         _utility.assert_nonnegative(soln)
         return soln
-
-    def __call__(self, t, y):
-        raise NotImplementedError
-
-    def jacobian(self, t, y):
-        raise NotImplementedError

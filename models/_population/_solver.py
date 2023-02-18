@@ -16,23 +16,20 @@ class _Solver:
     model for the population size with age-dependent death rate,
     age-dependent maternity, and periodic time-dependent birth rate.'''
 
-    def __init__(self, birth, death, age_step=0.1, age_max=50):
+    def __init__(self, birth, death, a_step=0.1, a_max=50):
         self.birth = birth
         self.death = death
-        self.age_step = self.time_step = age_step
+        self.a_step = self.t_step = a_step
         self.period = self.birth.period
         if self.period == 0:
-            self.period = self.time_step
-        self.ages = _utility.build_t(0, age_max, self.age_step)
-        self.times = _utility.build_t(0, self.period, self.time_step)
-        assert numpy.isclose(self.times[-1], self.period)
-        J = len(self.ages)
-        self.sol_cur = numpy.empty((J, J))
-        self.sol_new = numpy.empty((J, J))
+            self.period = self.t_step
+        self.a = _utility.build_t(0, a_max, self.a_step)
+        self.t = _utility.build_t(0, self.period, self.t_step)
+        assert numpy.isclose(self.t[-1], self.period)
         self._build_matrices()
 
     def _FqXW(self, q, pi):
-        J = len(self.ages)
+        J = len(self.a)
         if numpy.isscalar(pi):
             pi = pi * numpy.ones(J)
         if q == 0:
@@ -49,12 +46,12 @@ class _Solver:
         return self._FqXW(q, 1)
 
     def _Fq(self, q):
-        mu = self.death.rate(self.ages)
+        mu = self.death.rate(self.a)
         return self._FqXW(q, - mu)
 
     def _B(self):
-        J = len(self.ages)
-        nu = self.birth.maternity(self.ages)
+        J = len(self.a)
+        nu = self.birth.maternity(self.a)
         B = scipy.sparse.lil_array((J, J))
         B[0] = nu
         return _SPARSE_ARRAY(B)
@@ -67,41 +64,35 @@ class _Solver:
         self.F1 = self._Fq(1)
         self.B = self._B()
 
-    def _set_initial_condition(self):
-        '''Set the initial condition.'''
-        # self.sol_new[:] = numpy.eye(len(self.ages))
-        # Avoid building a new matrix.
-        self.sol_new[:] = 0
-        numpy.fill_diagonal(self.sol_new, 1)
-
-    def _step(self, t_cur, birth_scaling):
+    def step(self, t_cur, Phi_cur, birth_scaling):
         '''Do a step of the solver.'''
-        # Update so that what was the new value of the solution is now
-        # the current value and what was the current value of the
-        # solution will be storage space for the new value.
-        (self.sol_cur, self.sol_new) = (self.sol_new, self.sol_cur)
-        t_mid = t_cur + self.time_step / 2
+        t_mid = t_cur + self.t_step / 2
         bB = birth_scaling * self.birth.rate(t_mid) * self.B
-        HFB0 = self.H0 - self.time_step / 2 * (self.F0 + bB)
-        HFB1 = self.H1 + self.time_step / 2 * (self.F1 + bB)
-        self.sol_new[:] = scipy.sparse.linalg.spsolve(HFB0,
-                                                      HFB1 @ self.sol_cur)
+        HFB0 = self.H0 - self.t_step / 2 * (self.F0 + bB)
+        HFB1 = self.H1 + self.t_step / 2 * (self.F1 + bB)
+        return scipy.sparse.linalg.spsolve(HFB0, HFB1 @ Phi_cur)
 
-    def solve_monodromy(self, birth_scaling=1):
+    def monodromy(self, birth_scaling=1):
         '''Get the monodromy matrix Psi = Phi(T), where Phi is the
         fundmental solution and T is the period.'''
-        if len(self.times) == 0:
+        if len(self.t) == 0:
             return None
-        self._set_initial_condition()
-        for t_cur in self.times[:-1]:
-            self._step(t_cur, birth_scaling)
-        return self.sol_new
+        # The initial condition is the identity matrix.
+        Phi_new = numpy.eye(len(self.a))
+        Phi_cur = numpy.empty_like(Phi_new)
+        for t_cur in self.t[:-1]:
+            # Update so that what was the new value of the solution is
+            # now the current value and what was the current value of
+            # the solution will be storage space for the new value.
+            (Phi_cur, Phi_new) = (Phi_new, Phi_cur)
+            Phi_new[:] = self.step(t_cur, Phi_cur, birth_scaling)
+        return Phi_new
 
     def population_growth_rate(self, birth_scaling):
         '''Get the population growth rate.'''
-        monodromy = self.solve_monodromy(birth_scaling)
+        Psi = self.monodromy(birth_scaling)
         # Get the dominant Floquet multiplier.
-        rho0 = _utility.get_dominant_eigen(monodromy, which='LM',
+        rho0 = _utility.get_dominant_eigen(Psi, which='LM',
                                            return_eigenvector=False)
         # Convert the dominant Floquet multiplier to
         # the dominant Floquet exponent.
@@ -109,12 +100,12 @@ class _Solver:
         return mu0
 
     def stable_age_density(self):
-        monodromy = self.solve_monodromy()
-        (_, v0) = _utility.get_dominant_eigen(monodromy, which='LM',
+        Psi = self.monodromy()
+        (_, v0) = _utility.get_dominant_eigen(Psi, which='LM',
                                               return_eigenvector=True)
-        # Normalize `v0` in place so that its integral over ages is 1.
-        v0 /= v0.sum() * self.age_step
-        return (self.ages, v0)
+        # Normalize `v0` in place so that its integral over a is 1.
+        v0 /= v0.sum() * self.a_step
+        return (self.a, v0)
 
 
 def birth_scaling_for_zero_population_growth(birth, death, *args, **kwds):

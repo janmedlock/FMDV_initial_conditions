@@ -4,56 +4,47 @@ import numpy
 import scipy.linalg
 
 
-class _VariationalSolver:
+class _Solver:
     '''Crank–Nicolson solver for the variational equation.'''
 
     def __init__(self, model, y):
         self.model = model
         self.y = y
+        self.eye = numpy.eye(self.y.shape[-1])
 
     def jacobian(self, t):
         '''The Jacobian at (t, y(t)).'''
         return self.model.jacobian(t, self.y.loc[t])
 
-    def step(self, t_cur, phi_cur, t_new, phi_new):
+    def step(self, t_cur, Phi_cur, t_new):
         '''Crank–Nicolson step.'''
         # The Crank–Nicolson scheme is
-        # (phi_new - phi_cur) / t_step
-        # = (J(t_new) @ phi_new + J(t_cur) @ phi_cur) / 2.
+        # (Phi_new - Phi_cur) / t_step
+        # = (J(t_new) @ Phi_new + J(t_cur) @ Phi_cur) / 2.
         # Define
         # IJ0 = I - t_step / 2 * J(t_new),
         # and
-        # IJphi1 = [I + t_step / 2 * J(t_cur)] @ phi_cur,
+        # IJPhi1 = [I + t_step / 2 * J(t_cur)] @ Phi_cur,
         # so that
-        # IJ0 @ phi_new = IJphi1.
+        # IJ0 @ Phi_new = IJPhi1.
         t_step = t_new - t_cur
-        # `self.jacobian_val = self.jacobian(t_cur)` from the previous
-        # call of `_step()` (or from initialization in `solve()` in
-        # the first call of `_step()`).
-        self.IJphi1[:] = (self.eye + t_step / 2 * self.jacobian_val) @ phi_cur
-        # `self.jacobian_val` will get used again in the next call of
-        # `_step()`.
-        self.jacobian_val = self.jacobian(t_new)
-        self.IJ0[:] = self.eye - t_step / 2 * self.jacobian_val
-        phi_new[:] = scipy.linalg.solve(self.IJ0, self.IJphi1,
-                                        overwrite_a=True,
-                                        overwrite_b=True)
+        IJPhi1 = (self.eye + t_step / 2 * self.jacobian(t_cur)) @ Phi_cur
+        IJ0 = self.eye - t_step / 2 * self.jacobian(t_new)
+        return scipy.linalg.solve(IJ0, IJPhi1,
+                                  overwrite_a=True,
+                                  overwrite_b=True)
 
     def solve(self):
         '''Solve.'''
         t = self.y.index
-        n = self.y.shape[-1]
-        phi = numpy.empty((len(t), n, n))
-        phi[0] = self.eye = numpy.eye(n)
-        # Initialize temporary storage used in `step()`.
-        self.IJ0 = numpy.empty((n, n))
-        self.IJphi1 = numpy.empty((n, n))
-        self.jacobian_val = self.jacobian(t[0])
+        Phi = numpy.empty((len(t), ) + self.eye.shape)
+        Phi[0] = self.eye
         for k in range(1, len(t)):
-            self.step(t[k - 1], phi[k - 1], t[k], phi[k])
-        return phi
+            Phi[k] = self.step(t[k - 1], Phi[k - 1], t[k])
+        return Phi
 
 
 def solution(model, y):
     '''Solve for the fundamental solution.'''
-    return _VariationalSolver(model, y).solve()
+    solver = _Solver(model, y)
+    return solver.solve()

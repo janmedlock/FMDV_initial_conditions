@@ -3,7 +3,7 @@
 from . import _utility
 
 
-class Progression(_utility.WaitingTimeGamma):
+class Progression(_utility.waiting_time.Gamma):
     '''Progression for exposed to infectious.'''
 
     def __init__(self, parameters):
