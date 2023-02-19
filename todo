@@ -1,6 +1,6 @@
 * Unstructured model
-  * Rework `model.jacobian()` to use `model._solver` and automatic
-    differentiation
+  * Rework `model.jacobian()` to use `model._solver.step()` and
+    automatic differentiation from `_utility.autodiff`
     * `_equilibrium.eigenvalues()`
     * `_fundamental.solution()`
 

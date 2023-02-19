@@ -3,18 +3,16 @@
 import functools
 
 import numpy
-
 import torch.autograd.functional
 
 
-def jacobian(func):
-    '''Get the Jacobian matrix for the vector-valued `func`.'''
+def jacobian(func, vectorize=True):
+    '''For `func(t, y)`, get the Jacobian matrix with respect to `y`
+    at time `t`.'''
     def jac(t, y):
-        return numpy.stack(
-            torch.autograd.functional.jacobian(
-                functools.partial(func, t),
-                torch.tensor(y),
-                vectorize=True
-            )
-        )
+        func_y = functools.partial(func, t)
+        y_tensor = torch.tensor(y)
+        J = torch.autograd.functional.jacobian(func_y, y_tensor,
+                                               vectorize=vectorize)
+        return numpy.stack(J)
     return jac
