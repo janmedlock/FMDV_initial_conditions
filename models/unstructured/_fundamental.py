@@ -16,8 +16,10 @@ class _Solver:
         '''The Jacobian at (t, y(t)).'''
         return self.model.jacobian(t, self.y.loc[t])
 
-    def step(self, t_cur, Phi_cur, t_new):
+    def step(self, t_cur, Phi_cur, t_new, display=False):
         '''Crank–Nicolson step.'''
+        if display:
+            print(f'{t_new=}')
         # The Crank–Nicolson scheme is
         # (Phi_new - Phi_cur) / t_step
         # = (J(t_new) @ Phi_new + J(t_cur) @ Phi_cur) / 2.
@@ -34,17 +36,17 @@ class _Solver:
                                   overwrite_a=True,
                                   overwrite_b=True)
 
-    def solve(self):
+    def solve(self, display=False):
         '''Solve.'''
         t = self.y.index
         Phi = numpy.empty((len(t), ) + self.eye.shape)
         Phi[0] = self.eye
         for k in range(1, len(t)):
-            Phi[k] = self.step(t[k - 1], Phi[k - 1], t[k])
+            Phi[k] = self.step(t[k - 1], Phi[k - 1], t[k], display=display)
         return Phi
 
 
-def solution(model, y):
+def solution(model, y, display=False):
     '''Solve for the fundamental solution.'''
     solver = _Solver(model, y)
-    return solver.solve()
+    return solver.solve(display=display)

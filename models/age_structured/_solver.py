@@ -137,15 +137,17 @@ class Solver:
         HFBT0 = HFB0 - self.t_step / 2 * lambdaT0
         return HFBT0 @ y_new - HFBTy1
 
-    def step(self, t_cur, y_cur):
+    def step(self, t_cur, y_cur, display=False):
         '''Do a step.'''
+        if display:
+            t_new = t_cur + self.t_step
+            print(f'{t_new=}')
         t_mid = t_cur + 0.5 * self.t_step
         bB = self.model.birth.rate(t_mid) * self.B
         HFB0 = self.H0 - self.t_step / 2 * (self.F0 + bB)
         lambdaT1 = (self.beta @ y_cur) * self.T1
         HFBT1 = self.H1 + self.t_step / 2 * (self.F1 + lambdaT1 + bB)
         HFBTy1 = HFBT1 @ y_cur
-        print(f'{t_cur=}')
         result = scipy.optimize.root(
             self._objective, y_cur, args=(HFB0, HFBTy1),
             method='krylov',
@@ -156,7 +158,7 @@ class Solver:
         return y_new
 
     def solve(self, t_span, y_0,
-              t=None, y=None, _solution_wrap=True):
+              t=None, y=None, display=False, _solution_wrap=True):
         '''Solve. `y` is storage for the solution, which will be built if not
         provided. `_solution_wrap=False` skips wrapping the solution in
         `model.Solution()` for speed.'''
@@ -166,7 +168,7 @@ class Solver:
             y = numpy.empty((len(t), *numpy.shape(y_0)))
         y[0] = y_0
         for ell in range(1, len(t)):
-            y[ell] = self.step(t[ell - 1], y[ell - 1])
+            y[ell] = self.step(t[ell - 1], y[ell - 1], display=display)
         if _solution_wrap:
             return self.model.Solution(y, t)
         else:
@@ -174,8 +176,9 @@ class Solver:
 
 
 def solution(model, t_span, y_0,
-             t=None, y=None, _solution_wrap=True):
+             t=None, y=None, display=False, _solution_wrap=True):
     '''Solve the model.'''
     solver = Solver(model)
     return solver.solve(t_span, y_0,
-                        t=t, y=y, _solution_wrap=_solution_wrap)
+                        t=t, y=y, display=display,
+                        _solution_wrap=_solution_wrap)

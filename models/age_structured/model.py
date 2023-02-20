@@ -61,12 +61,14 @@ class Model(_model.Base):
         return self.initial_conditions_from_unstructured(Y, *args, **kwds)
 
     def solve(self, t_span,
-              y_start=None, t=None, y=None, _solution_wrap=True):
+              y_start=None, t=None, y=None, display=False,
+              _solution_wrap=True):
         '''Solve the ODEs.'''
         if y_start is None:
             y_start = self.build_initial_conditions()
         soln = self._solver.solve(t_span, y_start,
-                                  t=t, y=y, _solution_wrap=_solution_wrap)
+                                  t=t, y=y, display=display,
+                                  _solution_wrap=_solution_wrap)
         _utility.assert_nonnegative(soln)
         return soln
 

@@ -1,5 +1,7 @@
 '''Models of population size.'''
 
+import functools
+
 import numpy
 import scipy.optimize
 import scipy.sparse
@@ -64,15 +66,18 @@ class _Solver:
         self.F1 = self._Fq(1)
         self.B = self._B()
 
-    def step(self, t_cur, Phi_cur, birth_scaling):
+    def step(self, t_cur, Phi_cur, birth_scaling, display=False):
         '''Do a step of the solver.'''
+        if display:
+            t_new = t_cur + self.t_step
+            print(f'{t_new=}')
         t_mid = t_cur + self.t_step / 2
         bB = birth_scaling * self.birth.rate(t_mid) * self.B
         HFB0 = self.H0 - self.t_step / 2 * (self.F0 + bB)
         HFB1 = self.H1 + self.t_step / 2 * (self.F1 + bB)
         return scipy.sparse.linalg.spsolve(HFB0, HFB1 @ Phi_cur)
 
-    def monodromy(self, birth_scaling=1):
+    def monodromy(self, birth_scaling=1, display=False):
         '''Get the monodromy matrix Psi = Phi(T), where Phi is the
         fundmental solution and T is the period.'''
         if len(self.t) == 0:
@@ -85,12 +90,13 @@ class _Solver:
             # now the current value and what was the current value of
             # the solution will be storage space for the new value.
             (Phi_cur, Phi_new) = (Phi_new, Phi_cur)
-            Phi_new[:] = self.step(t_cur, Phi_cur, birth_scaling)
+            Phi_new[:] = self.step(t_cur, Phi_cur, birth_scaling,
+                                   display=display)
         return Phi_new
 
-    def population_growth_rate(self, birth_scaling):
+    def population_growth_rate(self, birth_scaling, display=False):
         '''Get the population growth rate.'''
-        Psi = self.monodromy(birth_scaling)
+        Psi = self.monodromy(birth_scaling, display=display)
         # Get the dominant Floquet multiplier.
         rho0 = _utility.get_dominant_eigen(Psi, which='LM',
                                            return_eigenvector=False)
@@ -99,8 +105,8 @@ class _Solver:
         mu0 = numpy.log(rho0) / self.period
         return mu0
 
-    def stable_age_density(self):
-        Psi = self.monodromy()
+    def stable_age_density(self, display=False):
+        Psi = self.monodromy(display=display)
         (_, v0) = _utility.get_dominant_eigen(Psi, which='LM',
                                               return_eigenvector=True)
         # Normalize `v0` in place so that its integral over a is 1.
@@ -108,26 +114,30 @@ class _Solver:
         return (self.a, v0)
 
 
-def birth_scaling_for_zero_population_growth(birth, death, *args, **kwds):
+def birth_scaling_for_zero_population_growth(birth, death,
+                                             *args, display=False, **kwds):
     '''Find the birth scaling that gives zero population growth rate.'''
     solver = _Solver(birth, death, *args, **kwds)
+    # Set the parameter `display`.
+    fcn = functools.partial(solver.population_growth_rate,
+                            display=display)
     # `_Solver.population_growth_rate()` is increasing in
     # `birth_scaling`. Find a starting bracket `(lower, upper)` with
     # `solver.population_growth_rate(upper) > 0` and
     # `solver.population_growth_rate(lower) < 0`.
     MULT = 2
     upper = 1  # Starting guess.
-    while solver.population_growth_rate(upper) < 0:
+    while fcn(upper) < 0:
         upper *= MULT
     lower = upper / MULT  # Starting guess.
-    while solver.population_growth_rate(lower) > 0:
+    while fcn(lower) > 0:
         (lower, upper) = (lower / MULT, lower)
-    scaling = scipy.optimize.brentq(solver.population_growth_rate,
-                                    lower, upper)
+    scaling = scipy.optimize.brentq(fcn, lower, upper)
     return scaling
 
 
-def stable_age_density(birth, death, *args, **kwds):
+def stable_age_density(birth, death,
+                       *args, display=False, **kwds):
     '''Find the stable age distribution.'''
     solver = _Solver(birth, death, *args, **kwds)
-    return solver.stable_age_density()
+    return solver.stable_age_density(display=display)
