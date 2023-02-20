@@ -13,7 +13,7 @@ from .. import _utility
 class Model(model.AgeIndependent):
     '''Unstructured model.'''
 
-    def __init__(self, t_step, **kwds):
+    def __init__(self, t_step=0.001, **kwds):
         super().__init__(**kwds)
         self.t_step = t_step
         self._solver = _solver.Solver(self)
