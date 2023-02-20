@@ -3,6 +3,21 @@
 import numpy
 
 
+class Identity:
+    '''`y` -> `y`.'''
+
+    def __init__(self, y):
+        pass
+
+    @staticmethod
+    def __call__(y):
+        return y
+
+    @staticmethod
+    def inverse(y):
+        return y
+
+
 class ConstantSum:
     '''Reduce the dimension of `y` by 1 using its sum.'''
 
