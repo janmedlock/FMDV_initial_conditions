@@ -3,10 +3,10 @@
 import numpy
 import pandas
 
-from . import _equilibrium
 from . import _limit_cycle
 from . import _solver
 from .. import model
+from .. import _equilibrium
 from .. import _utility
 
 
@@ -48,9 +48,9 @@ class Model(model.AgeIndependent):
         _utility.assert_nonnegative(soln)
         return soln
 
-    def find_equilibrium(self, y_0_guess, t=0):
+    def find_equilibrium(self, eql_guess, t=0):
         '''Find an equilibrium of the model.'''
-        eql = _equilibrium.find(self, y_0_guess, t)
+        eql = _equilibrium.find(self, eql_guess, t)
         _utility.assert_nonnegative(eql)
         return eql
 
@@ -58,9 +58,9 @@ class Model(model.AgeIndependent):
         '''Get the eigenvalues of the Jacobian.'''
         return _equilibrium.eigenvalues(self, 0, eql)
 
-    def find_limit_cycle(self, period_0, t_0, y_0_guess):
+    def find_limit_cycle(self, period_0, t_0, lcy_0_guess):
         '''Find a limit cycle of the model.'''
-        lcy = _limit_cycle.find_subharmonic(self, period_0, t_0, y_0_guess)
+        lcy = _limit_cycle.find_subharmonic(self, period_0, t_0, lcy_0_guess)
         _utility.assert_nonnegative(lcy)
         return lcy
 

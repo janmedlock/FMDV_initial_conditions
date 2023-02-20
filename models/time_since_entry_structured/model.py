@@ -5,6 +5,7 @@ import pandas
 
 from . import _solver
 from .. import model
+from .. import _equilibrium
 from .. import _utility
 
 
@@ -80,3 +81,11 @@ class Model(model.AgeIndependent):
                                   t=t, y=y, _solution_wrap=_solution_wrap)
         _utility.assert_nonnegative(soln)
         return soln
+
+    def find_equilibrium(self, eql_guess, t=0, **kwds):
+        '''Find an equilibrium of the model.'''
+        if not 'method' in kwds:
+            kwds['method'] = 'krylov'
+        eql = _equilibrium.find(self, eql_guess, t, **kwds)
+        _utility.assert_nonnegative(eql)
+        return eql

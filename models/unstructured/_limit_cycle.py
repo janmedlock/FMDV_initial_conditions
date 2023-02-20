@@ -20,8 +20,8 @@ def find_with_period(model, period, t_0, y_0_guess,
     poincaré_map = _poincaré.Map(model, period, t_0)
     # Storage for intermediate y values.
     y = poincaré_map.build_y(y_0_guess)
-    # Find a fixed point `y_0` of the Poincaré map, i.e. that gives
-    # `y(t_0 + period) = y_0`, while keeping `y_0.sum()` constant.
+    # Find a fixed point `lcy_0` of the Poincaré map, i.e. that gives
+    # `y(t_0 + period) = lcy_0`, while keeping `y_0.sum()` constant.
     transform = _utility.transform.ConstantSum(y_0_guess)
     result = scipy.optimize.root(_objective, transform(y_0_guess),
                                  args=(poincaré_map, transform, y))
