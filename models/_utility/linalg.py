@@ -61,10 +61,12 @@ def is_nonpositive(arr):
 
 def is_Z_matrix(arr):
     '''Check whether `arr` is a Z-matrix.'''
-    # Set the diagonal to 0 then check whether the rest are nonpositive.
-    arr = arr.copy()
+    # Copy `arr`, then set the diagonal to 0 and check whether the
+    # rest are nonpositive.
     if isinstance(arr, scipy.sparse.spmatrix):
         arr = arr.tolil()
+    else:
+        arr = arr.copy()
     diag = numpy.diag_indices_from(arr)
     arr[diag] = 0
     return is_nonpositive(arr)
