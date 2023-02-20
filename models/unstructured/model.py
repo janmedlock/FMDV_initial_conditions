@@ -5,12 +5,12 @@ import pandas
 
 from . import _limit_cycle
 from . import _solver
-from .. import model
 from .. import _equilibrium
+from .. import _model
 from .. import _utility
 
 
-class Model(model.AgeIndependent):
+class Model(_model.AgeIndependent):
     '''Unstructured model.'''
 
     def __init__(self, t_step=0.001, **kwds):

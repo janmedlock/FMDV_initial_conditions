@@ -3,7 +3,7 @@
 import numpy
 import scipy.optimize
 
-from .. import _utility
+from . import _utility
 
 
 def _objective(x, solver, transform, t):

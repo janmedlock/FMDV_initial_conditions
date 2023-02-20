@@ -4,12 +4,12 @@ import numpy
 import pandas
 
 from . import _solver
-from .. import model
+from .. import _model
 from .. import _equilibrium
 from .. import _utility
 
 
-class Model(model.AgeIndependent):
+class Model(_model.AgeIndependent):
     '''Time-since-entry-structured model.'''
 
     states_with_z = ['maternal_immunity', 'exposed', 'infectious']

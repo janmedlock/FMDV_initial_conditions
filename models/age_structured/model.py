@@ -4,13 +4,13 @@ import numpy
 import pandas
 
 from . import _solver
-from .. import model
 from .. import _equilibrium
+from .. import _model
 from .. import _population
 from .. import _utility
 
 
-class Model(model.Base):
+class Model(_model.Base):
     '''Age-structured model.'''
 
     def __init__(self, a_step=0.001, a_max=25, **kwds):
