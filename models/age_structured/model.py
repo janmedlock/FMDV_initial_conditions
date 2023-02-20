@@ -37,19 +37,27 @@ class Model(model.Base):
         # Interpolate the logarithm of `v0` to `self.a`.
         assert numpy.all(v0 > 0)
         logn = numpy.interp(self.a, a, numpy.log(v0))
-        return numpy.exp(logn)
+        n = numpy.exp(logn)
+        # Normalize to integrate to 1.
+        n /= n.sum() * self.a_step
+        return n
+
+    def initial_conditions_from_unstructured(self, Y, *args, **kwds):
+        '''Build initial conditions from the unstructured `Y`.'''
+        n = self.stable_age_density(*args, **kwds)
+        # [X * n for X in Y] stacked in one big vector.
+        return numpy.kron(Y, n)
 
     def build_initial_conditions(self, *args, **kwds):
         '''Build the initial conditions.'''
         # Totals over age in each immune state.
-        M_bar = 0
-        E_bar = 0
-        I_bar = 0.01
-        R_bar = 0
-        S_bar = 1 - M_bar - E_bar - I_bar - R_bar
-        N = self.stable_age_density(*args, **kwds)
-        # X_bar * N then stacked in one big vector.
-        return numpy.kron((M_bar, S_bar, E_bar, I_bar, R_bar), N)
+        M = 0
+        E = 0
+        I = 0.01
+        R = 0
+        S = 1 - M - E - I - R
+        Y = (M, S, E, I, R)
+        return self.initial_conditions_from_unstructured(Y, *args, **kwds)
 
     def solve(self, t_span,
               y_start=None, t=None, y=None, _solution_wrap=True):

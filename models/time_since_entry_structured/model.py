@@ -57,6 +57,20 @@ class Model(model.AgeIndependent):
         (m, e, i) = numpy.outer((M_bar, E_bar, I_bar), n)
         return numpy.hstack((m, S, e, i, R))
 
+    def _survival_scaled(self, waiting_time):
+        survival = waiting_time.survival(self.z)
+        # Scale to integrate to 1.
+        total = survival.sum() * self.z_step
+        return survival / total
+
+    def initial_conditions_from_unstructured(self, Y):
+        '''Build initial conditions from the unstructured `Y`.'''
+        (M, S, E, I, R) = Y
+        m = M * self._survival_scaled(self.waning)
+        e = E * self._survival_scaled(self.progression)
+        i = I * self._survival_scaled(self.recovery)
+        return numpy.hstack((m, S, e, i, R))
+
     def solve(self, t_span,
               y_start=None, t=None, y=None, _solution_wrap=True):
         '''Solve the ODEs.'''
