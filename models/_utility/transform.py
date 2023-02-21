@@ -48,12 +48,10 @@ class ConstantSum:
         return cls(scale=scale, weights=weights)
 
     def __call__(self, y):
-        numerical.assert_nonnegative(y)
         x = y[:-1]
         return x
 
     def inverse(self, x):
-        numerical.assert_nonnegative(x)
         try:
             weights_end = self.weights[-1]
         except IndexError:
@@ -64,5 +62,4 @@ class ConstantSum:
             y[-1] = (self.scale - total) / weights_end
         else:
             y *= self.scale / total
-        numerical.assert_nonnegative(y)
         return y
