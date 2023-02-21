@@ -84,10 +84,19 @@ class Model(_model.AgeIndependent):
         _utility.assert_nonnegative(soln)
         return soln
 
+    def _get_weights(self):
+        K = len(self.z)
+        z_steps = self.z_step * numpy.ones(K)
+        w_state = [z_steps if state in self.states_with_z else 1
+                   for state in self.states]
+        return numpy.hstack(w_state)
+
     def find_equilibrium(self, eql_guess, t=0, **kwds):
         '''Find an equilibrium of the model.'''
         if not 'method' in kwds:
             kwds['method'] = 'krylov'
-        eql = _equilibrium.find(self, eql_guess, t, **kwds)
+        weights = self._get_weights()
+        eql = _equilibrium.find(self, eql_guess, t,
+                                weights=weights, **kwds)
         _utility.assert_nonnegative(eql)
         return eql

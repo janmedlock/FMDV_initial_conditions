@@ -12,10 +12,11 @@ def _objective(x, solver, transform, t):
     return transform(y_new) - x
 
 
-def find(model, y_guess, t, **kwds):
+def find(model, y_guess, t, weights=1, **kwds):
     '''Find an equilibrium.'''
     # Find an equilibirium `y` while keeping `y.sum()` constant.
-    transform = _utility.transform.ConstantSum(y_guess)
+    scale = (y_guess * weights).sum()
+    transform = _utility.transform.Simplex(scale, weights=weights)
     result = scipy.optimize.root(_objective, transform(y_guess),
                                  args=(model._solver, transform, t),
                                  **kwds)

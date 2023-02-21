@@ -4,12 +4,12 @@
     * `_fundamental.solution()`
 
 * Time-since-entry model
-  * Bootstrap an equilibrium from the unstructured model
-    * Use survival function to fill out new dimension
+  * Jacobian
 
 * Age-structured model
   * Bootstrap an equilibrium from the unstructured model
     * Use survival function to fill out new dimension
+  * Jacobian
 
 * Combination model
   * Write numerical method as linear algebra

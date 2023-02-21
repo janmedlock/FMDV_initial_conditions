@@ -76,6 +76,8 @@ class Model(_model.Base):
         '''Find an equilibrium of the model.'''
         if not 'method' in kwds:
             kwds['method'] = 'krylov'
-        eql = _equilibrium.find(self, eql_guess, t, **kwds)
+        weights = self.a_step
+        eql = _equilibrium.find(self, eql_guess, t,
+                                weights=weights, **kwds)
         _utility.assert_nonnegative(eql)
         return eql

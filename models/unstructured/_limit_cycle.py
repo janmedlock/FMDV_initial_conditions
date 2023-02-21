@@ -15,16 +15,18 @@ def _objective(x, poincaré_map, transform, y):
 
 
 def find_with_period(model, period, t_0, y_0_guess,
-                     _solution_wrap=True):
+                     weights=1, _solution_wrap=True, **kwds):
     '''Find a limit cycle with period `period`.'''
     poincaré_map = _poincaré.Map(model, period, t_0)
     # Storage for intermediate y values.
     y = poincaré_map.build_y(y_0_guess)
     # Find a fixed point `lcy_0` of the Poincaré map, i.e. that gives
     # `y(t_0 + period) = lcy_0`, while keeping `y_0.sum()` constant.
-    transform = _utility.transform.ConstantSum(y_0_guess)
+    scale = (y_0_guess * weights).sum()
+    transform = _utility.transform.Simplex(scale, weights=weights)
     result = scipy.optimize.root(_objective, transform(y_0_guess),
-                                 args=(poincaré_map, transform, y))
+                                 args=(poincaré_map, transform, y),
+                                 **kwds)
     assert result.success, result
     y_0 = transform.inverse(result.x)
     # Return the solution at the `t` values, not just at the end time.
@@ -32,14 +34,17 @@ def find_with_period(model, period, t_0, y_0_guess,
 
 
 def find_subharmonic(model, period_0, t_0, y_0_guess,
-                     order_max=10, _solution_wrap=True):
+                     order_max=10, weights=1,
+                     _solution_wrap=True, **kwds):
     '''Find a subharmonic limit cycle for a system with forcing period
     `period_0`.'''
     for order in numpy.arange(1, order_max + 1):
         try:
             return find_with_period(model, order * period_0,
                                     t_0, y_0_guess,
-                                    _solution_wrap=_solution_wrap)
+                                    weights=weights,
+                                    _solution_wrap=_solution_wrap,
+                                    **kwds)
         except RuntimeError:
             pass
     msg = f'No subharmonic limit cycle found with order <= {order_max}'
