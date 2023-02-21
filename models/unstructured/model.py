@@ -50,9 +50,9 @@ class Model(_model.AgeIndependent):
         _utility.assert_nonnegative(soln)
         return soln
 
-    def find_equilibrium(self, eql_guess, t=0):
+    def find_equilibrium(self, eql_guess, t=0, **root_kwds):
         '''Find an equilibrium of the model.'''
-        eql = _equilibrium.find(self, eql_guess, t)
+        eql = _equilibrium.find(self, eql_guess, t, **root_kwds)
         _utility.assert_nonnegative(eql)
         return eql
 
@@ -60,9 +60,10 @@ class Model(_model.AgeIndependent):
         '''Get the eigenvalues of the Jacobian.'''
         return _equilibrium.eigenvalues(self, 0, eql)
 
-    def find_limit_cycle(self, period_0, t_0, lcy_0_guess):
+    def find_limit_cycle(self, period_0, t_0, lcy_0_guess, **root_kwds):
         '''Find a limit cycle of the model.'''
-        lcy = _limit_cycle.find_subharmonic(self, period_0, t_0, lcy_0_guess)
+        lcy = _limit_cycle.find_subharmonic(self, period_0, t_0, lcy_0_guess,
+                                            **root_kwds)
         _utility.assert_nonnegative(lcy)
         return lcy
 

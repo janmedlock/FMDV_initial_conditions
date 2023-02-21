@@ -72,12 +72,12 @@ class Model(_model.Base):
         _utility.assert_nonnegative(soln)
         return soln
 
-    def find_equilibrium(self, eql_guess, t=0, **kwds):
+    def find_equilibrium(self, eql_guess, t=0, **root_kwds):
         '''Find an equilibrium of the model.'''
-        if not 'method' in kwds:
-            kwds['method'] = 'krylov'
+        if not 'method' in root_kwds:
+            root_kwds['method'] = 'krylov'
         weights = self.a_step
         eql = _equilibrium.find(self, eql_guess, t,
-                                weights=weights, **kwds)
+                                weights=weights, **root_kwds)
         _utility.assert_nonnegative(eql)
         return eql
