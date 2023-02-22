@@ -3,8 +3,6 @@
 import numpy
 import scipy.special
 
-from . import numerical
-
 
 class Identity:
     '''`y` -> `y`.'''
