@@ -21,9 +21,11 @@ class Identity:
 class Logarithm:
     '''`y` -> `log(y)`.'''
 
-    @staticmethod
-    def __call__(y):
-        return numpy.log(y)
+    def __init__(self, shift=1e-8):
+        self.shift = shift
+
+    def __call__(self, y):
+        return numpy.log(y + self.shift)
 
     @staticmethod
     def inverse(x):
@@ -40,16 +42,13 @@ class ConstantSum:
         assert numpy.all(weights > 0)
         self.weights = numpy.asarray(weights)
 
-    @classmethod
-    def from_y(cls, y, weights=1):
-        '''Use `y` to find `scale`.'''
-        numerical.assert_nonnegative(y)
-        scale = (y * weights).sum()
-        return cls(scale=scale, weights=weights)
-
-    def __call__(self, y):
+    @staticmethod
+    def __call__(y):
         x = y[:-1]
         return x
+
+    def total(self, y):
+        return (y * self.weights).sum()
 
     def inverse(self, x):
         try:
@@ -57,9 +56,57 @@ class ConstantSum:
         except IndexError:
             weights_end = self.weights
         y = numpy.hstack([x, 0])
-        total = (y * self.weights).sum()
+        total = self.total(y)
         if self.scale >= total:
             y[-1] = (self.scale - total) / weights_end
         else:
             y *= self.scale / total
         return y
+
+    @classmethod
+    def from_y(cls, y, *args, **kwds):
+        '''Use `y` to find `scale`.'''
+        self = cls(*args, **kwds)
+        self.scale = self.total(y)
+        return self
+
+
+class ConstantSumLogarithm:
+    '''Transform by dropping the last element and ensuring sum
+    weights_j y_j = `scale` and use the logarithm on the remaining
+    elements.'''
+
+    def __init__(self, scale=1, weights=1, shift=1e-8):
+        assert scale > 0
+        self.scale = scale
+        assert numpy.all(weights > 0)
+        self.weights = numpy.asarray(weights)
+        self.shift = shift
+
+    def total(self, y):
+        return (y * self.weights).sum()
+
+    def __call__(self, y):
+        y = numpy.asarray(y)
+        x = numpy.log(y[:-1] + self.shift)
+        return x
+
+    def inverse(self, x):
+        try:
+            weights_end = self.weights[-1]
+        except IndexError:
+            weights_end = self.weights
+        y = numpy.hstack([numpy.exp(x), 0])
+        total = self.total(y)
+        if self.scale >= total:
+            y[-1] = (self.scale - total) / weights_end
+        else:
+            y *= self.scale / total
+        return y
+
+    @classmethod
+    def from_y(cls, y, *args, **kwds):
+        '''Use `y` to find `scale`.'''
+        self = cls(*args, **kwds)
+        self.scale = self.total(y)
+        return self

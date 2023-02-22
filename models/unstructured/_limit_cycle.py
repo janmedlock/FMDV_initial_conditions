@@ -22,8 +22,8 @@ def find_with_period(model, period, t_0, y_0_guess,
     y = poincaré_map.build_y(y_0_guess)
     # Find a fixed point `lcy_0` of the Poincaré map, i.e. that gives
     # `y(t_0 + period) = lcy_0`, while keeping `y_0.dot(weights)` constant.
-    transform = _utility.transform.ConstantSum.from_y(y_0_guess,
-                                                      weights=weights)
+    transform = _utility.transform.ConstantSumLogarithm.from_y(y_0_guess,
+                                                               weights=weights)
     result = scipy.optimize.root(_objective, transform(y_0_guess),
                                  args=(poincaré_map, transform, y),
                                  **root_kwds)
