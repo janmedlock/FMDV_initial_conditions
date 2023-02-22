@@ -1,7 +1,7 @@
 * Unstructured model
-  * Rework `model.jacobian()`...
-    * `_equilibrium.eigenvalues()`
-    * `_fundamental.solution()`
+  * Rework `models.unstructured.model.jacobian()`...
+    * `models._equilibrium.eigenvalues()`
+    * `models.unstructured._fundamental.solution()`
 
 * Time-since-entry model
   * Jacobian
