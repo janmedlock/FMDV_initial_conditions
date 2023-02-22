@@ -79,5 +79,5 @@ class Model(_model.Base):
         weights = self.a_step
         eql = _equilibrium.find(self, eql_guess, t,
                                 weights=weights, **root_kwds)
-        _utility.assert_nonnegative(eql)
+        _utility.assert_nonnegative(eql * weights)
         return eql

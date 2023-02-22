@@ -6,22 +6,24 @@ import scipy.optimize
 from . import _utility
 
 
-def _objective(x, solver, transform, t):
-    y_cur = transform.inverse(x)
+def _objective(y_cur, solver, t, weights):
+    '''Helper for `find`.'''
     y_new = solver.step(t, y_cur)
-    return transform(y_new) - x
+    return (y_new - y_cur) * weights
 
 
 def find(model, y_guess, t, weights=1, **root_kwds):
-    '''Find an equilibrium.'''
-    # Find an equilibirium `y` while keeping `y.dot(weights)` constant.
-    transform = _utility.transform.ConstantSumLogarithm.from_y(y_guess,
-                                                               weights=weights)
-    result = scipy.optimize.root(_objective, transform(y_guess),
-                                 args=(model._solver, transform, t),
+    '''Find an equilibrium `y` while keeping
+    `weighted_sum(y, weights)` constant.'''
+    result = scipy.optimize.root(_objective, y_guess,
+                                 args=(model._solver, t, weights),
                                  **root_kwds)
     assert result.success, result
-    y = transform.inverse(result.x)
+    y = result.x
+    # Scale `y` so that `weighted_sum()` is the same as for
+    # `y_guess`.
+    y *= (_utility.weighted_sum(y_guess, weights)
+          / _utility.weighted_sum(y, weights))
     return model.Solution(y)
 
 

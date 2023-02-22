@@ -98,5 +98,5 @@ class Model(_model.AgeIndependent):
         weights = self._get_weights()
         eql = _equilibrium.find(self, eql_guess, t,
                                 weights=weights, **root_kwds)
-        _utility.assert_nonnegative(eql)
+        _utility.assert_nonnegative(eql * weights)
         return eql

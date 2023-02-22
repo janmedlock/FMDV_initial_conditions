@@ -19,11 +19,9 @@ class Identity:
 class Logarithm:
     '''`y` -> `log(y)`.'''
 
-    def __init__(self, shift=1e-8):
-        self.shift = shift
-
-    def __call__(self, y):
-        return numpy.log(y + self.shift)
+    @staticmethod
+    def __call__(y):
+        return numpy.log(y)
 
     @staticmethod
     def inverse(x):
@@ -31,8 +29,7 @@ class Logarithm:
 
 
 class ConstantSum:
-    '''Transform by dropping the last element and ensuring
-    sum weights_j y_j = `scale`.'''
+    '''Transform by appending sum weights_j y_j.'''
 
     def __init__(self, scale=1, weights=1):
         assert scale > 0
@@ -74,19 +71,18 @@ class ConstantSumLogarithm:
     weights_j y_j = `scale` and use the logarithm on the remaining
     elements.'''
 
-    def __init__(self, scale=1, weights=1, shift=1e-8):
+    def __init__(self, scale=1, weights=1):
         assert scale > 0
         self.scale = scale
         assert numpy.all(weights > 0)
         self.weights = numpy.asarray(weights)
-        self.shift = shift
 
     def total(self, y):
         return (y * self.weights).sum()
 
     def __call__(self, y):
         y = numpy.asarray(y)
-        x = numpy.log(y[:-1] + self.shift)
+        x = numpy.log(y[:-1])
         return x
 
     def inverse(self, x):

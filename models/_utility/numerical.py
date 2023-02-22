@@ -51,3 +51,8 @@ def rate_make_finite(rates):
                  .to_numpy()
     assert numpy.isfinite(rates).all()
     return rates
+
+
+def weighted_sum(y, weights):
+    '''`(y * weights).sum()`'''
+    return (y * weights).sum()
