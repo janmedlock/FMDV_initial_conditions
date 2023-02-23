@@ -3,104 +3,99 @@
 import numpy
 import scipy.special
 
+from .numerical import weighted_sum
+
 
 class Identity:
     '''`y` -> `y`.'''
 
     @staticmethod
     def __call__(y):
-        return y
+        x = y
+        return x
 
     @staticmethod
     def inverse(x):
-        return x
+        y = x
+        return y
 
 
 class Logarithm:
-    '''`y` -> `log(y)`.'''
+    '''`y` -> `log(y - a)`.'''
 
-    @staticmethod
-    def __call__(y):
-        return numpy.log(y)
-
-    @staticmethod
-    def inverse(x):
-        return numpy.exp(x)
-
-
-class ConstantSum:
-    '''Transform by appending sum weights_j y_j.'''
-
-    def __init__(self, scale=1, weights=1):
-        assert scale > 0
-        self.scale = scale
-        assert numpy.all(weights > 0)
-        self.weights = numpy.asarray(weights)
-
-    @staticmethod
-    def __call__(y):
-        x = y[:-1]
-        return x
-
-    def total(self, y):
-        return (y * self.weights).sum()
-
-    def inverse(self, x):
-        try:
-            weights_end = self.weights[-1]
-        except IndexError:
-            weights_end = self.weights
-        y = numpy.hstack([x, 0])
-        total = self.total(y)
-        if self.scale >= total:
-            y[-1] = (self.scale - total) / weights_end
-        else:
-            y *= self.scale / total
-        return y
-
-    @classmethod
-    def from_y(cls, y, *args, **kwds):
-        '''Use `y` to find `scale`.'''
-        self = cls(*args, **kwds)
-        self.scale = self.total(y)
-        return self
-
-
-class ConstantSumLogarithm:
-    '''Transform by dropping the last element and ensuring sum
-    weights_j y_j = `scale` and use the logarithm on the remaining
-    elements.'''
-
-    def __init__(self, scale=1, weights=1):
-        assert scale > 0
-        self.scale = scale
-        assert numpy.all(weights > 0)
-        self.weights = numpy.asarray(weights)
-
-    def total(self, y):
-        return (y * self.weights).sum()
+    def __init__(self, a=0, weights=1):
+        self.a = a
+        self.weights = weights
 
     def __call__(self, y):
-        y = numpy.asarray(y)
-        x = numpy.log(y[:-1])
+        z = y - self.a
+        x = numpy.log(z * self.weights)
         return x
 
     def inverse(self, x):
-        try:
-            weights_end = self.weights[-1]
-        except IndexError:
-            weights_end = self.weights
-        y = numpy.hstack([numpy.exp(x), 0])
-        total = self.total(y)
-        if self.scale >= total:
-            y[-1] = (self.scale - total) / weights_end
-        else:
-            y *= self.scale / total
+        z = numpy.exp(x) / self.weights
+        y = z + self.a
+        return z
+
+
+class Logit:
+    '''`y` -> `logit((y - a) / (b - a))`.'''
+
+    def __init__(self, a=0, b=1, weights=1):
+        self.a = a
+        self.b = b
+        self.weights = weights
+
+    def __call__(self, y):
+        z = (y - self.a) / (self.b - self.a)
+        x = scipy.special.logit(z * self.weights)
+        return x
+
+    def inverse(self, x):
+        z = scipy.special.expit(x) / self.weights
+        y = z * (self.b - self.a) + self.a
         return y
 
-    @classmethod
-    def from_y(cls, y, *args, **kwds):
-        '''Use `y` to find `scale`.'''
-        self = cls(*args, **kwds)
-        self.scale = self.total(y)
-        return self
+
+class Simplex:
+    '''Use simplex coordinates.'''
+
+    def __init__(self, weights=1):
+        self.weights = weights
+
+    @staticmethod
+    def _w_mid(K):
+        # The w values that map to x[k] = 0.
+        return 1 / numpy.arange(K, 1, -1)
+
+    def __call__(self, y):
+        K = len(y)
+        # `z` is on the unit simplex.
+        z = (y * self.weights) / weighted_sum(y, self.weights)
+        remainder = 1 - numpy.hstack([0, numpy.cumsum(z[:-1])])
+        assert (remainder >= 0).all()
+        w_mid = self._w_mid(K)
+        # w = z[:-1] / remainder[:-1]
+        # but if z[k] = remainder[k] = 0,
+        # use w[k] = w_mid[k] so that x[k] = 0.
+        num = z[:-1]
+        den = remainder[:-1]
+        zdz = (num == 0) & (den == 0)
+        num[zdz] = w_mid[zdz]
+        den[zdz] = 1
+        w = num / den
+        x = scipy.special.logit(w) - scipy.special.logit(w_mid)
+        return x
+
+    def inverse(self, x):
+        K = len(x) + 1
+        w_mid = self._w_mid(K)
+        w = scipy.special.expit(x + scipy.special.logit(w_mid))
+        z = numpy.empty(K)
+        remainder = 1
+        for k in range(K - 1):
+            z[k] = remainder * w[k]
+            remainder -= z[k]
+        z[-1] = remainder
+        y = z / self.weights
+        return y
