@@ -29,6 +29,7 @@ class _Solver:
         self.t = _utility.build_t(0, self.period, self.t_step)
         assert numpy.isclose(self.t[-1], self.period)
         self._build_matrices()
+        self._check_matrices()
 
     def _FqXW(self, q, pi):
         J = len(self.a)
@@ -65,6 +66,21 @@ class _Solver:
         self.F0 = self._Fq(0)
         self.F1 = self._Fq(1)
         self.B = self._B()
+
+    def _check_matrices(self):
+        assert _utility.is_Z_matrix(self.H0)
+        assert _utility.is_nonnegative(self.H1)
+        assert _utility.is_Metzler_matrix(self.F0)
+        assert _utility.is_Metzler_matrix(self.B)
+        assert _utility.is_nonnegative(self.B)
+        HFB0 = (self.H0
+                - self.t_step / 2 * (self.F0
+                                     + self.birth.rate_max * self.B))
+        assert _utility.is_M_matrix(HFB0)
+        HFB1 = (self.H1
+                + self.t_step / 2 * (self.F1
+                                     + self.birth.rate_min * self.B))
+        assert _utility.is_nonnegative(HFB1)
 
     def step(self, t_cur, Phi_cur, birth_scaling, display=False):
         '''Do a step of the solver.'''
