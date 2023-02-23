@@ -9,29 +9,24 @@ class Map:
     '''A Poincaré map.'''
 
     def __init__(self, model, period, t_0):
-        self.model = model
-        t_step = self.model.t_step
+        self._solver = model._solver
         self.t_span = (t_0, t_0 + period)
-        self.t = _utility.build_t(*self.t_span, t_step)
-
-    def build_y(self, y_0):
-        '''Build storage for intermediate y values.'''
-        return numpy.empty((len(self.t), *numpy.shape(y_0)))
+        self.t = _utility.build_t(*self.t_span, model.t_step)
+        # Use an initial condition to determine the shape for
+        # `y_temp`.
+        y_start = model.build_initial_conditions()
+        self.y_temp = numpy.empty((2, *numpy.shape(y_start)))
 
     def solve(self, y_0, y=None, _solution_wrap=True):
         '''Get the solution y(t) over one period, not just at the end
         time.'''
-        return self.model._solver.solve(self.t_span, y_0,
-                                        t=self.t, y=y,
-                                        _solution_wrap=_solution_wrap)
+        return self._solver.solve(self.t_span, y_0,
+                                  t=self.t, y=y,
+                                  _solution_wrap=_solution_wrap)
 
-    def __call__(self, y_0, y=None, _solution_wrap=True):
-        '''Get the solution one period later.'''
-        if y is None:
-            y = self.build_y(y_0)
-        self.solve(y_0, y=y, _solution_wrap=False)
-        y_period = y[-1]
-        if _solution_wrap:
-            return self.model.Solution(y_period)
-        else:
-            return y_period
+    def __call__(self, y_0, _solution_wrap=True):
+        '''Get the solution at the end of one period.'''
+        return self._solver._solution_at_t_end(self.t_span, y_0,
+                                               t=self.t,
+                                               y_temp=self.y_temp,
+                                               _solution_wrap=_solution_wrap)

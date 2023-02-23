@@ -8,10 +8,10 @@ from . import _poincaré
 from .. import _utility
 
 
-def _objective(x, poincaré_map, transform, weights, y):
+def _objective(x, poincaré_map, transform, weights):
     '''Helper for `find_with_period`.'''
     y_0_cur = transform.inverse(x)
-    y_0_new = poincaré_map(y_0_cur, y=y, _solution_wrap=False)
+    y_0_new = poincaré_map(y_0_cur, _solution_wrap=False)
     diff = (y_0_new - y_0_cur) * weights
     return diff[:-1]
 
@@ -30,10 +30,8 @@ def find_with_period(model, period, t_0, y_0_guess,
     transform = _utility.transform.Simplex(weights=weights)
     # Clip `x_guess` away from infinity.
     x_guess = transform(y_0_guess).clip(-10, 10)
-    # Storage for intermediate y values.
-    y = poincaré_map.build_y(y_0_guess)
     result = scipy.optimize.root(_objective, x_guess,
-                                 args=(poincaré_map, transform, weights, y),
+                                 args=(poincaré_map, transform, weights),
                                  **root_kwds)
     assert result.success, result
     y_0 = transform.inverse(result.x)
@@ -42,7 +40,7 @@ def find_with_period(model, period, t_0, y_0_guess,
     y_0 *= (_utility.weighted_sum(y_0_guess, weights)
             / _utility.weighted_sum(y_0, weights))
     # Return the solution at the `t` values, not just at the end time.
-    return poincaré_map.solve(y_0, y=y, _solution_wrap=_solution_wrap)
+    return poincaré_map.solve(y_0, _solution_wrap=_solution_wrap)
 
 
 def find_subharmonic(model, period_0, t_0, y_0_guess,

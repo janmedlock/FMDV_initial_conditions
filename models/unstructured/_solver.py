@@ -125,6 +125,27 @@ class Solver:
         else:
             return y
 
+    def _solution_at_t_end(self, t_span, y_0,
+                           t=None, y_temp=None,
+                           _solution_wrap=True):
+        '''Find the value of the solution at `t_span[1]`.'''
+        if t is None:
+            t = _utility.build_t(*t_span, self.t_step)
+        if y_temp is None:
+            y_temp = numpy.empty((2, *numpy.shape(y_0)))
+        (y_cur, y_new) = y_temp
+        y_new[:] = y_0
+        for t_cur in t[:-1]:
+            # Update so that what was the new value of the solution is
+            # now the current value and what was the current value of
+            # the solution will be storage space for the new value.
+            (y_cur, y_new) = (y_new, y_cur)
+            y_new[:] = self.step(t_cur, y_cur)
+        if _solution_wrap:
+            return self.model.Solution(y_new, t)
+        else:
+            return y_new
+
 
 def solution(model, t_span, y_0,
              t=None, y=None, display=False, _solution_wrap=True):
