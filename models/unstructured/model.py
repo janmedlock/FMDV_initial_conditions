@@ -3,9 +3,9 @@
 import numpy
 import pandas
 
-from . import _limit_cycle
 from . import _solver
 from .. import _equilibrium
+from .. import _limit_cycle
 from .. import _model
 from .. import _utility
 

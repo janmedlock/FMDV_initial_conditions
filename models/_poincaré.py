@@ -2,7 +2,7 @@
 
 import numpy
 
-from .. import _utility
+from . import _utility
 
 
 class Map:

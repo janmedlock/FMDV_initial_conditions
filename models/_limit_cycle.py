@@ -5,7 +5,7 @@ import scipy.optimize
 
 from . import _fundamental
 from . import _poincaré
-from .. import _utility
+from . import _utility
 
 
 def _objective(y_0_cur, poincaré_map, weights):
