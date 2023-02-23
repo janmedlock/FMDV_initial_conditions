@@ -11,7 +11,7 @@ import models.unstructured
 
 if __name__ == '__main__':
     params = dict(birth_variation=0)
-    (t_start, t_end) = (0, 2)
+    (t_start, t_end) = (0, 10)
     plot_states = ['susceptible', 'infectious', 'recovered']
 
     model_us = models.unstructured.Model(**params)
