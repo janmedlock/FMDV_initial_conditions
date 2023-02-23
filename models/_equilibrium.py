@@ -27,7 +27,7 @@ def find(model, y_guess, t, weights=1, **root_kwds):
     # `y_guess`.
     y *= (_utility.weighted_sum(y_guess, weights)
           / _utility.weighted_sum(y, weights))
-    return model.Solution(y)
+    return y
 
 
 def eigenvalues(model, t, equilibrium):

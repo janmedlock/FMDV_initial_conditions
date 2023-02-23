@@ -10,14 +10,13 @@ from .. import _utility
 
 def _objective(y_0_cur, poincaré_map, weights):
     '''Helper for `find_with_period`.'''
-    y_0_new = poincaré_map(y_0_cur, _solution_wrap=False)
+    y_0_new = poincaré_map(y_0_cur)
     diff = (y_0_new - y_0_cur) * weights
     return diff
 
 
 def find_with_period(model, period, t_0, y_0_guess,
-                     weights=1, _solution_wrap=True,
-                     **root_kwds):
+                     weights=1, **root_kwds):
     '''Find a limit cycle with period `period` while keeping
     `weighted_sum(y_0, weights)` constant.'''
     # Find a fixed point `y_0` of the Poincaré map, i.e. that gives
@@ -35,12 +34,12 @@ def find_with_period(model, period, t_0, y_0_guess,
     y_0 *= (_utility.weighted_sum(y_0_guess, weights)
             / _utility.weighted_sum(y_0, weights))
     # Return the solution at the `t` values, not just at the end time.
-    return poincaré_map.solve(y_0, _solution_wrap=_solution_wrap)
+    return poincaré_map.solve(y_0)
 
 
 def find_subharmonic(model, period_0, t_0, y_0_guess,
                      order_max=10, weights=1,
-                     _solution_wrap=True, **root_kwds):
+                     **root_kwds):
     '''Find a subharmonic limit cycle for a system with forcing period
     `period_0`.'''
     for order in numpy.arange(1, order_max + 1):
@@ -48,7 +47,6 @@ def find_subharmonic(model, period_0, t_0, y_0_guess,
             return find_with_period(model, order * period_0,
                                     t_0, y_0_guess,
                                     weights=weights,
-                                    _solution_wrap=_solution_wrap,
                                     **root_kwds)
         except RuntimeError:
             pass

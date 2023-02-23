@@ -39,22 +39,20 @@ class Model(_model.AgeIndependent):
         return (M, S, E, I, R)
 
     def solve(self, t_span,
-              y_start=None, t=None, y=None, display=False,
-              _solution_wrap=True):
+              y_start=None, t=None, y=None, display=False):
         '''Solve the ODEs.'''
         if y_start is None:
             y_start = self.build_initial_conditions()
-        soln = self._solver.solve(t_span, y_start,
-                                  t=t, y=y, display=display,
-                                  _solution_wrap=_solution_wrap)
+        (t_, soln) = self._solver.solve(t_span, y_start,
+                                        t=t, y=y, display=display)
         _utility.assert_nonnegative(soln)
-        return soln
+        return self.Solution(soln, t_)
 
     def find_equilibrium(self, eql_guess, t=0, **root_kwds):
         '''Find an equilibrium of the model.'''
         eql = _equilibrium.find(self, eql_guess, t, **root_kwds)
         _utility.assert_nonnegative(eql)
-        return eql
+        return self.Solution(eql)
 
     def get_eigenvalues(self, eql):
         '''Get the eigenvalues of the Jacobian.'''
@@ -62,10 +60,11 @@ class Model(_model.AgeIndependent):
 
     def find_limit_cycle(self, period_0, t_0, lcy_0_guess, **root_kwds):
         '''Find a limit cycle of the model.'''
-        lcy = _limit_cycle.find_subharmonic(self, period_0, t_0, lcy_0_guess,
-                                            **root_kwds)
+        (t, lcy) = _limit_cycle.find_subharmonic(self, period_0, t_0,
+                                                 lcy_0_guess,
+                                                 **root_kwds)
         _utility.assert_nonnegative(lcy)
-        return lcy
+        return self.Solution(lcy, t)
 
     def get_characteristic_multipliers(self, lcy):
         '''Get the characteristic multipliers.'''

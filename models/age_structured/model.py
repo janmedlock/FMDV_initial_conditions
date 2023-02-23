@@ -61,16 +61,14 @@ class Model(_model.Base):
         return self.initial_conditions_from_unstructured(Y, *args, **kwds)
 
     def solve(self, t_span,
-              y_start=None, t=None, y=None, display=False,
-              _solution_wrap=True):
+              y_start=None, t=None, y=None, display=False):
         '''Solve the ODEs.'''
         if y_start is None:
             y_start = self.build_initial_conditions()
-        soln = self._solver.solve(t_span, y_start,
-                                  t=t, y=y, display=display,
-                                  _solution_wrap=_solution_wrap)
+        (t_, soln) = self._solver.solve(t_span, y_start,
+                                        t=t, y=y, display=display)
         _utility.assert_nonnegative(soln)
-        return soln
+        return self.Solution(soln, t_)
 
     def find_equilibrium(self, eql_guess, t=0, **root_kwds):
         '''Find an equilibrium of the model.'''
@@ -80,4 +78,4 @@ class Model(_model.Base):
         eql = _equilibrium.find(self, eql_guess, t,
                                 weights=weights, **root_kwds)
         _utility.assert_nonnegative(eql * weights)
-        return eql
+        return self.Solution(eql)

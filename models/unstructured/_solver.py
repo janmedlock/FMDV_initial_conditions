@@ -109,10 +109,9 @@ class Solver:
         return y_new
 
     def solve(self, t_span, y_0,
-              t=None, y=None, display=False, _solution_wrap=True):
-        '''Solve. `y` is storage for the solution, which will be built if not
-        provided. `_solution_wrap=False` skips wrapping the solution in
-        `model.Solution()` for speed.'''
+              t=None, y=None, display=False):
+        '''Solve. `y` is storage for the solution, which will be built
+        if not provided.'''
         if t is None:
             t = _utility.build_t(*t_span, self.t_step)
         if y is None:
@@ -120,14 +119,10 @@ class Solver:
         y[0] = y_0
         for ell in range(1, len(t)):
             y[ell] = self.step(t[ell - 1], y[ell - 1], display=display)
-        if _solution_wrap:
-            return self.model.Solution(y, t)
-        else:
-            return y
+        return (t, y)
 
     def _solution_at_t_end(self, t_span, y_0,
-                           t=None, y_temp=None,
-                           _solution_wrap=True):
+                           t=None, y_temp=None):
         '''Find the value of the solution at `t_span[1]`.'''
         if t is None:
             t = _utility.build_t(*t_span, self.t_step)
@@ -141,16 +136,12 @@ class Solver:
             # the solution will be storage space for the new value.
             (y_cur, y_new) = (y_new, y_cur)
             y_new[:] = self.step(t_cur, y_cur)
-        if _solution_wrap:
-            return self.model.Solution(y_new, t)
-        else:
-            return y_new
+        return y_new
 
 
-def solution(model, t_span, y_0,
-             t=None, y=None, display=False, _solution_wrap=True):
+def solve(model, t_span, y_0,
+          t=None, y=None, display=False):
     '''Solve the model.'''
     solver = Solver(model)
     return solver.solve(t_span, y_0,
-                        t=t, y=y, display=display,
-                        _solution_wrap=_solution_wrap)
+                        t=t, y=y, display=display)
