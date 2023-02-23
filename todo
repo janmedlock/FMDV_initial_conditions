@@ -1,8 +1,14 @@
 * Time-since-entry model
-  * Jacobian
+  * Write Jacobian code
+    * Look at equilibrium eigenvalues
+  * Implement limit-cycle solver
+    * Look at multipliers
 
 * Age-structured model
-  * Jacobian
+  * Write Jacobian code
+    * Look at equilibrium eigenvalues
+  * Implement limit-cycle solver
+    * Look at multipliers
 
 * Combination model
   * Write numerical method as linear algebra

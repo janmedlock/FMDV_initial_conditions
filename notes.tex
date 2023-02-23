@@ -248,7 +248,7 @@ Let
   Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
   we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
   \begin{multline}
-    \label{unstructured_step}
+    \label{step_unstructured}
     \left[
       \mat{H}
       - \frac{\Delta t}{2}
@@ -277,7 +277,7 @@ Let
 
 \paragraph{Jacobian}
 
-To find the Jacobian, we first differentiate \eqref{unstructured_step}
+To find the Jacobian, we first differentiate \eqref{step_unstructured}
 with respect to $\vec{x}^{\ell - 1}$:
 \begin{multline}
   \frac{\md}{\md \vec{x}^{\ell - 1}}
@@ -1221,6 +1221,7 @@ Let
   Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
   we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
   \begin{multline}
+    \label{step_age_structured}
     \left[
       \mat{H}_{\mathrm{new}}
       - \frac{\Delta t}{2}
@@ -1242,6 +1243,82 @@ Let
     \right] \vec{x}^{\ell - 1}.
   \end{multline}
 \end{subequations}
+
+
+\paragraph{Jacobian}
+
+To find the Jacobian, we first differentiate \eqref{step_age_structured}
+with respect to $\vec{x}^{\ell - 1}$:
+\begin{multline}
+  \frac{\md}{\md \vec{x}^{\ell - 1}}
+  \left\{
+    \left[
+      \mat{H}_{\mathrm{new}}
+      - \frac{\Delta t}{2}
+      \left(
+        \mat{F}_{\mathrm{new}}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right]
+    \vec{x}^{\ell}
+  \right\}
+  \\
+  = \frac{\md}{\md \vec{x}^{\ell - 1}}
+  \left\{
+    \left[
+      \mat{H}_{\mathrm{cur}}
+      + \frac{\Delta t}{2}
+      \left(
+        \mat{F}_{\mathrm{cur}}
+        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right]
+    \vec{x}^{\ell - 1}
+  \right\}
+\end{multline}
+which gives
+\begin{multline}
+  \left[
+    \mat{H}_{\mathrm{new}}
+    - \frac{\Delta t}{2}
+    \left(
+      \mat{F}_{\mathrm{new}}
+      + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
+      + \mat{T}_{\mathrm{new}} \vec{x}^{\ell} \vec{\beta}
+      + b^{\ell - 1 / 2} \mat{B}
+    \right)
+  \right]
+  \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
+  \\
+  = \mat{H}_{\mathrm{cur}}
+  + \frac{\Delta t}{2}
+  \left(
+    \mat{F}_{\mathrm{cur}}
+    + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
+    + \mat{T}_{\mathrm{cur}} \vec{x}^{\ell - 1} \vec{\beta}
+    + b^{\ell - 1 / 2} \mat{B}
+  \right),
+\end{multline}
+which, given $\vec{x}^{\ell}$
+and $\vec{x}^{\ell - 1}$
+we solve for $\frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}$.
+The Jacobian is then
+\begin{equation}
+  \begin{split}
+    \mat{J}\left(t^{\ell - 1}, \vec{x}^{\ell}, \vec{x}^{\ell - 1}\right)
+    &= \frac{\md}{\md \vec{x}^{\ell - 1}}
+    \left(
+      \frac{\vec{x}^{\ell} - \vec{x}^{\ell - 1}}{\Delta t}
+    \right)
+    \\
+    &= \frac{1}{\Delta t} \left(
+      \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
+      - \mat{I}
+    \right).
+  \end{split}
+\end{equation}
 
 
 \section{Time-since-entry-structured model}
@@ -1755,6 +1832,7 @@ Let
   Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
   we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
   \begin{multline}
+    \label{step_time_since_entry_structured}
     \left[
       \mat{H}_{\mathrm{new}}
       - \frac{\Delta t}{2}
@@ -1776,6 +1854,83 @@ Let
     \right] \vec{x}^{\ell - 1}.
   \end{multline}
 \end{subequations}
+
+
+\paragraph{Jacobian}
+
+To find the Jacobian, we first differentiate
+\eqref{step_time_since_entry_structured} with respect to
+$\vec{x}^{\ell - 1}$:
+\begin{multline}
+  \frac{\md}{\md \vec{x}^{\ell - 1}}
+  \left\{
+    \left[
+      \mat{H}_{\mathrm{new}}
+      - \frac{\Delta t}{2}
+      \left(
+        \mat{F}_{\mathrm{new}}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right]
+    \vec{x}^{\ell}
+  \right\}
+  \\
+  = \frac{\md}{\md \vec{x}^{\ell - 1}}
+  \left\{
+    \left[
+      \mat{H}_{\mathrm{cur}}
+      + \frac{\Delta t}{2}
+      \left(
+        \mat{F}_{\mathrm{cur}}
+        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right]
+    \vec{x}^{\ell - 1}
+  \right\}
+\end{multline}
+which gives
+\begin{multline}
+  \left[
+    \mat{H}_{\mathrm{new}}
+    - \frac{\Delta t}{2}
+    \left(
+      \mat{F}_{\mathrm{new}}
+      + \vec{\beta} \vec{x}^{\ell} \mat{T}
+      + \mat{T} \vec{x}^{\ell} \vec{\beta}
+      + b^{\ell - 1 / 2} \mat{B}
+    \right)
+  \right]
+  \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
+  \\
+  = \mat{H}_{\mathrm{cur}}
+  + \frac{\Delta t}{2}
+  \left(
+    \mat{F}_{\mathrm{cur}}
+    + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
+    + \mat{T} \vec{x}^{\ell - 1} \vec{\beta}
+    + b^{\ell - 1 / 2} \mat{B}
+  \right),
+\end{multline}
+which, given $\vec{x}^{\ell}$
+and $\vec{x}^{\ell - 1}$
+we solve for $\frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}$.
+The Jacobian is then
+\begin{equation}
+  \begin{split}
+    \mat{J}\left(t^{\ell - 1}, \vec{x}^{\ell}, \vec{x}^{\ell - 1}\right)
+    &= \frac{\md}{\md \vec{x}^{\ell - 1}}
+    \left(
+      \frac{\vec{x}^{\ell} - \vec{x}^{\ell - 1}}{\Delta t}
+    \right)
+    \\
+    &= \frac{1}{\Delta t} \left(
+      \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
+      - \mat{I}
+    \right).
+  \end{split}
+\end{equation}
 
 
 \section{Age- and time-since-entry-structured model}
