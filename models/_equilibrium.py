@@ -13,7 +13,7 @@ def _objective(y_cur, solver, t, weights):
     return diff
 
 
-def find(model, y_guess, t, weights=1, **root_kwds):
+def find(model, y_guess, t=0, weights=1, **root_kwds):
     '''Find an equilibrium `y` while keeping
     `weighted_sum(y, weights)` constant.'''
     # Ensure `y_guess` is nonnegative.
@@ -30,7 +30,8 @@ def find(model, y_guess, t, weights=1, **root_kwds):
     return y
 
 
-def eigenvalues(model, t, equilibrium):
+def eigenvalues(model, equilibrium, t=0):
     '''Get the eigenvalues of `equilibrium`.'''
-    evals = numpy.linalg.eigvals(model.jacobian(t, equilibrium))
+    jacobian = model._solver.jacobian(t, equilibrium, equilibrium)
+    evals = numpy.linalg.eigvals(jacobian)
     return _utility.sort_by_real_part(evals)

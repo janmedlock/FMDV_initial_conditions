@@ -248,6 +248,7 @@ Let
   Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
   we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
   \begin{multline}
+    \label{unstructured_step}
     \left[
       \mat{H}
       - \frac{\Delta t}{2}
@@ -272,6 +273,82 @@ Let
     \vec{x}^{\ell - 1}.
   \end{multline}
 \end{subequations}
+
+
+\paragraph{Jacobian}
+
+To find the Jacobian, we first differentiate \eqref{unstructured_step}
+with respect to $\vec{x}^{\ell - 1}$:
+\begin{multline}
+  \frac{\md}{\md \vec{x}^{\ell - 1}}
+  \left\{
+    \left[
+      \mat{H}
+      - \frac{\Delta t}{2}
+      \left(
+        \mat{F}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right]
+    \vec{x}^{\ell}
+  \right\}
+  \\
+  = \frac{\md}{\md \vec{x}^{\ell - 1}}
+  \left\{
+    \left[
+      \mat{H}
+      + \frac{\Delta t}{2}
+      \left(
+        \mat{F}
+        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right]
+    \vec{x}^{\ell - 1}
+  \right\}
+\end{multline}
+which gives
+\begin{multline}
+  \left[
+    \mat{H}
+    - \frac{\Delta t}{2}
+    \left(
+      \mat{F}
+      + \vec{\beta} \vec{x}^{\ell} \mat{T}
+      + \mat{T} \vec{x}^{\ell} \vec{\beta}
+      + b^{\ell - 1 / 2} \mat{B}
+    \right)
+  \right]
+  \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
+  \\
+  = \mat{H}
+  + \frac{\Delta t}{2}
+  \left(
+    \mat{F}
+    + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
+    + \mat{T} \vec{x}^{\ell - 1} \vec{\beta}
+    + b^{\ell - 1 / 2} \mat{B}
+  \right),
+\end{multline}
+which, given $\vec{x}^{\ell}$
+and $\vec{x}^{\ell - 1}$
+we solve for $\frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}$.
+The Jacobian is then
+\begin{equation}
+  \begin{split}
+    \mat{J}\left(t^{\ell - 1}, \vec{x}^{\ell}, \vec{x}^{\ell - 1}\right)
+    &= \frac{\md}{\md \vec{x}^{\ell - 1}}
+    \left(
+      \frac{\vec{x}^{\ell} - \vec{x}^{\ell - 1}}{\Delta t}
+    \right)
+    \\
+    &= \frac{1}{\Delta t} \left(
+      \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
+      - \mat{I}
+    \right).
+  \end{split}
+\end{equation}
 
 
 \section{Age-structured model}
@@ -572,7 +649,7 @@ Let
     \mat{\Phi}^{\ell}
     &= \left[\Phi_{j, k}^{\ell}\right],
     \\
-    \mat{H}_0 &=
+    \mat{H}_{\mathrm{new}} &=
     \begin{bmatrix}
       1 & 0 & \cdots & 0
       \\
@@ -583,7 +660,7 @@ Let
       0 & \cdots & 0 & 1
     \end{bmatrix},
     \\
-    \mat{H}_1 &=
+    \mat{H}_{\mathrm{cur}} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0
       \\
@@ -596,7 +673,7 @@ Let
       0 & \cdots & 0 & 1 & 1
     \end{bmatrix},
     \\
-    \mat{F}_0 &=
+    \mat{F}_{\mathrm{new}} &=
     \begin{bmatrix}
       - \mu_0 & 0 & \cdots & 0
       \\
@@ -607,7 +684,7 @@ Let
       0 & \cdots & 0 & - \mu_{J - 1}
     \end{bmatrix},
     \\
-    \mat{F}_1 &=
+    \mat{F}_{\mathrm{cur}} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0
       \\
@@ -630,27 +707,28 @@ Let
     \\
   \end{align}
   Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
-  \begin{equation}
+  \begin{multline}
     \left[
-      \mat{H}_0
+      \mat{H}_{\mathrm{new}}
       - \frac{\Delta t}{2}
       \left(
-        \mat{F}_0
+        \mat{F}_{\mathrm{new}}
         + b^{\ell - 1 / 2} \mat{B}
       \right)
     \right]
     \mat{\Phi}^{\ell}
+    \\
     =
     \left[
-      \mat{H}_1
+      \mat{H}_{\mathrm{cur}}
       + \frac{\Delta t}{2}
       \left(
-        \mat{F}_1
+        \mat{F}_{\mathrm{cur}}
         + b^{\ell - 1 / 2} \mat{B}
       \right)
     \right]
     \mat{\Phi}^{\ell - 1}.
-  \end{equation}
+  \end{multline}
 \end{subequations}
 
 Using this numerical scheme, we solved for the monodromy matrix, the
@@ -668,15 +746,15 @@ forward gives
 \begin{equation}
   \vec{n}(t_0 + m T)
   = \mat{\Psi}^m \vec{n}(t_0)
-  \to \rho_0^m \vec{w}_0
-  = \me^{r m T} \vec{w}_0
+  \to \rho_{\mathrm{dom}}^m \vec{w}_{\mathrm{dom}}
+  = \me^{r m T} \vec{w}_{\mathrm{dom}}
 \end{equation}
-as $m \to +\infty$, where $\rho_0$ is the dominant eigenvalue,
+as $m \to +\infty$, where $\rho_{\mathrm{dom}}$ is the dominant eigenvalue,
 i.e.~the eigenvalue with largest magnitude, of $\mat{\Psi}$;
-the corresponding right eigenvector $\vec{w}_0$ is the stable age
-distribution; and
+the corresponding right eigenvector $\vec{w}_{\mathrm{dom}}$ is the
+stable age distribution; and
 \begin{equation}
-  r = \frac{1}{T} \log \rho_0
+  r = \frac{1}{T} \log \rho_{\mathrm{dom}}
 \end{equation}
 is the asymptotic population growth rate.
 
@@ -1018,7 +1096,7 @@ Let
     \lambda^{\ell} &=
     \vec{\beta} \vec{x}^{\ell},
     \\
-    \mat{H}_{0, XX} &=
+    \mat{H}_{\mathrm{new}, \mathrm{XX}} &=
     \begin{bmatrix}
       1 & 0 & \cdots & 0 \\
       0 & 1 & \ddots & \vdots \\
@@ -1026,7 +1104,7 @@ Let
       0 & \cdots & 0 & 1
     \end{bmatrix},
     \\
-    \mat{H}_{1, XX} &=
+    \mat{H}_{\mathrm{cur}, \mathrm{XX}} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0 \\
       1 & \ddots & & \vdots & \vdots \\
@@ -1037,15 +1115,15 @@ Let
     \\
     \mat{H}_{q} &=
     \begin{bmatrix}
-      \mat{H}_{q, XX} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{H}_{q, XX} & \mat{0} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{0} & \mat{H}_{q, XX} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{q, XX} & \mat{0}
+      \mat{H}_{q, \mathrm{XX}} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{H}_{q, \mathrm{XX}} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{H}_{q, \mathrm{XX}} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{q, \mathrm{XX}} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{q, XX}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{q, \mathrm{XX}}
     \end{bmatrix},
     \\
-    \mat{F}_{0, XW}(\vec{\pi}) &=
+    \mat{F}_{\mathrm{new}, \mathrm{XW}}(\vec{\pi}) &=
     \begin{bmatrix}
       \pi_0 & 0 & \cdots & 0 \\
       0 & \pi_1 & \ddots & \vdots \\
@@ -1053,7 +1131,7 @@ Let
       0 & \cdots & 0 & \pi_{J - 1}
     \end{bmatrix},
     \\
-    \mat{F}_{1, XW}(\vec{\pi}) &=
+    \mat{F}_{\mathrm{cur}, \mathrm{XW}}(\vec{\pi}) &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0 \\
       \pi_0 & \ddots & & \vdots & \vdots \\
@@ -1064,24 +1142,24 @@ Let
     \\
     \mat{F}_q &=
     \begin{bmatrix}
-      \mat{F}_{q, XW}(- \omega - \vec{\mu}) & \mat{0}
+      \mat{F}_{q, \mathrm{XW}}(- \omega - \vec{\mu}) & \mat{0}
       & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{F}_{q, XW}(\omega) & \mat{F}_{q, XW}(- \vec{\mu})
+      \mat{F}_{q, \mathrm{XW}}(\omega) & \mat{F}_{q, \mathrm{XW}}(- \vec{\mu})
       & \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0}
-      & \mat{F}_{q, XW}(- \rho - \vec{\mu})
+      & \mat{F}_{q, \mathrm{XW}}(- \rho - \vec{\mu})
       & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{F}_{q, XW}(\rho)
-      & \mat{F}_{q, XW}(- \gamma - \vec{\mu}) & \mat{0}
+      \mat{0} & \mat{0} & \mat{F}_{q, \mathrm{XW}}(\rho)
+      & \mat{F}_{q, \mathrm{XW}}(- \gamma - \vec{\mu}) & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{F}_{q, XW}(\gamma)
-      & \mat{F}_{q, XW}(- \vec{\mu})
+      \mat{0} & \mat{0} & \mat{0} & \mat{F}_{q, \mathrm{XW}}(\gamma)
+      & \mat{F}_{q, \mathrm{XW}}(- \vec{\mu})
     \end{bmatrix},
     \\
-    \mat{T}_{0, XW} &=
+    \mat{T}_{\mathrm{new}, \mathrm{XW}} &=
     \begin{bmatrix}
       1 & 0 & \cdots & 0
       \\
@@ -1092,7 +1170,7 @@ Let
       0 & \cdots & 0 & 1
     \end{bmatrix},
     \\
-    \mat{T}_{1, XW} &=
+    \mat{T}_{\mathrm{cur}, \mathrm{XW}} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0
       \\
@@ -1109,16 +1187,16 @@ Let
     \begin{bmatrix}
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & - \mat{T}_{q, XW} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0} & - \mat{T}_{q, \mathrm{XW}} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{T}_{q, XW} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0} & \mat{T}_{q, \mathrm{XW}} & \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
     \end{bmatrix},
     \\
-    \mat{B}_{XW} &=
+    \mat{B}_{\mathrm{XW}} &=
     \begin{bmatrix}
       \nu_0 & \cdots & \nu_{J - 1} \\
       0 & \cdots & 0 \\
@@ -1128,9 +1206,10 @@ Let
     \\
     \mat{B} &=
     \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{XW}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{\mathrm{XW}}
       \\
-      \mat{B}_{XW} & \mat{B}_{XW} & \mat{B}_{XW} & \mat{B}_{XW} & \mat{0}
+      \mat{B}_{\mathrm{XW}} & \mat{B}_{\mathrm{XW}} & \mat{B}_{\mathrm{XW}}
+      & \mat{B}_{\mathrm{XW}} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
@@ -1143,21 +1222,21 @@ Let
   we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
   \begin{multline}
     \left[
-      \mat{H}_0
+      \mat{H}_{\mathrm{new}}
       - \frac{\Delta t}{2}
       \left(
-        \mat{F}_0
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}_0
+        \mat{F}_{\mathrm{new}}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
         + b^{\ell - 1 / 2} \mat{B}
       \right)
     \right] \vec{x}^{\ell}
     \\
     = \left[
-      \mat{H}_1
+      \mat{H}_{\mathrm{cur}}
       + \frac{\Delta t}{2}
       \left(
-        \mat{F}_1
-        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_1
+        \mat{F}_{\mathrm{cur}}
+        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
         + b^{\ell - 1 / 2} \mat{B}
       \right)
     \right] \vec{x}^{\ell - 1}.
@@ -1555,7 +1634,7 @@ Let
     \lambda^{\ell} &=
     \vec{\beta} \vec{x}^{\ell},
     \\
-    \mat{H}_{0, yy} &=
+    \mat{H}_{\mathrm{new}, \mathrm{yy}} &=
     \begin{bmatrix}
       1 & 0 & \cdots & 0 \\
       0 & 1 & \ddots & \vdots \\
@@ -1563,7 +1642,7 @@ Let
       0 & \cdots & 0 & 1
     \end{bmatrix},
     \\
-    \mat{H}_{1, yy} &=
+    \mat{H}_{\mathrm{cur}, \mathrm{yy}} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0 \\
       1 & \ddots & & \vdots & \vdots \\
@@ -1574,15 +1653,15 @@ Let
     \\
     \mat{H}_{q} &=
     \begin{bmatrix}
-      \mat{H}_{q, yy} & \vec{0} & \mat{0} & \mat{0} & \vec{0} \\
+      \mat{H}_{q, \mathrm{yy}} & \vec{0} & \mat{0} & \mat{0} & \vec{0} \\
       \vec{0} & 1 & \vec{0} & \vec{0} & 0 \\
-      \mat{0} & \vec{0} & \mat{H}_{q, yy} & \mat{0} & \vec{0} \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{H}_{q, yy} & \vec{0}
+      \mat{0} & \vec{0} & \mat{H}_{q, \mathrm{yy}} & \mat{0} & \vec{0} \\
+      \mat{0} & \vec{0} & \mat{0} & \mat{H}_{q, \mathrm{yy}} & \vec{0}
       \\
       \vec{0} & 0 & \vec{0} & \vec{0} & 1
     \end{bmatrix},
     \\
-    \mat{F}_{0, yy}(\vec{\xi}) &=
+    \mat{F}_{\mathrm{new}, \mathrm{yy}}(\vec{\xi}) &=
     \begin{bmatrix}
       \xi_0 & 0 & \cdots & 0 \\
       0 & \xi_1 & \ddots & \vdots \\
@@ -1590,7 +1669,7 @@ Let
       0 & \cdots & 0 & \xi_{K - 1}
     \end{bmatrix},
     \\
-    \mat{F}_{1, yy}(\vec{\xi}) &=
+    \mat{F}_{\mathrm{cur}, \mathrm{yy}}(\vec{\xi}) &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0 \\
       \xi_0 & \ddots & & \vdots & \vdots \\
@@ -1599,7 +1678,7 @@ Let
       0 & \cdots & 0 & \xi_{K - 2} & \xi_{K - 1}
     \end{bmatrix},
     \\
-    \mat{F}_{yz}(\vec{\xi}) &=
+    \mat{F}_{\mathrm{yz}}(\vec{\xi}) &=
     \begin{bmatrix}
       \xi_0 & \cdots & \xi_{K - 1} \\
       0 & \cdots & 0 \\
@@ -1607,7 +1686,7 @@ Let
       0 & \cdots & 0
     \end{bmatrix},
     \\
-    \vec{f}_{Xy}(\vec{\xi}) &=
+    \vec{f}_{\mathrm{Xy}}(\vec{\xi}) &=
     \Delta t
     \begin{bmatrix}
       \xi_0 & \cdots & \xi_{K - 1}
@@ -1615,21 +1694,21 @@ Let
     \\
     \mat{F}_q &=
     \begin{bmatrix}
-      \mat{F}_{q, yy}(- \vec{\omega} - \mu) & \vec{0} & \mat{0} & \mat{0}
-      & \vec{0}
-      \\
-      \vec{f}_{Xy}(\vec{\omega}) & - \mu & \vec{0} & \vec{0} & 0
-      \\
-      \mat{0} & \vec{0} & \mat{F}_{q, yy}(- \vec{\rho} - \mu)
+      \mat{F}_{q, \mathrm{yy}}(- \vec{\omega} - \mu) & \vec{0} & \mat{0}
       & \mat{0} & \vec{0}
       \\
-      \mat{0} & \vec{0} & \mat{F}_{yz}(\vec{\rho})
-      & \mat{F}_{q, yy}(- \vec{\gamma} - \mu) & \vec{0}
+      \vec{f}_{\mathrm{Xy}}(\vec{\omega}) & - \mu & \vec{0} & \vec{0} & 0
       \\
-      \vec{0} & 0 & \vec{0} & \vec{f}_{Xy}(\vec{\gamma}) & - \mu
+      \mat{0} & \vec{0} & \mat{F}_{q, \mathrm{yy}}(- \vec{\rho} - \mu)
+      & \mat{0} & \vec{0}
+      \\
+      \mat{0} & \vec{0} & \mat{F}_{\mathrm{yz}}(\vec{\rho})
+      & \mat{F}_{q, \mathrm{yy}}(- \vec{\gamma} - \mu) & \vec{0}
+      \\
+      \vec{0} & 0 & \vec{0} & \vec{f}_{\mathrm{Xy}}(\vec{\gamma}) & - \mu
     \end{bmatrix},
     \\
-    \vec{t}_{yX} &=
+    \vec{t}_{\mathrm{yX}} &=
     \frac{1}{\Delta t}
     \begin{bmatrix}
       1 \\ 0 \\ \vdots \\ 0
@@ -1641,20 +1720,20 @@ Let
       \\
       \vec{0} & - 1 & \vec{0} & \vec{0} & 0
       \\
-      \mat{0} & \vec{t}_{yX} & \mat{0} & \mat{0} & \vec{0}
+      \mat{0} & \vec{t}_{\mathrm{yX}} & \mat{0} & \mat{0} & \vec{0}
       \\
       \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
       \vec{0} & 0 & \vec{0} & \vec{0} & 0
     \end{bmatrix},
     \\
-    \vec{b}_{yX} &=
+    \vec{b}_{\mathrm{yX}} &=
     \frac{1}{\Delta t}
     \begin{bmatrix}
       1 \\ 0 \\ \vdots \\ 0
     \end{bmatrix},
     \\
-    \vec{b}_{Xy} &=
+    \vec{b}_{\mathrm{Xy}} &=
     \Delta t
     \begin{bmatrix}
       1 & \cdots & 1
@@ -1662,9 +1741,9 @@ Let
     \\
     \mat{B} &=
     \begin{bmatrix}
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{b}_{yX}
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{b}_{\mathrm{yX}}
       \\
-      \vec{b}_{Xy} & 1 & \vec{b}_{Xy} & \vec{b}_{Xy} & 0
+      \vec{b}_{\mathrm{Xy}} & 1 & \vec{b}_{\mathrm{Xy}} & \vec{b}_{\mathrm{Xy}} & 0
       \\
       \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
@@ -1677,20 +1756,20 @@ Let
   we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
   \begin{multline}
     \left[
-      \mat{H}_0
+      \mat{H}_{\mathrm{new}}
       - \frac{\Delta t}{2}
       \left(
-        \mat{F}_0
+        \mat{F}_{\mathrm{new}}
         + \vec{\beta} \vec{x}^{\ell} \mat{T}
         + b^{\ell - 1 / 2} \mat{B}
       \right)
     \right] \vec{x}^{\ell}
     \\
     = \left[
-      \mat{H}_1
+      \mat{H}_{\mathrm{cur}}
       + \frac{\Delta t}{2}
       \left(
-        \mat{F}_1
+        \mat{F}_{\mathrm{cur}}
         + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
         + b^{\ell - 1 / 2} \mat{B}
       \right)

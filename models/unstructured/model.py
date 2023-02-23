@@ -54,9 +54,9 @@ class Model(_model.AgeIndependent):
         _utility.assert_nonnegative(eql)
         return self.Solution(eql)
 
-    def get_eigenvalues(self, eql):
+    def get_eigenvalues(self, eql, t=0):
         '''Get the eigenvalues of the Jacobian.'''
-        return _equilibrium.eigenvalues(self, 0, eql)
+        return _equilibrium.eigenvalues(self, eql, t)
 
     def find_limit_cycle(self, period_0, t_0, lcy_0_guess, **root_kwds):
         '''Find a limit cycle of the model.'''
@@ -73,37 +73,3 @@ class Model(_model.AgeIndependent):
     def get_characteristic_exponents(self, lcy):
         '''Get the characteristic exponents.'''
         return _limit_cycle.characteristic_exponents(self, lcy)
-
-    def jacobian(self, t, y):
-        '''The Jacobian of the model.'''
-        (M, S, E, I, R) = y
-        birth_rate_t = self.birth.rate(t)
-        dM = (birth_rate_t * self._states_have_antibodies
-              + numpy.array((- 1 / self.waning.mean - self.death_rate_mean,
-                             0,
-                             0,
-                             0,
-                             0)))
-        dS = (birth_rate_t * ~self._states_have_antibodies
-              + numpy.array((1 / self.waning.mean,
-                             (- self.transmission.rate * I
-                              - self.death_rate_mean),
-                             0,
-                             - self.transmission.rate * S,
-                             0)))
-        dE = numpy.array((0,
-                          self.transmission.rate * I,
-                          - 1 / self.progression.mean - self.death_rate_mean,
-                          self.transmission.rate * S,
-                          0))
-        dI = numpy.array((0,
-                          0,
-                          1 / self.progression.mean,
-                          - 1 / self.recovery.mean - self.death_rate_mean,
-                          0))
-        dR = numpy.array((0,
-                          0,
-                          0,
-                          1 / self.recovery.mean,
-                          - self.death_rate_mean))
-        return numpy.vstack((dM, dS, dE, dI, dR))

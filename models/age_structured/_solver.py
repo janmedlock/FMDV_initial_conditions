@@ -21,13 +21,31 @@ class Solver(_solver.Base):
         self.a_step = self.t_step = model.a_step
         super().__init__(model)
 
+    def _I(self):
+        n = len(self.model.states)
+        J = len(self.model.a)
+        I = scipy.sparse.identity(n * J)
+        return _SPARSE_ARRAY(I)
+
+    def _zeros(self):
+        J = len(self.model.a)
+        zeros = {'11': _SPARSE_ARRAY((1, 1)),
+                 '1J': _SPARSE_ARRAY((1, J)),
+                 'J1': _SPARSE_ARRAY((J, 1)),
+                 'JJ': _SPARSE_ARRAY((J, J))}
+        return zeros
+
     def _beta(self):
         J = len(self.model.a)
-        zeros = _SPARSE_ARRAY((1, J))
-        ones = numpy.ones((1, J))
-        beta = (self.model.transmission.rate
-                * self.a_step
-                * scipy.sparse.bmat([[zeros, zeros, zeros, ones, zeros]]))
+        ones1J = numpy.ones((1, J))
+        zeros1J = self.zeros['1J']
+        beta = (
+            self.model.transmission.rate
+            * self.a_step
+            * scipy.sparse.bmat([
+                [zeros1J, zeros1J, zeros1J, ones1J, zeros1J]
+            ])
+        )
         return _SPARSE_ARRAY(beta)
 
     def _HqXX(self, q):
@@ -43,9 +61,9 @@ class Solver(_solver.Base):
         J = len(self.model.a)
         if numpy.isscalar(pi):
             pi = pi * numpy.ones(J)
-        if q == 0:
+        if q == 'new':
             diags = {0: pi}
-        elif q == 1:
+        elif q == 'cur':
             diags = {-1: pi[:-1],
                      0: numpy.hstack([numpy.zeros(J - 1), pi[-1]])}
         else:
@@ -71,15 +89,14 @@ class Solver(_solver.Base):
         return self._FqXW(q, 1)
 
     def _Tq(self, q):
-        J = len(self.model.a)
         TqXW = self._TqXW(q)
-        Zeros = _SPARSE_ARRAY((J, J))
+        ZerosJJ = self.zeros['JJ']
         Tq = scipy.sparse.bmat([
-            [Zeros, Zeros, Zeros, Zeros, Zeros],
-            [Zeros, - TqXW, Zeros, Zeros, Zeros],
-            [Zeros, TqXW, Zeros, Zeros, Zeros],
-            [Zeros, Zeros, Zeros, Zeros, Zeros],
-            [Zeros, Zeros, Zeros, Zeros, Zeros]
+            [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ],
+            [ZerosJJ, - TqXW, ZerosJJ, ZerosJJ, ZerosJJ],
+            [ZerosJJ, TqXW, ZerosJJ, ZerosJJ, ZerosJJ],
+            [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ],
+            [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ]
         ])
         return _SPARSE_ARRAY(Tq)
 
@@ -91,51 +108,53 @@ class Solver(_solver.Base):
         return BXW
 
     def _B(self):
-        J = len(self.model.a)
         BXW = self._BXW()
-        Zeros = _SPARSE_ARRAY((J, J))
+        ZerosJJ = self.zeros['JJ']
         B = scipy.sparse.bmat([
-            [Zeros, Zeros, Zeros, Zeros, BXW],
-            [BXW, BXW, BXW, BXW, Zeros],
-            [Zeros, Zeros, Zeros, Zeros, Zeros],
-            [Zeros, Zeros, Zeros, Zeros, Zeros],
-            [Zeros, Zeros, Zeros, Zeros, Zeros]
+            [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, BXW],
+            [BXW, BXW, BXW, BXW, ZerosJJ],
+            [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ],
+            [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ],
+            [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ]
         ])
         return _SPARSE_ARRAY(B)
 
     def _build_matrices(self):
+        self.I = self._I()
+        self.zeros = self._zeros()
         self.beta = self._beta()
-        self.H0 = self._Hq(0)
-        self.H1 = self._Hq(1)
-        self.F0 = self._Fq(0)
-        self.F1 = self._Fq(1)
-        self.T0 = self._Tq(0)
-        self.T1 = self._Tq(1)
+        self.H_new = self._Hq('new')
+        self.H_cur = self._Hq('cur')
+        self.F_new = self._Fq('new')
+        self.F_cur = self._Fq('cur')
+        self.T_new = self._Tq('new')
+        self.T_cur = self._Tq('cur')
         self.B = self._B()
-        self.krylov_M = self.H0 + self.t_step / 2 * self.F0
+        self.krylov_M = (self.H_new
+                         + self.t_step / 2 * self.F_new)
 
     def _check_matrices(self):
         assert _utility.is_nonnegative(self.beta)
-        assert _utility.is_Z_matrix(self.H0)
-        assert _utility.is_nonnegative(self.H1)
-        assert _utility.is_Metzler_matrix(self.F0)
-        assert _utility.is_Metzler_matrix(self.T0)
+        assert _utility.is_Z_matrix(self.H_new)
+        assert _utility.is_nonnegative(self.H_cur)
+        assert _utility.is_Metzler_matrix(self.F_new)
+        assert _utility.is_Metzler_matrix(self.T_new)
         assert _utility.is_Metzler_matrix(self.B)
         assert _utility.is_nonnegative(self.B)
-        HFB0 = (self.H0
-                - self.t_step / 2 * (self.F0
-                                     + self.model.birth.rate_max * self.B))
-        assert _utility.is_M_matrix(HFB0)
-        HFB1 = (self.H1
-                + self.t_step / 2 * (self.F1
-                                     + self.model.birth.rate_min * self.B))
-        assert _utility.is_nonnegative(HFB1)
+        HFB_new = (self.H_new
+                   - self.t_step / 2 * (self.F_new
+                                        + self.model.birth.rate_max * self.B))
+        assert _utility.is_M_matrix(HFB_new)
+        HFB_cur = (self.H_cur
+                   + self.t_step / 2 * (self.F_cur
+                                        + self.model.birth.rate_min * self.B))
+        assert _utility.is_nonnegative(HFB_cur)
 
-    def _objective(self, y_new, HFB0, HFBTy1):
+    def _objective(self, y_new, HFB_new, HFTBy_cur):
         '''Helper for `.step()`.'''
-        lambdaT0 = (self.beta @ y_new) * self.T0
-        HFBT0 = HFB0 - self.t_step / 2 * lambdaT0
-        return HFBT0 @ y_new - HFBTy1
+        HFTB_new = (HFB_new
+                    - self.t_step / 2 * self.beta @ y_new * self.T_new)
+        return HFTB_new @ y_new - HFTBy_cur
 
     def step(self, t_cur, y_cur, display=False):
         '''Do a step.'''
@@ -143,13 +162,19 @@ class Solver(_solver.Base):
             t_new = t_cur + self.t_step
             print(f'{t_new=}')
         t_mid = t_cur + 0.5 * self.t_step
-        bB = self.model.birth.rate(t_mid) * self.B
-        HFB0 = self.H0 - self.t_step / 2 * (self.F0 + bB)
-        lambdaT1 = (self.beta @ y_cur) * self.T1
-        HFBT1 = self.H1 + self.t_step / 2 * (self.F1 + lambdaT1 + bB)
-        HFBTy1 = HFBT1 @ y_cur
+        b_mid = self.model.birth.rate(t_mid)
+        HFB_new = (self.H_new
+                   - self.t_step / 2 * (self.F_new
+                                        + b_mid * self.B))
+        HFTB_cur = (self.H_cur
+                    + self.t_step / 2 * (self.F_cur
+                                         + self.beta @ y_cur * self.T_cur
+                                         + b_mid * self.B))
+        HFTBy_cur = HFTB_cur @ y_cur
+        y_new_guess = y_cur
         result = scipy.optimize.root(
-            self._objective, y_cur, args=(HFB0, HFBTy1),
+            self._objective, y_new_guess,
+            args=(HFB_new, HFTBy_cur),
             method='krylov',
             options=dict(jac_options=dict(inner_M=self.krylov_M))
         )

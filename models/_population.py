@@ -35,9 +35,9 @@ class _Solver:
         J = len(self.a)
         if numpy.isscalar(pi):
             pi = pi * numpy.ones(J)
-        if q == 0:
+        if q == 'new':
             diags = {0: pi}
-        elif q == 1:
+        elif q == 'cur':
             diags = {-1: pi[:-1],
                      0: numpy.hstack([numpy.zeros(J - 1), pi[-1]])}
         else:
@@ -61,26 +61,26 @@ class _Solver:
 
     def _build_matrices(self):
         '''Build the matrices used for stepping forward in time.'''
-        self.H0 = self._Hq(0)
-        self.H1 = self._Hq(1)
-        self.F0 = self._Fq(0)
-        self.F1 = self._Fq(1)
+        self.H_new = self._Hq('new')
+        self.H_cur = self._Hq('cur')
+        self.F_new = self._Fq('new')
+        self.F_cur = self._Fq('cur')
         self.B = self._B()
 
     def _check_matrices(self):
-        assert _utility.is_Z_matrix(self.H0)
-        assert _utility.is_nonnegative(self.H1)
-        assert _utility.is_Metzler_matrix(self.F0)
+        assert _utility.is_Z_matrix(self.H_new)
+        assert _utility.is_nonnegative(self.H_cur)
+        assert _utility.is_Metzler_matrix(self.F_new)
         assert _utility.is_Metzler_matrix(self.B)
         assert _utility.is_nonnegative(self.B)
-        HFB0 = (self.H0
-                - self.t_step / 2 * (self.F0
-                                     + self.birth.rate_max * self.B))
-        assert _utility.is_M_matrix(HFB0)
-        HFB1 = (self.H1
-                + self.t_step / 2 * (self.F1
-                                     + self.birth.rate_min * self.B))
-        assert _utility.is_nonnegative(HFB1)
+        HFB_new = (self.H_new
+                   - self.t_step / 2 * (self.F_new
+                                        + self.birth.rate_max * self.B))
+        assert _utility.is_M_matrix(HFB_new)
+        HFB_cur = (self.H_cur
+                   + self.t_step / 2 * (self.F_cur
+                                        + self.birth.rate_min * self.B))
+        assert _utility.is_nonnegative(HFB_cur)
 
     def step(self, t_cur, Phi_cur, birth_scaling, display=False):
         '''Do a step of the solver.'''
@@ -88,10 +88,14 @@ class _Solver:
             t_new = t_cur + self.t_step
             print(f'{t_new=}')
         t_mid = t_cur + self.t_step / 2
-        bB = birth_scaling * self.birth.rate(t_mid) * self.B
-        HFB0 = self.H0 - self.t_step / 2 * (self.F0 + bB)
-        HFB1 = self.H1 + self.t_step / 2 * (self.F1 + bB)
-        return scipy.sparse.linalg.spsolve(HFB0, HFB1 @ Phi_cur)
+        b_mid = birth_scaling * self.birth.rate(t_mid)
+        HFB_new = (self.H_new
+                   - self.t_step / 2 * (self.F_new
+                                        + b_mid * self.B))
+        HFB_cur = (self.H_cur
+                   + self.t_step / 2 * (self.F_cur
+                                        + b_mid * self.B))
+        return scipy.sparse.linalg.spsolve(HFB_new, HFB_cur @ Phi_cur)
 
     def monodromy(self, birth_scaling=1, display=False):
         '''Get the monodromy matrix Psi = Phi(T), where Phi is the
@@ -99,7 +103,7 @@ class _Solver:
         if len(self.t) == 0:
             return None
         # The initial condition is the identity matrix.
-        Phi_new = numpy.eye(len(self.a))
+        Phi_new = numpy.identity(len(self.a))
         Phi_cur = numpy.empty_like(Phi_new)
         for t_cur in self.t[:-1]:
             # Update so that what was the new value of the solution is
@@ -114,20 +118,20 @@ class _Solver:
         '''Get the population growth rate.'''
         Psi = self.monodromy(birth_scaling, display=display)
         # Get the dominant Floquet multiplier.
-        rho0 = _utility.get_dominant_eigen(Psi, which='LM',
-                                           return_eigenvector=False)
+        rho_dom = _utility.get_dominant_eigen(Psi, which='LM',
+                                              return_eigenvector=False)
         # Convert the dominant Floquet multiplier to
         # the dominant Floquet exponent.
-        mu0 = numpy.log(rho0) / self.period
-        return mu0
+        mu_dom = numpy.log(rho_dom) / self.period
+        return mu_dom
 
     def stable_age_density(self, display=False):
         Psi = self.monodromy(display=display)
-        (_, v0) = _utility.get_dominant_eigen(Psi, which='LM',
-                                              return_eigenvector=True)
-        # Normalize `v0` in place so that its integral over a is 1.
-        v0 /= v0.sum() * self.a_step
-        return (self.a, v0)
+        (_, v_dom) = _utility.get_dominant_eigen(Psi, which='LM',
+                                                 return_eigenvector=True)
+        # Normalize `v_dom` in place so that its integral over a is 1.
+        v_dom /= v_dom.sum() * self.a_step
+        return (self.a, v_dom)
 
 
 def birth_scaling_for_zero_population_growth(birth, death,
@@ -141,13 +145,13 @@ def birth_scaling_for_zero_population_growth(birth, death,
     # `birth_scaling`. Find a starting bracket `(lower, upper)` with
     # `solver.population_growth_rate(upper) > 0` and
     # `solver.population_growth_rate(lower) < 0`.
-    MULT = 2
+    SCALE = 2
     upper = 1  # Starting guess.
     while fcn(upper) < 0:
-        upper *= MULT
-    lower = upper / MULT  # Starting guess.
+        upper *= SCALE
+    lower = upper / SCALE  # Starting guess.
     while fcn(lower) > 0:
-        (lower, upper) = (lower / MULT, lower)
+        (lower, upper) = (lower / SCALE, lower)
     scaling = scipy.optimize.brentq(fcn, lower, upper)
     return scaling
 
