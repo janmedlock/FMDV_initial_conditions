@@ -8,12 +8,11 @@ from . import _poincaré
 from .. import _utility
 
 
-def _objective(x, poincaré_map, transform, weights):
+def _objective(y_0_cur, poincaré_map, weights):
     '''Helper for `find_with_period`.'''
-    y_0_cur = transform.inverse(x)
     y_0_new = poincaré_map(y_0_cur, _solution_wrap=False)
     diff = (y_0_new - y_0_cur) * weights
-    return diff[:-1]
+    return diff
 
 
 def find_with_period(model, period, t_0, y_0_guess,
@@ -26,15 +25,11 @@ def find_with_period(model, period, t_0, y_0_guess,
     poincaré_map = _poincaré.Map(model, period, t_0)
     # Ensure `y_guess` is nonnegative.
     y_0_guess = numpy.clip(y_0_guess, 0, None)
-    # Transform `y_0` to simplex coordinates.
-    transform = _utility.transform.Simplex(weights=weights)
-    # Clip `x_guess` away from infinity.
-    x_guess = transform(y_0_guess).clip(-10, 10)
-    result = scipy.optimize.root(_objective, x_guess,
-                                 args=(poincaré_map, transform, weights),
+    result = scipy.optimize.root(_objective, y_0_guess,
+                                 args=(poincaré_map, weights),
                                  **root_kwds)
     assert result.success, result
-    y_0 = transform.inverse(result.x)
+    y_0 = result.x
     # Scale `y_0` so that `weighted_sum()` is the same as for
     # `y_0_guess`.
     y_0 *= (_utility.weighted_sum(y_0_guess, weights)
