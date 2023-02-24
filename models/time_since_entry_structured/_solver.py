@@ -18,6 +18,8 @@ class Solver(_solver.Base):
     def __init__(self, model):
         self.z_step = self.t_step = model.z_step
         super().__init__(model)
+        self.krylov_M = (self.H_new
+                         + self.t_step / 2 * self.F_new)
 
     def _I(self):
         n = len(self.model.states)
@@ -27,7 +29,9 @@ class Solver(_solver.Base):
         I = _utility.sparse.identity(size)
         return I
 
-    def _zeros(self):
+    # Build `zeros` once and then reuse.
+    @functools.cached_property
+    def zeros(self):
         K = len(self.model.z)
         zeros = {'11': _utility.sparse.array((1, 1)),
                  '1K': _utility.sparse.array((1, K)),
@@ -123,6 +127,8 @@ class Solver(_solver.Base):
         tyX = _utility.sparse.array_from_dict(data, shape=shape)
         return tyX
 
+    # Build `_T` once and then reuse.
+    @functools.cached_property
     def _T(self):
         tXX = numpy.array([[1]])
         tyX = self._tyX()
@@ -135,6 +141,11 @@ class Solver(_solver.Base):
             [zeros['1K'], zeros['11'], zeros['1K'], zeros['1K'], zeros['11']]
         ])
         return T
+
+    def _Tq(self, q):
+        # `Tq` is independent of `q`.
+        Tq = self._T
+        return Tq
 
     def _byX(self):
         K = len(self.model.z)
@@ -163,19 +174,6 @@ class Solver(_solver.Base):
             [zeros['1K'], zeros['11'], zeros['1K'], zeros['1K'], zeros['11']]
         ])
         return B
-
-    def _build_matrices(self):
-        self.I = self._I()
-        self.zeros = self._zeros()
-        self.beta = self._beta()
-        self.H_new = self._Hq('new')
-        self.H_cur = self._Hq('cur')
-        self.F_new = self._Fq('new')
-        self.F_cur = self._Fq('cur')
-        self.T_new = self.T_cur = self._T()
-        self.B = self._B()
-        self.krylov_M = (self.H_new
-                         + self.t_step / 2 * self.F_new)
 
     def _objective(self, y_new, HFB_new, HFTBy_cur):
         '''Helper for `.step()`.'''

@@ -1,5 +1,7 @@
 '''Solver.'''
 
+import functools
+
 import numpy
 import scipy.linalg
 import scipy.optimize
@@ -31,6 +33,13 @@ class Solver(_solver.Base):
         H = self.I
         return H
 
+    def _Hq(self, q):
+        # `Hq` is independent of `q`.
+        Hq = self._H()
+        return Hq
+
+    # Build `_F` once and then reuse.
+    @functools.cached_property
     def _F(self):
         mu = self.model.death_rate_mean
         omega = 1 / self.model.waning.mean
@@ -45,16 +54,23 @@ class Solver(_solver.Base):
         ])
         return F
 
-    @staticmethod
-    def _T():
-        T = numpy.array([
-            [0, 0, 0, 0, 0],
-            [0, - 1, 0, 0, 0],
-            [0, 1, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0]
-        ])
-        return T
+    def _Fq(self, q):
+        # `Fq` is independent of `q`.
+        Fq = self._F
+        return Fq
+
+    _T = numpy.array([
+        [0, 0, 0, 0, 0],
+        [0, - 1, 0, 0, 0],
+        [0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0]
+    ])
+
+    def _Tq(self, q):
+        # `Tq` is independent of `q`.
+        Tq = self._T
+        return Tq
 
     @staticmethod
     def _B():
@@ -66,14 +82,6 @@ class Solver(_solver.Base):
             [0, 0, 0, 0, 0]
         ])
         return B
-
-    def _build_matrices(self):
-        self.I = self._I()
-        self.beta = self._beta()
-        self.H_new = self.H_cur = self._H()
-        self.F_new = self.F_cur = self._F()
-        self.T_new = self.T_cur = self._T()
-        self.B = self._B()
 
     def _objective(self, y_new, HFB_new, HFTBy_cur):
         '''Helper for `.step()`.'''

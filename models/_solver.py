@@ -22,8 +22,34 @@ class Base(metaclass=abc.ABCMeta):
         algebra.'''
 
     @abc.abstractmethod
+    def _I(self): pass
+
+    @abc.abstractmethod
+    def _beta(self): pass
+
+    @abc.abstractmethod
+    def _Hq(self, q): pass
+
+    @abc.abstractmethod
+    def _Fq(self, q): pass
+
+    @abc.abstractmethod
+    def _Tq(self, q): pass
+
+    @abc.abstractmethod
+    def _B(self): pass
+
     def _build_matrices(self):
         '''Build matrices needed by the solver.'''
+        self.I = self._I()
+        self.beta = self._beta()
+        self.H_new = self._Hq('new')
+        self.H_cur = self._Hq('cur')
+        self.F_new = self._Fq('new')
+        self.F_cur = self._Fq('cur')
+        self.T_new = self._Tq('new')
+        self.T_cur = self._Tq('cur')
+        self.B = self._B()
 
     def _check_matrices(self):
         '''Check the solver matrices.'''
