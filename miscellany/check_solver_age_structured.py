@@ -19,22 +19,22 @@ class Checker(_check_solver.Base):
                 * self.model.a_step
                 * scipy.sparse.bmat([[zeros, zeros, zeros, ones, zeros]]))
 
-    def Hq(self, q):
+    def H(self, q):
         J = len(self.model.a)
         if q == 'new':
-            HqXX = scipy.sparse.identity(J)
+            HXX = scipy.sparse.identity(J)
         elif q == 'cur':
-            HqXX = models._utility.sparse.diags_from_dict(
+            HXX = models._utility.sparse.diags_from_dict(
                 {-1: numpy.ones(J - 1),
                  0: numpy.hstack([numpy.zeros(J - 1), 1])})
         else:
             return ValueError
-        return scipy.sparse.block_diag([HqXX] * 5)
+        return scipy.sparse.block_diag([HXX] * 5)
 
-    def Fq(self, q):
+    def F(self, q):
         J = len(self.model.a)
 
-        def FqXW(pi):
+        def FXW(pi):
             if numpy.isscalar(pi):
                 pi = pi * numpy.ones(J)
             if q == 'new':
@@ -51,19 +51,19 @@ class Checker(_check_solver.Base):
         rho = 1 / self.model.progression.mean
         gamma = 1 / self.model.recovery.mean
         return scipy.sparse.bmat([
-            [FqXW(- omega - mu), None, None, None, None],
-            [FqXW(omega), FqXW(- mu), None, None, None],
-            [None, None, FqXW(- rho - mu), None, None],
-            [None, None, FqXW(rho), FqXW(- gamma - mu), None],
-            [None, None, None, FqXW(gamma), FqXW(- mu)]
+            [FXW(- omega - mu), None, None, None, None],
+            [FXW(omega), FXW(- mu), None, None, None],
+            [None, None, FXW(- rho - mu), None, None],
+            [None, None, FXW(rho), FXW(- gamma - mu), None],
+            [None, None, None, FXW(gamma), FXW(- mu)]
         ])
 
-    def Tq(self, q):
+    def T(self, q):
         J = len(self.model.a)
         if q == 'new':
-            TqXW = scipy.sparse.identity(J)
+            TXW = scipy.sparse.identity(J)
         elif q == 'cur':
-            TqXW = models._utility.sparse.diags_from_dict(
+            TXW = models._utility.sparse.diags_from_dict(
                 {-1: numpy.ones(J - 1),
                  0: numpy.hstack([numpy.zeros(J - 1), 1])})
         else:
@@ -71,8 +71,8 @@ class Checker(_check_solver.Base):
         Zeros = scipy.sparse.csr_array((J, J))
         return scipy.sparse.bmat([
             [Zeros, Zeros, Zeros, Zeros, Zeros],
-            [Zeros, - TqXW, Zeros, Zeros, Zeros],
-            [Zeros, TqXW, Zeros, Zeros, Zeros],
+            [Zeros, - TXW, Zeros, Zeros, Zeros],
+            [Zeros, TXW, Zeros, Zeros, Zeros],
             [Zeros, Zeros, Zeros, Zeros, Zeros],
             [Zeros, Zeros, Zeros, Zeros, Zeros]
         ])

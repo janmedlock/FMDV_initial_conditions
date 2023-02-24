@@ -22,22 +22,22 @@ class Solver(_solver.Base):
         return I
 
     def _beta(self):
-        beta = (self.model.transmission.rate
-                * numpy.array((0, 0, 0, 1, 0)))
+        beta = (
+            self.model.transmission.rate
+            * numpy.array([
+                [0, 0, 0, 1, 0]
+            ])
+        )
         return beta
 
-    def _H(self):
+    def _H(self, q):
+        # `H` is independent of `q`.
         H = self.I
         return H
 
-    def _Hq(self, q):
-        # `Hq` is independent of `q`.
-        Hq = self._H()
-        return Hq
-
-    # Build `_F` on first use and then reuse.
+    # Build `_F_` on first use and then reuse.
     @functools.cached_property
-    def _F(self):
+    def _F_(self):
         mu = self.model.death_rate_mean
         omega = 1 / self.model.waning.mean
         rho = 1 / self.model.progression.mean
@@ -51,12 +51,12 @@ class Solver(_solver.Base):
         ])
         return F
 
-    def _Fq(self, q):
-        # `Fq` is independent of `q`.
-        Fq = self._F
-        return Fq
+    def _F(self, q):
+        # `F` is independent of `q`.
+        F = self._F_
+        return F
 
-    _T = numpy.array([
+    _T_ = numpy.array([
         [0, 0, 0, 0, 0],
         [0, - 1, 0, 0, 0],
         [0, 1, 0, 0, 0],
@@ -64,10 +64,10 @@ class Solver(_solver.Base):
         [0, 0, 0, 0, 0]
     ])
 
-    def _Tq(self, q):
-        # `Tq` is independent of `q`.
-        Tq = self._T
-        return Tq
+    def _T(self, q):
+        # `T` is independent of `q`.
+        T = self._T_
+        return T
 
     @staticmethod
     def _B():

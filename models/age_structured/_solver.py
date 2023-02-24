@@ -16,8 +16,6 @@ class Solver(_solver.Base):
     def __init__(self, model):
         self.a_step = self.t_step = model.a_step
         super().__init__(model)
-        self.krylov_M = (self.H_new
-                         + self.t_step / 2 * self.F_new)
 
     def _I(self):
         n = len(self.model.states)
@@ -49,18 +47,18 @@ class Solver(_solver.Base):
         )
         return beta
 
-    def _HqXX(self, q):
-        HqXX = self._FqXW(q, 1)
-        return HqXX
+    def _HXX(self, q):
+        HXX = self._FXW(q, 1)
+        return HXX
 
-    def _Hq(self, q):
+    def _H(self, q):
         n = len(self.model.states)
-        HqXX = self._HqXX(q)
-        diag = (HqXX, ) * n
-        Hq = sparse.block_diag(diag)
-        return Hq
+        HXX = self._HXX(q)
+        diag = (HXX, ) * n
+        H = sparse.block_diag(diag)
+        return H
 
-    def _FqXW(self, q, pi):
+    def _FXW(self, q, pi):
         J = len(self.model.a)
         if numpy.isscalar(pi):
             pi = pi * numpy.ones(J)
@@ -71,39 +69,39 @@ class Solver(_solver.Base):
                      0: numpy.hstack([numpy.zeros(J - 1), pi[-1]])}
         else:
             raise ValueError(f'{q=}!')
-        FqXW = sparse.diags_from_dict(diags)
-        return FqXW
+        FXW = sparse.diags_from_dict(diags)
+        return FXW
 
-    def _Fq(self, q):
+    def _F(self, q):
         mu = self.model.death.rate(self.model.a)
         omega = 1 / self.model.waning.mean
         rho = 1 / self.model.progression.mean
         gamma = 1 / self.model.recovery.mean
-        FqXW = functools.partial(self._FqXW, q)
-        Fq = sparse.bmat([
-            [FqXW(- omega - mu), None, None, None, None],
-            [FqXW(omega), FqXW(- mu), None, None, None],
-            [None, None, FqXW(- rho - mu), None, None],
-            [None, None, FqXW(rho), FqXW(- gamma - mu), None],
-            [None, None, None, FqXW(gamma), FqXW(- mu)]
+        FXW = functools.partial(self._FXW, q)
+        F = sparse.bmat([
+            [FXW(- omega - mu), None, None, None, None],
+            [FXW(omega), FXW(- mu), None, None, None],
+            [None, None, FXW(- rho - mu), None, None],
+            [None, None, FXW(rho), FXW(- gamma - mu), None],
+            [None, None, None, FXW(gamma), FXW(- mu)]
         ])
-        return Fq
+        return F
 
-    def _TqXW(self, q):
-        TqXW = self._FqXW(q, 1)
-        return TqXW
+    def _TXW(self, q):
+        TXW = self._FXW(q, 1)
+        return TXW
 
-    def _Tq(self, q):
-        TqXW = self._TqXW(q)
+    def _T(self, q):
+        TXW = self._TXW(q)
         ZerosJJ = self.zeros['JJ']
-        Tq = sparse.bmat([
+        T = sparse.bmat([
             [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ],
-            [ZerosJJ, - TqXW, ZerosJJ, ZerosJJ, ZerosJJ],
-            [ZerosJJ, TqXW, ZerosJJ, ZerosJJ, ZerosJJ],
+            [ZerosJJ, - TXW, ZerosJJ, ZerosJJ, ZerosJJ],
+            [ZerosJJ, TXW, ZerosJJ, ZerosJJ, ZerosJJ],
             [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ],
             [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ]
         ])
-        return Tq
+        return T
 
     def _BXW(self):
         J = len(self.model.a)

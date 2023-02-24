@@ -36,13 +36,13 @@ class Base(metaclass=abc.ABCMeta):
     def _beta(self): pass
 
     @abc.abstractmethod
-    def _Hq(self, q): pass
+    def _H(self, q): pass
 
     @abc.abstractmethod
-    def _Fq(self, q): pass
+    def _F(self, q): pass
 
     @abc.abstractmethod
-    def _Tq(self, q): pass
+    def _T(self, q): pass
 
     @abc.abstractmethod
     def _B(self): pass
@@ -51,41 +51,39 @@ class Base(metaclass=abc.ABCMeta):
         '''Build matrices needed by the solver.'''
         self.I = self._I()
         self.beta = self._beta()
-        self.H_new = self._Hq('new')
-        self.H_cur = self._Hq('cur')
-        self.F_new = self._Fq('new')
-        self.F_cur = self._Fq('cur')
-        self.T_new = self._Tq('new')
-        self.T_cur = self._Tq('cur')
+        q_vals = ('new', 'cur')
+        self.H = {q: self._H(q) for q in q_vals}
+        self.F = {q: self._F(q) for q in q_vals}
+        self.T = {q: self._T(q) for q in q_vals}
         self.B = self._B()
 
     def _check_matrices(self):
         '''Check the solver matrices.'''
         assert linalg.is_nonnegative(self.beta)
-        assert linalg.is_Z_matrix(self.H_new)
-        assert linalg.is_nonnegative(self.H_cur)
-        assert linalg.is_Metzler_matrix(self.F_new)
-        assert linalg.is_Metzler_matrix(self.T_new)
+        assert linalg.is_Z_matrix(self.H['new'])
+        assert linalg.is_nonnegative(self.H['cur'])
+        assert linalg.is_Metzler_matrix(self.F['new'])
+        assert linalg.is_Metzler_matrix(self.T['new'])
         assert linalg.is_Metzler_matrix(self.B)
         assert linalg.is_nonnegative(self.B)
-        HFB_new = (self.H_new
-                   - self.t_step / 2 * (self.F_new
+        HFB_new = (self.H['new']
+                   - self.t_step / 2 * (self.F['new']
                                         + self.model.birth.rate_max * self.B))
         assert linalg.is_M_matrix(HFB_new)
-        HFB_cur = (self.H_cur
-                   + self.t_step / 2 * (self.F_cur
+        HFB_cur = (self.H['cur']
+                   + self.t_step / 2 * (self.F['cur']
                                         + self.model.birth.rate_min * self.B))
         assert linalg.is_nonnegative(HFB_cur)
 
     def _preconditioner(self):
-        M = (self.H_new
-             + self.t_step / 2 * self.F_new)
+        M = (self.H['new']
+             + self.t_step / 2 * self.F['new'])
         return M
 
     def _objective(self, y_new, HFB_new, HFTBy_cur):
         '''Helper for `.step()`.'''
         HFTB_new = (HFB_new
-                    - self.t_step / 2 * self.beta @ y_new * self.T_new)
+                    - self.t_step / 2 * self.beta @ y_new * self.T['new'])
         return HFTB_new @ y_new - HFTBy_cur
 
     def step(self, t_cur, y_cur, display=False):
@@ -95,12 +93,12 @@ class Base(metaclass=abc.ABCMeta):
             print(f'{t_new=}')
         t_mid = t_cur + 0.5 * self.t_step
         b_mid = self.model.birth.rate(t_mid)
-        HFB_new = (self.H_new
-                   - self.t_step / 2 * (self.F_new
+        HFB_new = (self.H['new']
+                   - self.t_step / 2 * (self.F['new']
                                         + b_mid * self.B))
-        HFTB_cur = (self.H_cur
-                    + self.t_step / 2 * (self.F_cur
-                                         + self.beta @ y_cur * self.T_cur
+        HFTB_cur = (self.H['cur']
+                    + self.t_step / 2 * (self.F['cur']
+                                         + self.beta @ y_cur * self.T['cur']
                                          + b_mid * self.B))
         HFTBy_cur = HFTB_cur @ y_cur
         y_new_guess = y_cur
@@ -142,24 +140,34 @@ class Base(metaclass=abc.ABCMeta):
             y_new[:] = self.step(t_cur, y_cur)
         return y_new
 
+    @staticmethod
+    def _outer(a, b):
+        '''The outer product of `a` with shape (m, ) and `b` with
+        shape (1, n).'''
+        return a[:, None] @ b
+
     def jacobian(self, t_cur, y_cur, y_new):
         '''The Jacobian at `t_cur`, given `y_cur` and `y_new`.'''
         # Compute `D`, the derivative of `y_cur` with respect to `y_new`,
         # which is `M_new @ D = M_cur`.
         t_mid = t_cur + 0.5 * self.t_step
         b_mid = self.model.birth.rate(t_mid)
-        M_new = (self.H_new
-                 - self.t_step / 2 * (self.F_new
-                                      + self.beta @ y_new * self.T_new
-                                      + numpy.outer(self.T_new @ y_new,
-                                                    self.beta)
-                                      + b_mid * self.B))
-        M_cur = (self.H_cur
-                 + self.t_step / 2 * (self.F_cur
-                                      + self.beta @ y_cur * self.T_cur
-                                      + numpy.outer(self.T_cur @ y_cur,
-                                                    self.beta)
-                                      + b_mid * self.B))
+        M_new = (
+            self.H['new']
+            - self.t_step / 2 * (self.F['new']
+                                 + self.beta @ y_new * self.T['new']
+                                 + self._outer(self.T['new'] @ y_new,
+                                               self.beta)
+                                 + b_mid * self.B)
+        )
+        M_cur = (
+            self.H['cur']
+            + self.t_step / 2 * (self.F['cur']
+                                 + self.beta @ y_cur * self.T['cur']
+                                 + self._outer(self.T['cur'] @ y_cur,
+                                               self.beta)
+                                 + b_mid * self.B)
+        )
         D = linalg.solve(M_new, M_cur,
                          overwrite_a=True,
                          overwrite_b=True)

@@ -1,5 +1,7 @@
 '''Utilities for checking the model solver matrices.'''
 
+import abc
+
 from context import models
 from models._utility import sparse
 
@@ -8,13 +10,29 @@ class Base:
     def __init__(self, model):
         self.model = model
 
+    @abc.abstractmethod
+    def beta(self): pass
+
+    @abc.abstractmethod
+    def H(self, q): pass
+
+    @abc.abstractmethod
+    def F(self, q): pass
+
+    @abc.abstractmethod
+    def T(self, q): pass
+
+    @abc.abstractmethod
+    def B(self): pass
+
     def check_matrices(self):
         solver = self.model._solver
-        assert sparse.equals(self.beta(), solver.beta)
-        assert sparse.equals(self.Hq('new'), solver.H_new)
-        assert sparse.equals(self.Hq('cur'), solver.H_cur)
-        assert sparse.equals(self.Fq('new'), solver.F_new)
-        assert sparse.equals(self.Fq('cur'), solver.F_cur)
-        assert sparse.equals(self.Tq('new'), solver.T_new)
-        assert sparse.equals(self.Tq('cur'), solver.T_cur)
-        assert sparse.equals(self.B(), solver.B)
+        names = ('beta', 'H', 'F', 'T', 'B')
+        for name in names:
+            matrix = getattr(solver, name)
+            checker = getattr(self, name)
+            if isinstance(matrix, dict):
+                for q in ('new', 'cur'):
+                    assert sparse.equals(matrix[q], checker(q))
+            else:
+                assert sparse.equals(matrix, checker())

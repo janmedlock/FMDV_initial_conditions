@@ -17,8 +17,6 @@ class Solver(_solver.Base):
     def __init__(self, model):
         self.z_step = self.t_step = model.z_step
         super().__init__(model)
-        self.krylov_M = (self.H_new
-                         + self.t_step / 2 * self.F_new)
 
     def _I(self):
         n = len(self.model.states)
@@ -51,17 +49,17 @@ class Solver(_solver.Base):
         )
         return beta
 
-    def _Hqyy(self, q):
-        Hqyy = self._Fqyy(q, 1)
-        return Hqyy
+    def _Hyy(self, q):
+        Hyy = self._Fyy(q, 1)
+        return Hyy
 
-    def _Hq(self, q):
-        Hqyy = self._Hqyy(q)
+    def _H(self, q):
+        Hyy = self._Hyy(q)
         HXX = [[1]]
-        Hq = sparse.block_diag((Hqyy, HXX, Hqyy, Hqyy, HXX))
-        return Hq
+        H = sparse.block_diag((Hyy, HXX, Hyy, Hyy, HXX))
+        return H
 
-    def _Fqyy(self, q, psi):
+    def _Fyy(self, q, psi):
         K = len(self.model.z)
         if numpy.isscalar(psi):
             psi = psi * numpy.ones(K)
@@ -72,8 +70,8 @@ class Solver(_solver.Base):
                      0: numpy.hstack([numpy.zeros(K - 1), psi[-1]])}
         else:
             raise ValueError(f'{q=}!')
-        Fqyy = sparse.diags_from_dict(diags)
-        return Fqyy
+        Fyy = sparse.diags_from_dict(diags)
+        return Fyy
 
     @staticmethod
     def _fXX(pi):
@@ -100,23 +98,23 @@ class Solver(_solver.Base):
         rate = param.rate(self.model.z)
         return _utility.rate_make_finite(rate)
 
-    def _Fq(self, q):
+    def _F(self, q):
         mu = self.model.death_rate_mean
         omega = self._get_rate('waning')
         rho = self._get_rate('progression')
         gamma = self._get_rate('recovery')
-        Fqyy = functools.partial(self._Fqyy, q)
+        Fyy = functools.partial(self._Fyy, q)
         fXX = self._fXX
         Fyz = self._Fyz
         fXy = self._fXy
-        Fq = sparse.bmat([
-            [Fqyy(- omega - mu), None, None, None, None],
+        F = sparse.bmat([
+            [Fyy(- omega - mu), None, None, None, None],
             [fXy(omega), fXX(- mu), None, None, None],
-            [None, None, Fqyy(- rho - mu), None, None],
-            [None, None, Fyz(rho), Fqyy(- gamma - mu), None],
+            [None, None, Fyy(- rho - mu), None, None],
+            [None, None, Fyz(rho), Fyy(- gamma - mu), None],
             [None, None, None, fXy(gamma), fXX(- mu)]
         ])
-        return Fq
+        return F
 
     def _tyX(self):
         K = len(self.model.z)
@@ -128,7 +126,7 @@ class Solver(_solver.Base):
 
     # Build `_T` once and then reuse.
     @functools.cached_property
-    def _T(self):
+    def _T_(self):
         tXX = numpy.array([[1]])
         tyX = self._tyX()
         zeros = self.zeros
@@ -141,10 +139,10 @@ class Solver(_solver.Base):
         ])
         return T
 
-    def _Tq(self, q):
-        # `Tq` is independent of `q`.
-        Tq = self._T
-        return Tq
+    def _T(self, q):
+        # `T` is independent of `q`.
+        T = self._T_
+        return T
 
     def _byX(self):
         K = len(self.model.z)

@@ -28,7 +28,7 @@ class _Solver:
         self._build_matrices()
         self._check_matrices()
 
-    def _FqXW(self, q, pi):
+    def _FXW(self, q, pi):
         J = len(self.a)
         if numpy.isscalar(pi):
             pi = pi * numpy.ones(J)
@@ -39,17 +39,17 @@ class _Solver:
                      0: numpy.hstack([numpy.zeros(J - 1), pi[-1]])}
         else:
             raise ValueError(f'{q=}!')
-        FqXW = sparse.diags_from_dict(diags)
-        return FqXW
+        FXW = sparse.diags_from_dict(diags)
+        return FXW
 
-    def _Hq(self, q):
-        Hq = self._FqXW(q, 1)
-        return Hq
+    def _H(self, q):
+        H = self._FXW(q, 1)
+        return H
 
-    def _Fq(self, q):
+    def _F(self, q):
         mu = self.death.rate(self.a)
-        Fq = self._FqXW(q, - mu)
-        return Fq
+        F = self._FXW(q, - mu)
+        return F
 
     def _B(self):
         J = len(self.a)
@@ -62,24 +62,23 @@ class _Solver:
 
     def _build_matrices(self):
         '''Build the matrices used for stepping forward in time.'''
-        self.H_new = self._Hq('new')
-        self.H_cur = self._Hq('cur')
-        self.F_new = self._Fq('new')
-        self.F_cur = self._Fq('cur')
+        q_vals = ('new', 'cur')
+        self.H = {q: self._H(q) for q in q_vals}
+        self.F = {q: self._F(q) for q in q_vals}
         self.B = self._B()
 
     def _check_matrices(self):
-        assert linalg.is_Z_matrix(self.H_new)
-        assert linalg.is_nonnegative(self.H_cur)
-        assert linalg.is_Metzler_matrix(self.F_new)
+        assert linalg.is_Z_matrix(self.H['new'])
+        assert linalg.is_nonnegative(self.H['cur'])
+        assert linalg.is_Metzler_matrix(self.F['new'])
         assert linalg.is_Metzler_matrix(self.B)
         assert linalg.is_nonnegative(self.B)
-        HFB_new = (self.H_new
-                   - self.t_step / 2 * (self.F_new
+        HFB_new = (self.H['new']
+                   - self.t_step / 2 * (self.F['new']
                                         + self.birth.rate_max * self.B))
         assert linalg.is_M_matrix(HFB_new)
-        HFB_cur = (self.H_cur
-                   + self.t_step / 2 * (self.F_cur
+        HFB_cur = (self.H['cur']
+                   + self.t_step / 2 * (self.F['cur']
                                         + self.birth.rate_min * self.B))
         assert linalg.is_nonnegative(HFB_cur)
 
@@ -90,11 +89,11 @@ class _Solver:
             print(f'{t_new=}')
         t_mid = t_cur + self.t_step / 2
         b_mid = birth_scaling * self.birth.rate(t_mid)
-        HFB_new = (self.H_new
-                   - self.t_step / 2 * (self.F_new
+        HFB_new = (self.H['new']
+                   - self.t_step / 2 * (self.F['new']
                                         + b_mid * self.B))
-        HFB_cur = (self.H_cur
-                   + self.t_step / 2 * (self.F_cur
+        HFB_cur = (self.H['cur']
+                   + self.t_step / 2 * (self.F['cur']
                                         + b_mid * self.B))
         return linalg.solve(HFB_new, HFB_cur @ Phi_cur)
 

@@ -19,7 +19,7 @@ class Checker(_check_solver.Base):
                 * self.model.z_step
                 * scipy.sparse.bmat([[zeros, [[0]], zeros, ones, [[0]]]]))
 
-    def Hq(self, q):
+    def H(self, q):
         K = len(self.model.z)
         if q == 'new':
             Hqyy = scipy.sparse.identity(K)
@@ -31,7 +31,7 @@ class Checker(_check_solver.Base):
             return ValueError
         return scipy.sparse.block_diag([Hqyy, [[1]], Hqyy, Hqyy, [[1]]])
 
-    def Fq(self, q):
+    def F(self, q):
         K = len(self.model.z)
 
         def Fqyy(psi):
@@ -77,7 +77,7 @@ class Checker(_check_solver.Base):
             [None, None, None, fXy(gamma), [[- mu]]]
         ])
 
-    def Tq(self, q):
+    def T(self, q):
         # `T` is independent of `q`.
         K = len(self.model.z)
         tyX = scipy.sparse.lil_array((K, 1))
