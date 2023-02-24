@@ -56,24 +56,24 @@ def find_subharmonic(model, period_0, t_0, y_0_guess,
 
 def monodromy_matrix(model, limit_cycle):
     '''Get the monodromy matrix.'''
-    phi = _fundamental.solution(model, limit_cycle)
-    return phi[-1]
+    Phi = _fundamental.solution(model, limit_cycle)
+    return Phi[-1]
 
 
-def characteristic_multipliers(model, limit_cycle):
+def characteristic_multipliers(model, limit_cycle, k=5):
     '''Get the characteristic multipliers of `limit_cycle`.'''
-    psi = monodromy_matrix(model, limit_cycle)
-    mlts = numpy.linalg.eigvals(psi)
+    Psi = monodromy_matrix(model, limit_cycle)
+    mlts = _utility.eigs(Psi, k=k, which='LM', return_eigenvectors=False)
     # Drop the one closest to 1.
     drop = numpy.abs(mlts - 1).argmin()
-    assert numpy.isclose(mlts[drop], 1)
-    mlts = numpy.delete(mlts, drop)
+    if numpy.isclose(mlts[drop], 1):
+        mlts = numpy.delete(mlts, drop)
     return _utility.sort_by_abs(mlts)
 
 
-def characteristic_exponents(model, limit_cycle):
+def characteristic_exponents(model, limit_cycle, k=5):
     '''Get the characteristic exponents of `limit_cycle`.'''
-    mlts = characteristic_multipliers(model, limit_cycle)
+    mlts = characteristic_multipliers(model, limit_cycle, k=k)
     t = limit_cycle.index
     period = t[-1] - t[0]
     exps = numpy.log(mlts) / period

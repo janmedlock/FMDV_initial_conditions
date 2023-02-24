@@ -217,6 +217,28 @@ class Solver(_solver.Base):
         y_new = result.x
         return y_new
 
+    def jacobian(self, t_cur, y_cur, y_new):
+        '''The Jacobian at `t_cur`, given `y_cur` and `y_new`.'''
+        # Compute `D`, the derivative of `y_cur` with respect to `y_new`,
+        # which is `M_new @ D = M_cur`.
+        t_mid = t_cur + 0.5 * self.t_step
+        b_mid = self.model.birth.rate(t_mid)
+        M_new = (self.H_new
+                 - self.t_step / 2 * (self.F_new
+                                      + self.beta @ y_new * self.T
+                                      + numpy.outer(self.T @ y_new, self.beta)
+                                      + b_mid * self.B))
+        M_cur = (self.H_cur
+                 + self.t_step / 2 * (self.F_cur
+                                      + self.beta @ y_cur * self.T
+                                      + numpy.outer(self.T @ y_cur, self.beta)
+                                      + b_mid * self.B))
+        D = scipy.linalg.solve(M_new, M_cur,
+                               overwrite_a=True,
+                               overwrite_b=True)
+        J = (D - self.I) / self.t_step
+        return J
+
 
 def solve(model, t_span, y_0,
           t=None, y=None, display=False):

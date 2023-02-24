@@ -30,8 +30,9 @@ def find(model, y_guess, t=0, weights=1, **root_kwds):
     return y
 
 
-def eigenvalues(model, equilibrium, t=0):
+def eigenvalues(model, equilibrium, t=0, k=5):
     '''Get the eigenvalues of `equilibrium`.'''
-    jacobian = model._solver.jacobian(t, equilibrium, equilibrium)
-    evals = numpy.linalg.eigvals(jacobian)
+    n = len(equilibrium)
+    J = model._solver.jacobian(t, equilibrium, equilibrium)
+    evals = _utility.eigs(J, k=k, which='LR', return_eigenvectors=False)
     return _utility.sort_by_real_part(evals)

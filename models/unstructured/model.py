@@ -1,32 +1,24 @@
 '''Based on our FMDV work, this is an unstructured model.'''
 
-import numpy
-import pandas
-
 from . import _solver
-from .. import _equilibrium
-from .. import _limit_cycle
 from .. import _model
-from .. import _utility
 
 
 class Model(_model.AgeIndependent):
     '''Unstructured model.'''
 
-    def __init__(self, t_step=0.001, **kwds):
-        super().__init__(**kwds)
-        self.t_step = t_step
-        self._solver = _solver.Solver(self)
+    _Solver = _solver.Solver
 
-    def Solution(self, y, t=None):
-        '''A solution.'''
-        states = pandas.CategoricalIndex(self.states, self.states,
-                                         ordered=True, name='state')
-        if t is None:
-            return pandas.Series(y, index=states)
-        else:
-            t = pandas.Index(t, name='time')
-            return pandas.DataFrame(y, index=t, columns=states)
+    def __init__(self, t_step=0.001, **kwds):
+        self.t_step = t_step
+        super().__init__(**kwds)
+
+    def _build_solution_index(self, states):
+        return states
+
+    def _build_weights(self):
+        '''Build weights for the state vector.'''
+        return 1
 
     @staticmethod
     def build_initial_conditions():
@@ -37,39 +29,3 @@ class Model(_model.AgeIndependent):
         R = 0
         S = 1 - M - E - I - R
         return (M, S, E, I, R)
-
-    def solve(self, t_span,
-              y_start=None, t=None, y=None, display=False):
-        '''Solve the ODEs.'''
-        if y_start is None:
-            y_start = self.build_initial_conditions()
-        (t_, soln) = self._solver.solve(t_span, y_start,
-                                        t=t, y=y, display=display)
-        _utility.assert_nonnegative(soln)
-        return self.Solution(soln, t_)
-
-    def find_equilibrium(self, eql_guess, t=0, **root_kwds):
-        '''Find an equilibrium of the model.'''
-        eql = _equilibrium.find(self, eql_guess, t, **root_kwds)
-        _utility.assert_nonnegative(eql)
-        return self.Solution(eql)
-
-    def get_eigenvalues(self, eql, t=0):
-        '''Get the eigenvalues of the Jacobian.'''
-        return _equilibrium.eigenvalues(self, eql, t)
-
-    def find_limit_cycle(self, period_0, t_0, lcy_0_guess, **root_kwds):
-        '''Find a limit cycle of the model.'''
-        (t, lcy) = _limit_cycle.find_subharmonic(self, period_0, t_0,
-                                                 lcy_0_guess,
-                                                 **root_kwds)
-        _utility.assert_nonnegative(lcy)
-        return self.Solution(lcy, t)
-
-    def get_characteristic_multipliers(self, lcy):
-        '''Get the characteristic multipliers.'''
-        return _limit_cycle.characteristic_multipliers(self, lcy)
-
-    def get_characteristic_exponents(self, lcy):
-        '''Get the characteristic exponents.'''
-        return _limit_cycle.characteristic_exponents(self, lcy)

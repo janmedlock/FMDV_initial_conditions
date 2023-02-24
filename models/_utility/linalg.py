@@ -1,11 +1,28 @@
 '''Linear algebra.'''
 
 import numpy
+import scipy.linalg
 import scipy.sparse.linalg
 
 
+def eigs(A, k=5, which='LR', maxiter=100000, return_eigenvectors=True,
+         *args, **kwds):
+    '''Get the first `k` eigenvalues of `A` using a sparse solver.'''
+    if k < A.shape[0] - 1:
+        return scipy.sparse.linalg.eigs(
+            A, k=k, which=which, maxiter=maxiter,
+            return_eigenvectors=return_eigenvectors,
+            *args, **kwds
+        )
+    else:
+        # If A is smaller than (k+1) x (k+1), fall back to
+        # `scipy.linalg.eig()` without ensuring only `k` eigenvalues
+        # are returned.
+        return scipy.linalg.eig(A, right=return_eigenvectors)
+
+
 def get_dominant_eigen(A, which='LR', return_eigenvector=True,
-                       maxiter=100000, *args, **kwargs):
+                       maxiter=100000, *args, **kwds):
     '''Get the dominant eigenvalue & eigenvector of `A` using
     `scipy.sparse.linalg.eigs()`, which works for both sparse
     and dense matrices.
@@ -15,9 +32,9 @@ def get_dominant_eigen(A, which='LR', return_eigenvector=True,
     # I think this check handles dense & sparse matrices, etc.
     assert numpy.isfinite(A[numpy.nonzero(A)]).all(), \
         '`A` has inf/NaN entries.'
-    result = scipy.sparse.linalg.eigs(A, k=1, which=which, maxiter=maxiter,
-                                      return_eigenvectors=return_eigenvector,
-                                      *args, **kwargs)
+    result = eigs(A, k=1, which=which, maxiter=maxiter,
+                  return_eigenvectors=return_eigenvector,
+                  *args, **kwds)
     if return_eigenvector:
         (L, V) = result
     else:

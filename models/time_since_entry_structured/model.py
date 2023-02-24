@@ -5,22 +5,25 @@ import pandas
 
 from . import _solver
 from .. import _model
-from .. import _equilibrium
 from .. import _utility
 
 
 class Model(_model.AgeIndependent):
     '''Time-since-entry-structured model.'''
 
+    _Solver = _solver.Solver
+
+    _root_kwds = dict(method='krylov')
+
     states_with_z = ['maternal_immunity', 'exposed', 'infectious']
 
     def __init__(self, z_step=0.001, z_max=3, **kwds):
-        super().__init__(**kwds)
         self.z_step = z_step
         self.z = _utility.build_t(0, z_max, self.z_step)
-        self._solver = _solver.Solver(self)
+        super().__init__(**kwds)
 
-    def _index_states_z(self):
+    def _build_solution_index(self, states):
+        '''Build the solution index.'''
         # Build a `pandas.DataFrame()` with columns 'state' and
         # 'time_since_entry' to be converted into a `pandas.MultiIndex()`.
         zvals = lambda state: (self.z
@@ -29,20 +32,20 @@ class Model(_model.AgeIndependent):
         dfr = pandas.concat(
             pandas.DataFrame({'state': state,
                               'time_since_entry': zvals(state)})
-            for state in self.states
+            for state in states
         )
         # Make 'state' categorical and ordered.
-        dtype = {'state': pandas.CategoricalDtype(self.states, ordered=True)}
-        return pandas.MultiIndex.from_frame(dfr.astype(dtype))
+        dfr = dfr.astype({'state': states.dtype})
+        states_z = pandas.MultiIndex.from_frame(dfr)
+        return states_z
 
-    def Solution(self, y, t=None):
-        '''A solution.'''
-        states_z = self._index_states_z()
-        if t is None:
-            return pandas.Series(y, index=states_z)
-        else:
-            t = pandas.Index(t, name='time')
-            return pandas.DataFrame(y, index=t, columns=states_z)
+    def _build_weights(self):
+        '''Build weights for the state vector.'''
+        K = len(self.z)
+        z_steps = self.z_step * numpy.ones(K)
+        w_state = [z_steps if state in self.states_with_z else 1
+                   for state in self.states]
+        return numpy.hstack(w_state)
 
     def build_initial_conditions(self):
         '''Build the initial conditions.'''
@@ -71,30 +74,3 @@ class Model(_model.AgeIndependent):
         e = E * self._survival_scaled(self.progression)
         i = I * self._survival_scaled(self.recovery)
         return numpy.hstack((m, S, e, i, R))
-
-    def solve(self, t_span,
-              y_start=None, t=None, y=None, display=False):
-        '''Solve the ODEs.'''
-        if y_start is None:
-            y_start = self.build_initial_conditions()
-        (t_, soln) = self._solver.solve(t_span, y_start,
-                                        t=t, y=y, display=display)
-        _utility.assert_nonnegative(soln)
-        return self.Solution(soln, t_)
-
-    def _get_weights(self):
-        K = len(self.z)
-        z_steps = self.z_step * numpy.ones(K)
-        w_state = [z_steps if state in self.states_with_z else 1
-                   for state in self.states]
-        return numpy.hstack(w_state)
-
-    def find_equilibrium(self, eql_guess, t=0, **root_kwds):
-        '''Find an equilibrium of the model.'''
-        if not 'method' in root_kwds:
-            root_kwds['method'] = 'krylov'
-        weights = self._get_weights()
-        eql = _equilibrium.find(self, eql_guess, t,
-                                weights=weights, **root_kwds)
-        _utility.assert_nonnegative(eql * weights)
-        return self.Solution(eql)
