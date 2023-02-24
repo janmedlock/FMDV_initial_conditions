@@ -40,8 +40,8 @@ class Base(metaclass=abc.ABCMeta):
             y[ell] = self.step(t[ell - 1], y[ell - 1], display=display)
         return (t, y)
 
-    def _solution_at_t_end(self, t_span, y_0,
-                           t=None, y_temp=None):
+    def solution_at_t_end(self, t_span, y_0,
+                          t=None, y_temp=None):
         '''Find the value of the solution at `t_span[1]`.'''
         if t is None:
             t = _utility.build_t(*t_span, self.t_step)

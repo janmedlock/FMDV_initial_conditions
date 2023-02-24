@@ -24,6 +24,6 @@ class Map:
 
     def __call__(self, y_0):
         '''Get the solution at the end of one period.'''
-        return self._solver._solution_at_t_end(self.t_span, y_0,
-                                               t=self.t,
-                                               y_temp=self.y_temp)
+        return self._solver.solution_at_t_end(self.t_span, y_0,
+                                              t=self.t,
+                                              y_temp=self.y_temp)
