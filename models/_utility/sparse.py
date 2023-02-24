@@ -22,7 +22,7 @@ def block_diag(mats, *args, **kwds):
 def bmat(blocks, *args, **kwds):
     '''Build a sparse `array()` from the sparse sub-blocks `blocks`.'''
     arr = scipy.sparse.bmat(blocks, *args, **kwds)
-    return arr
+    return array(arr)
 
 
 def diags(diagonals, offsets=0, shape=None, *args, **kwds):
