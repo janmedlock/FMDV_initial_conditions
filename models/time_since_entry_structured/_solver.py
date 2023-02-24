@@ -4,14 +4,10 @@ import functools
 
 import numpy
 import scipy.optimize
-import scipy.sparse
+import scipy.sparse.linalg
 
 from .. import _solver
 from .. import _utility
-
-
-# Common sparse array format.
-_SPARSE_ARRAY = scipy.sparse.csr_array
 
 
 class Solver(_solver.Base):
@@ -25,15 +21,16 @@ class Solver(_solver.Base):
         n = len(self.model.states)
         m = len(self.model.states_with_z)
         K = len(self.model.z)
-        I = scipy.sparse.identity(m * K + (n - m))
-        return _SPARSE_ARRAY(I)
+        size = m * K + (n - m)
+        I = _utility.sparse.identity(size)
+        return I
 
     def _zeros(self):
         K = len(self.model.z)
-        zeros = {'11': _SPARSE_ARRAY((1, 1)),
-                 '1K': _SPARSE_ARRAY((1, K)),
-                 'K1': _SPARSE_ARRAY((K, 1)),
-                 'KK': _SPARSE_ARRAY((K, K))}
+        zeros = {'11': _utility.sparse.array((1, 1)),
+                 '1K': _utility.sparse.array((1, K)),
+                 'K1': _utility.sparse.array((K, 1)),
+                 'KK': _utility.sparse.array((K, K))}
         return zeros
 
     def _beta(self):
@@ -43,20 +40,21 @@ class Solver(_solver.Base):
         beta = (
             self.model.transmission.rate
             * self.z_step
-            * scipy.sparse.bmat([
+            * _utility.sparse.bmat([
                 [zeros['1K'], zeros['11'], zeros['1K'], ones1K, zeros['11']]
             ])
         )
-        return _SPARSE_ARRAY(beta)
+        return beta
 
     def _Hqyy(self, q):
-        return self._Fqyy(q, 1)
+        Hqyy = self._Fqyy(q, 1)
+        return Hqyy
 
     def _Hq(self, q):
         Hqyy = self._Hqyy(q)
         HXX = [[1]]
-        Hq = scipy.sparse.block_diag((Hqyy, HXX, Hqyy, Hqyy, HXX))
-        return _SPARSE_ARRAY(Hq)
+        Hq = _utility.sparse.block_diag((Hqyy, HXX, Hqyy, Hqyy, HXX))
+        return Hq
 
     def _Fqyy(self, q, psi):
         K = len(self.model.z)
@@ -69,25 +67,28 @@ class Solver(_solver.Base):
                      0: numpy.hstack([numpy.zeros(K - 1), psi[-1]])}
         else:
             raise ValueError(f'{q=}!')
-        return _utility.sparse.diags(diags)
+        Fqyy = _utility.sparse.diags_from_dict(diags)
+        return Fqyy
 
     @staticmethod
     def _fXX(pi):
-        return [[pi]]
+        fXX = [[pi]]
+        return fXX
 
     def _Fyz(self, psi):
         K = len(self.model.z)
-        if numpy.isscalar(psi):
-            psi = psi * numpy.ones(K)
-        Fyz = scipy.sparse.lil_array((K, K))
-        Fyz[0] = psi
+        shape = (K, K)
+        # The first row is `psi`.
+        data = {(0, (None, )): psi}
+        Fyz = _utility.sparse.array_from_dict(data, shape=shape)
         return Fyz
 
     def _fXy(self, psi):
         if numpy.isscalar(psi):
             K = len(self.model.z)
             psi = psi * numpy.ones(K)
-        return self.z_step * psi
+        fXy = self.z_step * psi
+        return fXy
 
     def _get_rate(self, which):
         param = getattr(self.model, which)
@@ -103,57 +104,63 @@ class Solver(_solver.Base):
         fXX = self._fXX
         Fyz = self._Fyz
         fXy = self._fXy
-        Fq = scipy.sparse.bmat([
+        Fq = _utility.sparse.bmat([
             [Fqyy(- omega - mu), None, None, None, None],
             [fXy(omega), fXX(- mu), None, None, None],
             [None, None, Fqyy(- rho - mu), None, None],
             [None, None, Fyz(rho), Fqyy(- gamma - mu), None],
             [None, None, None, fXy(gamma), fXX(- mu)]
         ])
-        return _SPARSE_ARRAY(Fq)
+        return Fq
 
     def _tyX(self):
         K = len(self.model.z)
-        tyX = scipy.sparse.lil_array((K, 1))
-        tyX[0] = 1 / self.z_step
+        shape = (K, 1)
+        # The first entry is `1 / self.z_step`.
+        data = {(0, 0): 1 / self.z_step}
+        tyX = _utility.sparse.array_from_dict(data, shape=shape)
         return tyX
 
     def _T(self):
         tXX = numpy.array([[1]])
         tyX = self._tyX()
         zeros = self.zeros
-        T = scipy.sparse.bmat([
+        T = _utility.sparse.bmat([
             [zeros['KK'], zeros['K1'], zeros['KK'], zeros['KK'], zeros['K1']],
             [zeros['1K'], - tXX, zeros['1K'], zeros['1K'], zeros['11']],
             [zeros['KK'], tyX, zeros['KK'], zeros['KK'], zeros['K1']],
             [zeros['KK'], zeros['K1'], zeros['KK'], zeros['KK'], zeros['K1']],
             [zeros['1K'], zeros['11'], zeros['1K'], zeros['1K'], zeros['11']]
         ])
-        return _SPARSE_ARRAY(T)
+        return T
 
     def _byX(self):
         K = len(self.model.z)
-        byX = scipy.sparse.lil_array((K, 1))
-        byX[0] = 1 / self.z_step
+        shape = (K, 1)
+        # The first entry is `1 / self.z_step`.
+        data = {(0, 0): 1 / self.z_step}
+        byX = _utility.sparse.array_from_dict(data, shape=shape)
         return byX
 
     def _bXy(self):
         K = len(self.model.z)
-        return self.z_step * numpy.ones((1, K))
+        shape = (1, K)
+        bXy = self.z_step * numpy.ones(shape)
+        return bXy
 
     def _B(self):
         bXX = [[1]]
         byX = self._byX()
         bXy = self._bXy()
         zeros = self.zeros
-        B = scipy.sparse.bmat([
+        B = _utility.sparse.bmat([
             [zeros['KK'], zeros['K1'], zeros['KK'], zeros['KK'], byX],
             [bXy, bXX, bXy, bXy, zeros['11']],
             [zeros['KK'], zeros['K1'], zeros['KK'], zeros['KK'], zeros['K1']],
             [zeros['KK'], zeros['K1'], zeros['KK'], zeros['KK'], zeros['K1']],
             [zeros['1K'], zeros['11'], zeros['1K'], zeros['1K'], zeros['11']]
         ])
-        return _SPARSE_ARRAY(B)
+        return B
 
     def _build_matrices(self):
         self.I = self._I()
@@ -233,9 +240,7 @@ class Solver(_solver.Base):
                                       + self.beta @ y_cur * self.T
                                       + numpy.outer(self.T @ y_cur, self.beta)
                                       + b_mid * self.B))
-        D = scipy.linalg.solve(M_new, M_cur,
-                               overwrite_a=True,
-                               overwrite_b=True)
+        D = scipy.sparse.linalg.spsolve(M_new, M_cur)
         J = (D - self.I) / self.t_step
         return J
 

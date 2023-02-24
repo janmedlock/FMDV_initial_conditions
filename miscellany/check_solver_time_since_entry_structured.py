@@ -19,10 +19,10 @@ def beta(solver):
 
 def Hq(solver, q):
     K = len(solver.model.z)
-    if q == 0:
+    if q == 'new':
         Hqyy = scipy.sparse.identity(K)
-    elif q == 1:
-        Hqyy = models._utility.sparse.diags(
+    elif q == 'cur':
+        Hqyy = models._utility.sparse.diags_from_dict(
             {-1: numpy.ones(K - 1),
              0: numpy.hstack([numpy.zeros(K - 1), 1])})
     else:
@@ -36,10 +36,10 @@ def Fq(solver, q):
     def Fqyy(psi):
         if numpy.isscalar(psi):
             psi = psi * numpy.ones(K)
-        if q == 0:
+        if q == 'new':
             return scipy.sparse.diags(psi)
-        elif q == 1:
-            return models._utility.sparse.diags(
+        elif q == 'cur':
+            return models._utility.sparse.diags_from_dict(
                 {-1: psi[:-1],
                  0: numpy.hstack([numpy.zeros(K - 1), psi[-1]])})
         else:
@@ -113,15 +113,14 @@ def B(solver):
 
 def check_matrices(solver):
     assert models._utility.sparse.equals(beta(solver), solver.beta)
-    assert models._utility.sparse.equals(Hq(solver, 0), solver.H0)
-    assert models._utility.sparse.equals(Hq(solver, 1), solver.H1)
-    assert models._utility.sparse.equals(Fq(solver, 0), solver.F0)
-    assert models._utility.sparse.equals(Fq(solver, 1), solver.F1)
+    assert models._utility.sparse.equals(Hq(solver, 'new'), solver.H_new)
+    assert models._utility.sparse.equals(Hq(solver, 'cur'), solver.H_cur)
+    assert models._utility.sparse.equals(Fq(solver, 'new'), solver.F_new)
+    assert models._utility.sparse.equals(Fq(solver, 'cur'), solver.F_cur)
     assert models._utility.sparse.equals(T(solver), solver.T)
     assert models._utility.sparse.equals(B(solver), solver.B)
 
 
 if __name__ == '__main__':
     model = models.time_since_entry_structured.Model()
-    solver = model.solver()
-    check_matrices(solver)
+    check_matrices(model._solver)

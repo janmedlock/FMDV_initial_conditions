@@ -9,20 +9,20 @@ import models._utility
 
 
 def beta(solver):
-    J = len(solver.model.ages)
+    J = len(solver.model.a)
     zeros = scipy.sparse.csr_array((1, J))
     ones = numpy.ones((1, J))
     return (solver.model.transmission.rate
-            * solver.age_step
+            * solver.a_step
             * scipy.sparse.bmat([[zeros, zeros, zeros, ones, zeros]]))
 
 
 def Hq(solver, q):
-    J = len(solver.model.ages)
-    if q == 0:
+    J = len(solver.model.a)
+    if q == 'new':
         HqXX = scipy.sparse.identity(J)
-    elif q == 1:
-        HqXX = models._utility.sparse.diags(
+    elif q == 'cur':
+        HqXX = models._utility.sparse.diags_from_dict(
             {-1: numpy.ones(J - 1),
              0: numpy.hstack([numpy.zeros(J - 1), 1])})
     else:
@@ -31,21 +31,21 @@ def Hq(solver, q):
 
 
 def Fq(solver, q):
-    J = len(solver.model.ages)
+    J = len(solver.model.a)
 
     def FqXW(pi):
         if numpy.isscalar(pi):
             pi = pi * numpy.ones(J)
-        if q == 0:
+        if q == 'new':
             return scipy.sparse.diags(pi)
-        elif q == 1:
-            return models._utility.sparse.diags(
+        elif q == 'cur':
+            return models._utility.sparse.diags_from_dict(
                 {-1: pi[:-1],
                  0: numpy.hstack([numpy.zeros(J - 1), pi[-1]])})
         else:
             raise ValueError
 
-    mu = solver.model.death.rate(solver.model.ages)
+    mu = solver.model.death.rate(solver.model.a)
     omega = 1 / solver.model.waning.mean
     rho = 1 / solver.model.progression.mean
     gamma = 1 / solver.model.recovery.mean
@@ -59,11 +59,11 @@ def Fq(solver, q):
 
 
 def Tq(solver, q):
-    J = len(solver.model.ages)
-    if q == 0:
+    J = len(solver.model.a)
+    if q == 'new':
         TqXW = scipy.sparse.identity(J)
-    elif q == 1:
-        TqXW = models._utility.sparse.diags(
+    elif q == 'cur':
+        TqXW = models._utility.sparse.diags_from_dict(
             {-1: numpy.ones(J - 1),
              0: numpy.hstack([numpy.zeros(J - 1), 1])})
     else:
@@ -79,9 +79,9 @@ def Tq(solver, q):
 
 
 def B(solver):
-    J = len(solver.model.ages)
+    J = len(solver.model.a)
     BXW = scipy.sparse.lil_array((J, J))
-    BXW[0] = solver.model.birth.maternity(solver.model.ages)
+    BXW[0] = solver.model.birth.maternity(solver.model.a)
     Zeros = scipy.sparse.csr_array((J, J))
     return scipy.sparse.bmat([
         [Zeros, Zeros, Zeros, Zeros, BXW],
@@ -94,16 +94,15 @@ def B(solver):
 
 def check_matrices(solver):
     assert models._utility.sparse.equals(beta(solver), solver.beta)
-    assert models._utility.sparse.equals(Hq(solver, 0), solver.H0)
-    assert models._utility.sparse.equals(Hq(solver, 1), solver.H1)
-    assert models._utility.sparse.equals(Fq(solver, 0), solver.F0)
-    assert models._utility.sparse.equals(Fq(solver, 1), solver.F1)
-    assert models._utility.sparse.equals(Tq(solver, 0), solver.T0)
-    assert models._utility.sparse.equals(Tq(solver, 1), solver.T1)
+    assert models._utility.sparse.equals(Hq(solver, 'new'), solver.H_new)
+    assert models._utility.sparse.equals(Hq(solver, 'cur'), solver.H_cur)
+    assert models._utility.sparse.equals(Fq(solver, 'new'), solver.F_new)
+    assert models._utility.sparse.equals(Fq(solver, 'cur'), solver.F_cur)
+    assert models._utility.sparse.equals(Tq(solver, 'new'), solver.T_new)
+    assert models._utility.sparse.equals(Tq(solver, 'cur'), solver.T_cur)
     assert models._utility.sparse.equals(B(solver), solver.B)
 
 
 if __name__ == '__main__':
     model = models.age_structured.Model()
-    solver = model.solver()
-    check_matrices(solver)
+    check_matrices(model._solver)

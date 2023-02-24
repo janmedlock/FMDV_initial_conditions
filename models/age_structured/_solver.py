@@ -10,10 +10,6 @@ from .. import _solver
 from .. import _utility
 
 
-# Common sparse array format.
-_SPARSE_ARRAY = scipy.sparse.csr_array
-
-
 class Solver(_solver.Base):
     '''Crank–Nicolson solver.'''
 
@@ -24,15 +20,16 @@ class Solver(_solver.Base):
     def _I(self):
         n = len(self.model.states)
         J = len(self.model.a)
-        I = scipy.sparse.identity(n * J)
-        return _SPARSE_ARRAY(I)
+        size = n * J
+        I = _utility.sparse.identity(size)
+        return I
 
     def _zeros(self):
         J = len(self.model.a)
-        zeros = {'11': _SPARSE_ARRAY((1, 1)),
-                 '1J': _SPARSE_ARRAY((1, J)),
-                 'J1': _SPARSE_ARRAY((J, 1)),
-                 'JJ': _SPARSE_ARRAY((J, J))}
+        zeros = {'11': _utility.sparse.array((1, 1)),
+                 '1J': _utility.sparse.array((1, J)),
+                 'J1': _utility.sparse.array((J, 1)),
+                 'JJ': _utility.sparse.array((J, J))}
         return zeros
 
     def _beta(self):
@@ -42,20 +39,22 @@ class Solver(_solver.Base):
         beta = (
             self.model.transmission.rate
             * self.a_step
-            * scipy.sparse.bmat([
+            * _utility.sparse.bmat([
                 [zeros1J, zeros1J, zeros1J, ones1J, zeros1J]
             ])
         )
-        return _SPARSE_ARRAY(beta)
+        return beta
 
     def _HqXX(self, q):
-        return self._FqXW(q, 1)
+        HqXX = self._FqXW(q, 1)
+        return HqXX
 
     def _Hq(self, q):
         n = len(self.model.states)
         HqXX = self._HqXX(q)
-        Hq = scipy.sparse.block_diag((HqXX, ) * n)
-        return _SPARSE_ARRAY(Hq)
+        diag = (HqXX, ) * n
+        Hq = _utility.sparse.block_diag(diag)
+        return Hq
 
     def _FqXW(self, q, pi):
         J = len(self.model.a)
@@ -68,7 +67,8 @@ class Solver(_solver.Base):
                      0: numpy.hstack([numpy.zeros(J - 1), pi[-1]])}
         else:
             raise ValueError(f'{q=}!')
-        return _utility.sparse.diags(diags)
+        FqXW = _utility.sparse.diags_from_dict(diags)
+        return FqXW
 
     def _Fq(self, q):
         mu = self.model.death.rate(self.model.a)
@@ -76,48 +76,51 @@ class Solver(_solver.Base):
         rho = 1 / self.model.progression.mean
         gamma = 1 / self.model.recovery.mean
         FqXW = functools.partial(self._FqXW, q)
-        Fq = scipy.sparse.bmat([
+        Fq = _utility.sparse.bmat([
             [FqXW(- omega - mu), None, None, None, None],
             [FqXW(omega), FqXW(- mu), None, None, None],
             [None, None, FqXW(- rho - mu), None, None],
             [None, None, FqXW(rho), FqXW(- gamma - mu), None],
             [None, None, None, FqXW(gamma), FqXW(- mu)]
         ])
-        return _SPARSE_ARRAY(Fq)
+        return Fq
 
     def _TqXW(self, q):
-        return self._FqXW(q, 1)
+        TqXW = self._FqXW(q, 1)
+        return TqXW
 
     def _Tq(self, q):
         TqXW = self._TqXW(q)
         ZerosJJ = self.zeros['JJ']
-        Tq = scipy.sparse.bmat([
+        Tq = _utility.sparse.bmat([
             [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ],
             [ZerosJJ, - TqXW, ZerosJJ, ZerosJJ, ZerosJJ],
             [ZerosJJ, TqXW, ZerosJJ, ZerosJJ, ZerosJJ],
             [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ],
             [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ]
         ])
-        return _SPARSE_ARRAY(Tq)
+        return Tq
 
     def _BXW(self):
         J = len(self.model.a)
+        shape = (J, J)
         nu = self.model.birth.maternity(self.model.a)
-        BXW = scipy.sparse.lil_array((J, J))
-        BXW[0] = nu
+        # The first row is `nu`.
+        data = {(0, (None, )): nu}
+        BXW = _utility.sparse.array_from_dict(data, shape=shape)
         return BXW
 
     def _B(self):
         BXW = self._BXW()
         ZerosJJ = self.zeros['JJ']
-        B = scipy.sparse.bmat([
+        B = _utility.sparse.bmat([
             [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, BXW],
             [BXW, BXW, BXW, BXW, ZerosJJ],
             [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ],
             [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ],
             [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ]
         ])
-        return _SPARSE_ARRAY(B)
+        return B
 
     def _build_matrices(self):
         self.I = self._I()
@@ -200,9 +203,7 @@ class Solver(_solver.Base):
                                       + numpy.outer(self.T_cur @ y_cur,
                                                     self.beta)
                                       + b_mid * self.B))
-        D = scipy.linalg.solve(M_new, M_cur,
-                               overwrite_a=True,
-                               overwrite_b=True)
+        D = scipy.sparse.linalg.spsolve(M_new, M_cur)
         J = (D - self.I) / self.t_step
         return J
 

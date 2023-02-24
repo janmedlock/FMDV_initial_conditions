@@ -4,13 +4,9 @@ import functools
 
 import numpy
 import scipy.optimize
-import scipy.sparse
+import scipy.sparse.linalg
 
 from . import _utility
-
-
-# Common sparse array format.
-_SPARSE_ARRAY = scipy.sparse.csr_array
 
 
 class _Solver:
@@ -42,22 +38,26 @@ class _Solver:
                      0: numpy.hstack([numpy.zeros(J - 1), pi[-1]])}
         else:
             raise ValueError(f'{q=}!')
-        FqXW = _utility.sparse.diags(diags)
-        return _SPARSE_ARRAY(FqXW)
+        FqXW = _utility.sparse.diags_from_dict(diags)
+        return FqXW
 
     def _Hq(self, q):
-        return self._FqXW(q, 1)
+        Hq = self._FqXW(q, 1)
+        return Hq
 
     def _Fq(self, q):
         mu = self.death.rate(self.a)
-        return self._FqXW(q, - mu)
+        Fq = self._FqXW(q, - mu)
+        return Fq
 
     def _B(self):
         J = len(self.a)
+        shape = (J, J)
         nu = self.birth.maternity(self.a)
-        B = scipy.sparse.lil_array((J, J))
-        B[0] = nu
-        return _SPARSE_ARRAY(B)
+        # The first row is `nu`.
+        data = {(0, (None, )): nu}
+        B = _utility.sparse.array_from_dict(data, shape=shape)
+        return B
 
     def _build_matrices(self):
         '''Build the matrices used for stepping forward in time.'''
