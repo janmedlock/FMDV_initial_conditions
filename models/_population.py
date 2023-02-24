@@ -4,9 +4,10 @@ import functools
 
 import numpy
 import scipy.optimize
-import scipy.sparse.linalg
 
 from . import _utility
+from ._utility import linalg
+from ._utility import sparse
 
 
 class _Solver:
@@ -38,7 +39,7 @@ class _Solver:
                      0: numpy.hstack([numpy.zeros(J - 1), pi[-1]])}
         else:
             raise ValueError(f'{q=}!')
-        FqXW = _utility.sparse.diags_from_dict(diags)
+        FqXW = sparse.diags_from_dict(diags)
         return FqXW
 
     def _Hq(self, q):
@@ -56,7 +57,7 @@ class _Solver:
         nu = self.birth.maternity(self.a)
         # The first row is `nu`.
         data = {(0, (None, )): nu}
-        B = _utility.sparse.array_from_dict(data, shape=shape)
+        B = sparse.array_from_dict(data, shape=shape)
         return B
 
     def _build_matrices(self):
@@ -68,19 +69,19 @@ class _Solver:
         self.B = self._B()
 
     def _check_matrices(self):
-        assert _utility.is_Z_matrix(self.H_new)
-        assert _utility.is_nonnegative(self.H_cur)
-        assert _utility.is_Metzler_matrix(self.F_new)
-        assert _utility.is_Metzler_matrix(self.B)
-        assert _utility.is_nonnegative(self.B)
+        assert linalg.is_Z_matrix(self.H_new)
+        assert linalg.is_nonnegative(self.H_cur)
+        assert linalg.is_Metzler_matrix(self.F_new)
+        assert linalg.is_Metzler_matrix(self.B)
+        assert linalg.is_nonnegative(self.B)
         HFB_new = (self.H_new
                    - self.t_step / 2 * (self.F_new
                                         + self.birth.rate_max * self.B))
-        assert _utility.is_M_matrix(HFB_new)
+        assert linalg.is_M_matrix(HFB_new)
         HFB_cur = (self.H_cur
                    + self.t_step / 2 * (self.F_cur
                                         + self.birth.rate_min * self.B))
-        assert _utility.is_nonnegative(HFB_cur)
+        assert linalg.is_nonnegative(HFB_cur)
 
     def step(self, t_cur, Phi_cur, birth_scaling, display=False):
         '''Do a step of the solver.'''
@@ -95,7 +96,7 @@ class _Solver:
         HFB_cur = (self.H_cur
                    + self.t_step / 2 * (self.F_cur
                                         + b_mid * self.B))
-        return scipy.sparse.linalg.spsolve(HFB_new, HFB_cur @ Phi_cur)
+        return linalg.solve(HFB_new, HFB_cur @ Phi_cur)
 
     def monodromy(self, birth_scaling=1, display=False):
         '''Get the monodromy matrix Psi = Phi(T), where Phi is the
@@ -118,8 +119,8 @@ class _Solver:
         '''Get the population growth rate.'''
         Psi = self.monodromy(birth_scaling, display=display)
         # Get the dominant Floquet multiplier.
-        rho_dom = _utility.get_dominant_eigen(Psi, which='LM',
-                                              return_eigenvector=False)
+        rho_dom = linalg.get_dominant_eigen(Psi, which='LM',
+                                            return_eigenvector=False)
         # Convert the dominant Floquet multiplier to
         # the dominant Floquet exponent.
         mu_dom = numpy.log(rho_dom) / self.period
@@ -127,8 +128,8 @@ class _Solver:
 
     def stable_age_density(self, display=False):
         Psi = self.monodromy(display=display)
-        (_, v_dom) = _utility.get_dominant_eigen(Psi, which='LM',
-                                                 return_eigenvector=True)
+        (_, v_dom) = linalg.get_dominant_eigen(Psi, which='LM',
+                                               return_eigenvector=True)
         # Normalize `v_dom` in place so that its integral over a is 1.
         v_dom /= v_dom.sum() * self.a_step
         return (self.a, v_dom)

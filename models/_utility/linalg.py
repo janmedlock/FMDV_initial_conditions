@@ -2,7 +2,16 @@
 
 import numpy
 import scipy.linalg
-import scipy.sparse.linalg
+import scipy.sparse
+
+
+def solve(A, b, overwrite_a=False, overwrite_b=False):
+    if isinstance(A, scipy.sparse.spmatrix):
+        return scipy.sparse.linalg.spsolve(A, b)
+    else:
+        return scipy.linalg.solve(A, b,
+                                  overwrite_a=overwrite_a,
+                                  overwrite_b=overwrite_b)
 
 
 def eigs(A, k=5, which='LR', maxiter=100000, return_eigenvectors=True,

@@ -56,3 +56,10 @@ def rate_make_finite(rates):
 def weighted_sum(y, weights):
     '''`(y * weights).sum()`'''
     return (y * weights).sum()
+
+
+def identity(*args, sparse=False, **kwds):
+    if sparse:
+        return sparse.identity(*args, **kwds)
+    else:
+        return numpy.identity(*args, **kwds)

@@ -1,10 +1,9 @@
 '''Get the fundamental solution.'''
 
 import numpy
-import scipy.linalg
-import scipy.sparse.linalg
 
 from . import _utility
+from ._utility import linalg
 
 
 class _Solver:
@@ -18,10 +17,7 @@ class _Solver:
 
     def _I(self):
         n = self.y.shape[-1]
-        if not self._sparse:
-            I = numpy.identity(n)
-        else:
-            I = _utility.sparse.identity(n)
+        I = _utility.identity(n, sparse=self._sparse)
         return I
 
     def jacobian(self, t_cur):
@@ -43,18 +39,18 @@ class _Solver:
         IJ_new = self.I - t_step / 2 * J
         IJ_cur = self.I + t_step / 2 * J
         IJPhi_cur = IJ_cur @ Phi_cur
-        if not self._sparse:
-            return scipy.linalg.solve(IJ_new, IJPhi_cur,
-                                      overwrite_a=True,
-                                      overwrite_b=True)
-        else:
-            return scipy.sparse.linalg.spsolve(IJ_new, IJPhi_cur)
+        return linalg.solve(IJ_new, IJPhi_cur,
+                            overwrite_a=True,
+                            overwrite_b=True)
 
     def solve(self, display=False):
         '''Solve.'''
         t = self.y.index
         Phi = numpy.empty((len(t), ) + self.I.shape)
-        Phi[0] = self.I
+        if self._sparse:
+            Phi[0] = self.I.toarray()
+        else:
+            Phi[0] = self.I
         for k in range(1, len(t)):
             Phi[k] = self.step(t[k - 1], Phi[k - 1], t[k], display=display)
         return Phi

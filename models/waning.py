@@ -1,9 +1,9 @@
 '''Waning of maternal immunity.'''
 
-from . import _utility
+from ._utility import waiting_time
 
 
-class Waning(_utility.waiting_time.Gamma):
+class Waning(waiting_time.Gamma):
     '''Waning of maternal immunity.'''
 
     def __init__(self, parameters):

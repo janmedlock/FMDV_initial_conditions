@@ -1,9 +1,9 @@
 '''Recovery from infectious to recovered.'''
 
-from . import _utility
+from ._utility import waiting_time
 
 
-class Recovery(_utility.waiting_time.Gamma):
+class Recovery(waiting_time.Gamma):
     '''Recovery from infectious to recovered.'''
 
     def __init__(self, parameters):

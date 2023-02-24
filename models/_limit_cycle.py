@@ -1,11 +1,12 @@
 '''Find limit cycles.'''
 
 import numpy
-import scipy.optimize
 
 from . import _fundamental
 from . import _poincaré
 from . import _utility
+from ._utility import linalg
+from ._utility import optimize
 
 
 def _objective(y_0_cur, poincaré_map, weights):
@@ -19,18 +20,15 @@ def find_with_period(model, period, t_0, y_0_guess,
                      weights=1, **root_kwds):
     '''Find a limit cycle with period `period` while keeping
     `weighted_sum(y_0, weights)` constant.'''
-    if model._solver._sparse:
-        # Default to `root(..., method='krylov', ...)'
-        # if not set in `root_kwds`.
-        root_kwds = dict(method='krylov') | root_kwds
     # Find a fixed point `y_0` of the Poincaré map, i.e. that gives
     # `y(t_0 + period) = y_0`.
     poincaré_map = _poincaré.Map(model, period, t_0)
     # Ensure `y_guess` is nonnegative.
     y_0_guess = numpy.clip(y_0_guess, 0, None)
-    result = scipy.optimize.root(_objective, y_0_guess,
-                                 args=(poincaré_map, weights),
-                                 **root_kwds)
+    result = optimize.root(_objective, y_0_guess,
+                           args=(poincaré_map, weights),
+                           sparse=model._solver._sparse,
+                           **root_kwds)
     assert result.success, result
     y_0 = result.x
     # Scale `y_0` so that `weighted_sum()` is the same as for
@@ -67,7 +65,7 @@ def monodromy_matrix(model, limit_cycle):
 def characteristic_multipliers(model, limit_cycle, k=5):
     '''Get the characteristic multipliers of `limit_cycle`.'''
     Psi = monodromy_matrix(model, limit_cycle)
-    mlts = _utility.eigs(Psi, k=k, which='LM', return_eigenvectors=False)
+    mlts = linalg.eigs(Psi, k=k, which='LM', return_eigenvectors=False)
     # Drop the one closest to 1.
     drop = numpy.abs(mlts - 1).argmin()
     if numpy.isclose(mlts[drop], 1):

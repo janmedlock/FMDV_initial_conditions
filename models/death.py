@@ -1,7 +1,6 @@
 '''Death.'''
 
 import numpy
-import scipy.integrate
 
 from . import _population
 
@@ -48,6 +47,7 @@ class Death:
         age density.'''
         (ages, density) = _population.stable_age_density(birth, self,
                                                          *args, **kwds)
-        rate_total = scipy.integrate.trapz(self.rate(ages) * density, ages)
-        density_total = scipy.integrate.trapz(density, ages)
+        age_step = numpy.mean(numpy.diff(ages))
+        rate_total = (self.rate(ages) * density).sum() * age_step
+        density_total = density.sum() * age_step
         return rate_total / density_total
