@@ -11,6 +11,8 @@ from .. import _utility
 class Solver(_solver.Base):
     '''Crank–Nicolson solver.'''
 
+    _sparse = False
+
     def __init__(self, model):
         self.t_step = model.t_step
         super().__init__(model)

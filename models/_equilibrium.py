@@ -16,6 +16,10 @@ def _objective(y_cur, solver, t, weights):
 def find(model, y_guess, t=0, weights=1, **root_kwds):
     '''Find an equilibrium `y` while keeping
     `weighted_sum(y, weights)` constant.'''
+    if model._solver._sparse:
+        # Default to `root(..., method='krylov', ...)'
+        # if not set in `root_kwds`.
+        root_kwds = dict(method='krylov') | root_kwds
     # Ensure `y_guess` is nonnegative.
     y_guess = numpy.clip(y_guess, 0, None)
     result = scipy.optimize.root(_objective, y_guess,

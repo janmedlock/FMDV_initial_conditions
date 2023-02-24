@@ -15,6 +15,12 @@ class Base(metaclass=abc.ABCMeta):
         self._build_matrices()
         self._check_matrices()
 
+    @property
+    @abc.abstractmethod
+    def _sparse(self):
+        '''Whether the solver uses sparse matrices and sparse linear
+        algebra.'''
+
     @abc.abstractmethod
     def _build_matrices(self):
         '''Build matrices needed by the solver.'''

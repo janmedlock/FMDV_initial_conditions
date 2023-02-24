@@ -2,6 +2,9 @@
 
 import numpy
 import scipy.linalg
+import scipy.sparse.linalg
+
+from . import _utility
 
 
 class _Solver:
@@ -10,7 +13,16 @@ class _Solver:
     def __init__(self, model, y):
         self.model = model
         self.y = y
-        self.I = numpy.identity(self.y.shape[-1])
+        self._sparse = self.model._solver._sparse
+        self.I = self._I()
+
+    def _I(self):
+        n = self.y.shape[-1]
+        if not self._sparse:
+            I = numpy.identity(n)
+        else:
+            I = _utility.sparse.identity(n)
+        return I
 
     def jacobian(self, t_cur):
         '''The Jacobian at (t, y(t)).'''
@@ -31,9 +43,12 @@ class _Solver:
         IJ_new = self.I - t_step / 2 * J
         IJ_cur = self.I + t_step / 2 * J
         IJPhi_cur = IJ_cur @ Phi_cur
-        return scipy.linalg.solve(IJ_new, IJPhi_cur,
-                                  overwrite_a=True,
-                                  overwrite_b=True)
+        if not self._sparse:
+            return scipy.linalg.solve(IJ_new, IJPhi_cur,
+                                      overwrite_a=True,
+                                      overwrite_b=True)
+        else:
+            return scipy.sparse.linalg.spsolve(IJ_new, IJPhi_cur)
 
     def solve(self, display=False):
         '''Solve.'''

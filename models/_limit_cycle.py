@@ -19,6 +19,10 @@ def find_with_period(model, period, t_0, y_0_guess,
                      weights=1, **root_kwds):
     '''Find a limit cycle with period `period` while keeping
     `weighted_sum(y_0, weights)` constant.'''
+    if model._solver._sparse:
+        # Default to `root(..., method='krylov', ...)'
+        # if not set in `root_kwds`.
+        root_kwds = dict(method='krylov') | root_kwds
     # Find a fixed point `y_0` of the Poincaré map, i.e. that gives
     # `y(t_0 + period) = y_0`.
     poincaré_map = _poincaré.Map(model, period, t_0)

@@ -32,8 +32,6 @@ class _Base(metaclass=abc.ABCMeta):
     _states_have_antibodies = numpy.isin(states,
                                          states_with_antibodies)
 
-    _root_kwds = dict()
-
     @property
     @abc.abstractmethod
     def _Solver(self):
@@ -53,7 +51,11 @@ class _Base(metaclass=abc.ABCMeta):
 
     def __init__(self, **kwds):
         self._init_parameters(**kwds)
-        self._init_solver()
+        self._solver = self._Solver(self)
+        states = pandas.CategoricalIndex(self.states, self.states,
+                                         ordered=True, name='state')
+        self._solution_index = self._build_solution_index(states)
+        self._weights = self._build_weights()
 
     def _init_parameters(self, **kwds):
         parameters_ = parameters.Parameters(**kwds)
@@ -63,13 +65,6 @@ class _Base(metaclass=abc.ABCMeta):
         self.recovery = recovery.Recovery(parameters_)
         self.transmission = transmission.Transmission(parameters_)
         self.waning = waning.Waning(parameters_)
-
-    def _init_solver(self):
-        self._solver = self._Solver(self)
-        states = pandas.CategoricalIndex(self.states, self.states,
-                                         ordered=True, name='state')
-        self._solution_index = self._build_solution_index(states)
-        self._weights = self._build_weights()
 
     def Solution(self, y, t=None):
         '''A solution.'''
@@ -91,9 +86,8 @@ class _Base(metaclass=abc.ABCMeta):
 
     def find_equilibrium(self, eql_guess, t=0, **root_kwds):
         '''Find an equilibrium of the model.'''
-        root_kwds_ = self._root_kwds | root_kwds
         eql = _equilibrium.find(self, eql_guess, t,
-                                weights=self._weights, **root_kwds_)
+                                weights=self._weights, **root_kwds)
         _utility.assert_nonnegative(eql)
         return self.Solution(eql)
 
@@ -103,11 +97,10 @@ class _Base(metaclass=abc.ABCMeta):
 
     def find_limit_cycle(self, period_0, t_0, lcy_0_guess, **root_kwds):
         '''Find a limit cycle of the model.'''
-        root_kwds_ = self._root_kwds | root_kwds
         (t, lcy) = _limit_cycle.find_subharmonic(self, period_0, t_0,
                                                  lcy_0_guess,
                                                  weights=self._weights,
-                                                 **root_kwds_)
+                                                 **root_kwds)
         _utility.assert_nonnegative(lcy)
         return self.Solution(lcy, t)
 
@@ -123,15 +116,14 @@ class _Base(metaclass=abc.ABCMeta):
 class AgeIndependent(_Base):
     '''Base class for age-independent models.'''
 
-    def __init__(self, **kwds):
-        self._init_parameters(**kwds)
+    def _init_parameters(self, **kwds):
+        super()._init_parameters(**kwds)
         # Use `self.birth` with age-dependent `.mean` to find
         # `self.death_rate_mean`.
         self.death_rate_mean = self.death.rate_population_mean(self.birth)
         # Set `self.birth.mean` so this age-independent model has
         # zero population growth rate.
         self.birth.mean = self._birth_rate_mean_for_zero_population_growth()
-        self._init_solver()
 
     def _birth_rate_mean_for_zero_population_growth(self):
         '''For this unstructured model, the mean population growth

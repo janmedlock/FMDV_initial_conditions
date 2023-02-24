@@ -13,8 +13,6 @@ class Model(_model.AgeDependent):
 
     _Solver = _solver.Solver
 
-    _root_kwds = dict(method='krylov')
-
     def __init__(self, a_step=0.001, a_max=25, **kwds):
         self.a_step = a_step
         self.a = _utility.build_t(0, a_max, self.a_step)

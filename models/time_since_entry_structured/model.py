@@ -13,8 +13,6 @@ class Model(_model.AgeIndependent):
 
     _Solver = _solver.Solver
 
-    _root_kwds = dict(method='krylov')
-
     states_with_z = ['maternal_immunity', 'exposed', 'infectious']
 
     def __init__(self, z_step=0.001, z_max=3, **kwds):
