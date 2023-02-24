@@ -70,32 +70,15 @@ class Solver(_solver.Base):
     def _build_matrices(self):
         self.I = self._I()
         self.beta = self._beta()
-        self.H = self._H()
-        self.F = self._F()
-        self.T = self._T()
+        self.H_new = self.H_cur = self._H()
+        self.F_new = self.F_cur = self._F()
+        self.T_new = self.T_cur = self._T()
         self.B = self._B()
-
-    def _check_matrices(self):
-        assert _utility.is_nonnegative(self.beta)
-        assert _utility.is_Z_matrix(self.H)
-        assert _utility.is_nonnegative(self.H)
-        assert _utility.is_Metzler_matrix(self.F)
-        assert _utility.is_Metzler_matrix(self.T)
-        assert _utility.is_Metzler_matrix(self.B)
-        assert _utility.is_nonnegative(self.B)
-        HFB_new = (self.H
-                   - self.t_step / 2 * (self.F
-                                        + self.model.birth.rate_max * self.B))
-        assert _utility.is_M_matrix(HFB_new)
-        HFB_cur = (self.H
-                   + self.t_step / 2 * (self.F
-                                        + self.model.birth.rate_min * self.B))
-        assert _utility.is_nonnegative(HFB_cur)
 
     def _objective(self, y_new, HFB_new, HFTBy_cur):
         '''Helper for `.step()`.'''
         HFTB_new = (HFB_new
-                    - self.t_step / 2 * self.beta @ y_new * self.T)
+                    - self.t_step / 2 * self.beta @ y_new * self.T_new)
         return HFTB_new @ y_new - HFTBy_cur
 
     def step(self, t_cur, y_cur, display=False):
@@ -105,12 +88,12 @@ class Solver(_solver.Base):
             print(f'{t_new=}')
         t_mid = t_cur + 0.5 * self.t_step
         b_mid = self.model.birth.rate(t_mid)
-        HFB_new = (self.H
-                   - self.t_step / 2 * (self.F
+        HFB_new = (self.H_new
+                   - self.t_step / 2 * (self.F_new
                                         + b_mid * self.B))
-        HFTB_cur = (self.H
-                    + self.t_step / 2 * (self.F
-                                         + self.beta @ y_cur * self.T
+        HFTB_cur = (self.H_cur
+                    + self.t_step / 2 * (self.F_cur
+                                         + self.beta @ y_cur * self.T_cur
                                          + b_mid * self.B))
         HFTBy_cur = HFTB_cur @ y_cur
         y_new_guess = y_cur
@@ -126,15 +109,17 @@ class Solver(_solver.Base):
         # which is `M_new @ D = M_cur`.
         t_mid = t_cur + 0.5 * self.t_step
         b_mid = self.model.birth.rate(t_mid)
-        M_new = (self.H
-                 - self.t_step / 2 * (self.F
-                                      + self.beta @ y_new * self.T
-                                      + numpy.outer(self.T @ y_new, self.beta)
+        M_new = (self.H_new
+                 - self.t_step / 2 * (self.F_new
+                                      + self.beta @ y_new * self.T_new
+                                      + numpy.outer(self.T_new @ y_new,
+                                                    self.beta)
                                       + b_mid * self.B))
-        M_cur = (self.H
-                 + self.t_step / 2 * (self.F
-                                      + self.beta @ y_cur * self.T
-                                      + numpy.outer(self.T @ y_cur, self.beta)
+        M_cur = (self.H_cur
+                 + self.t_step / 2 * (self.F_cur
+                                      + self.beta @ y_cur * self.T_cur
+                                      + numpy.outer(self.T_cur @ y_cur,
+                                                    self.beta)
                                       + b_mid * self.B))
         D = scipy.linalg.solve(M_new, M_cur,
                                overwrite_a=True,
@@ -143,9 +128,4 @@ class Solver(_solver.Base):
         return J
 
 
-def solve(model, t_span, y_0,
-          t=None, y=None, display=False):
-    '''Solve the model.'''
-    solver = Solver(model)
-    return solver.solve(t_span, y_0,
-                        t=t, y=y, display=display)
+solve = Solver._solve_direct

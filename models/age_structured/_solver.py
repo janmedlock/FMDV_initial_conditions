@@ -138,23 +138,6 @@ class Solver(_solver.Base):
         self.krylov_M = (self.H_new
                          + self.t_step / 2 * self.F_new)
 
-    def _check_matrices(self):
-        assert _utility.is_nonnegative(self.beta)
-        assert _utility.is_Z_matrix(self.H_new)
-        assert _utility.is_nonnegative(self.H_cur)
-        assert _utility.is_Metzler_matrix(self.F_new)
-        assert _utility.is_Metzler_matrix(self.T_new)
-        assert _utility.is_Metzler_matrix(self.B)
-        assert _utility.is_nonnegative(self.B)
-        HFB_new = (self.H_new
-                   - self.t_step / 2 * (self.F_new
-                                        + self.model.birth.rate_max * self.B))
-        assert _utility.is_M_matrix(HFB_new)
-        HFB_cur = (self.H_cur
-                   + self.t_step / 2 * (self.F_cur
-                                        + self.model.birth.rate_min * self.B))
-        assert _utility.is_nonnegative(HFB_cur)
-
     def _objective(self, y_new, HFB_new, HFTBy_cur):
         '''Helper for `.step()`.'''
         HFTB_new = (HFB_new
@@ -210,9 +193,4 @@ class Solver(_solver.Base):
         return J
 
 
-def solve(model, t_span, y_0,
-          t=None, y=None, display=False):
-    '''Solve the model.'''
-    solver = Solver(model)
-    return solver.solve(t_span, y_0,
-                        t=t, y=y, display=display)
+solve = Solver._solve_direct

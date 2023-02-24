@@ -25,9 +25,23 @@ class Base(metaclass=abc.ABCMeta):
     def _build_matrices(self):
         '''Build matrices needed by the solver.'''
 
-    @abc.abstractmethod
     def _check_matrices(self):
         '''Check the solver matrices.'''
+        assert _utility.is_nonnegative(self.beta)
+        assert _utility.is_Z_matrix(self.H_new)
+        assert _utility.is_nonnegative(self.H_cur)
+        assert _utility.is_Metzler_matrix(self.F_new)
+        assert _utility.is_Metzler_matrix(self.T_new)
+        assert _utility.is_Metzler_matrix(self.B)
+        assert _utility.is_nonnegative(self.B)
+        HFB_new = (self.H_new
+                   - self.t_step / 2 * (self.F_new
+                                        + self.model.birth.rate_max * self.B))
+        assert _utility.is_M_matrix(HFB_new)
+        HFB_cur = (self.H_cur
+                   + self.t_step / 2 * (self.F_cur
+                                        + self.model.birth.rate_min * self.B))
+        assert _utility.is_nonnegative(HFB_cur)
 
     @abc.abstractmethod
     def step(self, t_cur, y_cur, display=False):
@@ -62,3 +76,11 @@ class Base(metaclass=abc.ABCMeta):
             (y_cur, y_new) = (y_new, y_cur)
             y_new[:] = self.step(t_cur, y_cur)
         return y_new
+
+    @classmethod
+    def _solve_direct(cls, model, t_span, y_0,
+                      t=None, y=None, display=False):
+        '''Solve the model.'''
+        solver = cls(model)
+        return solver.solve(t_span, y_0,
+                            t=t, y=y, display=display)
