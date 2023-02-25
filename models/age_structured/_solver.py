@@ -41,9 +41,9 @@ class Solver(_solver.Base):
         beta = (
             self.model.transmission.rate
             * self.a_step
-            * sparse.bmat([
+            * sparse.hstack(
                 [zeros1J, zeros1J, zeros1J, ones1J, zeros1J]
-            ])
+            )
         )
         return beta
 

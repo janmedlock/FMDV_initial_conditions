@@ -17,7 +17,9 @@ class Checker(_check_solver.Base):
         ones = numpy.ones((1, K))
         return (self.model.transmission.rate
                 * self.model.z_step
-                * scipy.sparse.bmat([[zeros, [[0]], zeros, ones, [[0]]]]))
+                * scipy.sparse.hstack(
+                    [zeros, [[0]], zeros, ones, [[0]]]
+                ))
 
     def H(self, q):
         K = len(self.model.z)

@@ -32,6 +32,18 @@ def diags(diagonals, offsets=0, shape=None, *args, **kwds):
     return array(arr)
 
 
+def hstack(blocks, *args, **kwds):
+    '''Build a sparse `array()` by horizontally stacking `blocks`.'''
+    arr = scipy.sparse.hstack(blocks, *args, **kwds)
+    return array(arr)
+
+
+def vstack(blocks, *args, **kwds):
+    '''Build a sparse `array()` by vertically stacking `blocks`.'''
+    arr = scipy.sparse.vstack(blocks, *args, **kwds)
+    return array(arr)
+
+
 def _idx_convert(arg):
     try:
         return slice(*arg)
