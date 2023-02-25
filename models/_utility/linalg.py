@@ -7,6 +7,9 @@ import scipy.sparse
 
 def solve(A, b, overwrite_a=False, overwrite_b=False):
     if isinstance(A, scipy.sparse.spmatrix):
+        if isinstance(b, scipy.sparse.spmatrix):
+            A = A.tocsc()
+            b = b.tocsc()
         return scipy.sparse.linalg.spsolve(A, b)
     else:
         return scipy.linalg.solve(A, b,

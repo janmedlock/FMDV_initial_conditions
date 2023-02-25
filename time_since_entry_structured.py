@@ -20,6 +20,8 @@ if __name__ == '__main__':
     equilibrium = model_constant.find_equilibrium(solution_constant.loc[t_end])
     ax_state = equilibrium.time_since_entry.aggregate() \
                           .plotting.state(states=plot_states)
+    equilibrium_eigvals = model_constant.get_eigenvalues(equilibrium)
+    print(equilibrium_eigvals)
 
     model = models.time_since_entry_structured.Model()
     solution = model.solve((t_start, t_end))

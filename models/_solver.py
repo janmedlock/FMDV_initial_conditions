@@ -6,6 +6,7 @@ import numpy
 
 from . import _utility
 from ._utility import linalg
+from ._utility import sparse
 from ._utility import optimize
 
 
@@ -140,32 +141,35 @@ class Base(metaclass=abc.ABCMeta):
             y_new[:] = self.step(t_cur, y_cur)
         return y_new
 
-    @staticmethod
-    def _outer(a, b):
-        '''The outer product of `a` with shape (m, ) and `b` with
-        shape (1, n).'''
-        return a[:, None] @ b
+    def _make_column_vector(self, y):
+        assert numpy.ndim(y) == 1
+        y = numpy.asarray(y)[:, None]
+        if self._sparse:
+            y = sparse.array(y)
+        return y
 
     def jacobian(self, t_cur, y_cur, y_new):
         '''The Jacobian at `t_cur`, given `y_cur` and `y_new`.'''
         # Compute `D`, the derivative of `y_cur` with respect to `y_new`,
         # which is `M_new @ D = M_cur`.
+        # The linear algebra is easier if `y_cur` and `y_new` have
+        # shape (n, 1) instead of just (n, ).
+        y_cur = self._make_column_vector(y_cur)
+        y_new = self._make_column_vector(y_new)
         t_mid = t_cur + 0.5 * self.t_step
         b_mid = self.model.birth.rate(t_mid)
         M_new = (
             self.H['new']
             - self.t_step / 2 * (self.F['new']
                                  + self.beta @ y_new * self.T['new']
-                                 + self._outer(self.T['new'] @ y_new,
-                                               self.beta)
+                                 + self.T['new'] @ y_new @ self.beta
                                  + b_mid * self.B)
         )
         M_cur = (
             self.H['cur']
             + self.t_step / 2 * (self.F['cur']
                                  + self.beta @ y_cur * self.T['cur']
-                                 + self._outer(self.T['cur'] @ y_cur,
-                                               self.beta)
+                                 + self.T['cur'] @ y_cur @ self.beta
                                  + b_mid * self.B)
         )
         D = linalg.solve(M_new, M_cur,
