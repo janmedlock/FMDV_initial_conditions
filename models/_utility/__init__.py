@@ -1,3 +1,3 @@
 '''Utilities.'''
 
-from ._utility import *
+from .__utility import *
