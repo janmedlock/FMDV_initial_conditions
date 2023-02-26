@@ -83,7 +83,7 @@ def array_from_dict(data, shape=None, *args, **kwds):
             shape = _get_shape(locs)
         except ValueError as err:
             raise ValueError('Set the `shape` argument.') from err
-    arr = scipy.sparse.lil_array(shape, *args, **kwds)
+    arr = scipy.sparse.dok_array(shape, *args, **kwds)
     for (loc, val) in zip(locs, data.values()):
         arr[loc] = val
     return array(arr)

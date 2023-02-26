@@ -6,8 +6,8 @@ import scipy.sparse
 
 
 def solve(A, b, overwrite_a=False, overwrite_b=False):
-    if isinstance(A, scipy.sparse.spmatrix):
-        if isinstance(b, scipy.sparse.spmatrix):
+    if scipy.sparse.issparse(A):
+        if scipy.sparse.issparse(b):
             A = A.tocsc()
             b = b.tocsc()
         return scipy.sparse.linalg.spsolve(A, b)
@@ -92,12 +92,16 @@ def is_Z_matrix(arr):
     '''Check whether `arr` is a Z-matrix.'''
     # Copy `arr`, then set the diagonal to 0 and check whether the
     # rest are nonpositive.
-    if isinstance(arr, scipy.sparse.spmatrix):
-        arr = arr.tolil()
+    if scipy.sparse.issparse(arr):
+        # Copy and convert to COO format, which is efficient for
+        # changing sparsity and has a `.min()` method, which is used
+        # in `is_nonpositive()`.
+        arr = arr.tocoo(copy=True)
+        arr.setdiag(0)
     else:
         arr = arr.copy()
-    diag = numpy.diag_indices_from(arr)
-    arr[diag] = 0
+        diag = numpy.diag_indices_from(arr)
+        arr[diag] = 0
     return is_nonpositive(arr)
 
 

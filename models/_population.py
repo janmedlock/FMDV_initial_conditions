@@ -28,35 +28,50 @@ class _Solver:
         self._build_matrices()
         self._check_matrices()
 
-    def _FXW(self, q, pi):
+    def _H(self, q):
+        '''Build the time step matrix H(q).'''
         J = len(self.a)
-        if numpy.isscalar(pi):
-            pi = pi * numpy.ones(J)
         if q == 'new':
-            diags = {0: pi}
+            diags = {
+                0: numpy.ones(J)
+            }
         elif q == 'cur':
-            diags = {-1: pi[:-1],
-                     0: numpy.hstack([numpy.zeros(J - 1), pi[-1]])}
+            diags = {
+                -1: numpy.ones(J - 1),
+                0: numpy.hstack([numpy.zeros(J - 1), 1])
+            }
         else:
             raise ValueError(f'{q=}!')
-        FXW = sparse.diags_from_dict(diags)
-        return FXW
-
-    def _H(self, q):
-        H = self._FXW(q, 1)
-        return H
+        HXX = sparse.diags_from_dict(diags)
+        return HXX
 
     def _F(self, q):
+        '''Build the transition matrix F(q).'''
+        J = len(self.a)
         mu = self.death.rate(self.a)
-        F = self._FXW(q, - mu)
+        if q == 'new':
+            diags = {
+                0: - mu
+            }
+        elif q == 'cur':
+            diags = {
+                -1: - mu[:-1],
+                0: numpy.hstack([numpy.zeros(J - 1), - mu[-1]])
+            }
+        else:
+            raise ValueError(f'{q=}!')
+        F = sparse.diags_from_dict(diags)
         return F
 
     def _B(self):
+        '''Build matrices needed by the solver.'''
         J = len(self.a)
         shape = (J, J)
         nu = self.birth.maternity(self.a)
         # The first row is `nu`.
-        data = {(0, (None, )): nu}
+        data = {
+            (0, (None, )): nu
+        }
         B = sparse.array_from_dict(data, shape=shape)
         return B
 
@@ -68,6 +83,7 @@ class _Solver:
         self.B = self._B()
 
     def _check_matrices(self):
+        '''Check the solver matrices.'''
         assert linalg.is_Z_matrix(self.H['new'])
         assert linalg.is_nonnegative(self.H['cur'])
         assert linalg.is_Metzler_matrix(self.F['new'])
@@ -83,7 +99,7 @@ class _Solver:
         assert linalg.is_nonnegative(HFB_cur)
 
     def step(self, t_cur, Phi_cur, birth_scaling, display=False):
-        '''Do a step of the solver.'''
+        '''Do a step.'''
         if display:
             t_new = t_cur + self.t_step
             print(f'{t_new=}')
@@ -126,6 +142,7 @@ class _Solver:
         return mu_dom
 
     def stable_age_density(self, display=False):
+        '''Get the stable age density.'''
         Psi = self.monodromy(display=display)
         (_, v_dom) = linalg.get_dominant_eigen(Psi, which='LM',
                                                return_eigenvector=True)

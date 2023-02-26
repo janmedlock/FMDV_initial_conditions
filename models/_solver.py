@@ -31,22 +31,28 @@ class Base(metaclass=abc.ABCMeta):
         algebra.'''
 
     @abc.abstractmethod
-    def _I(self): pass
+    def _I(self):
+        '''Build the identity matrix.'''
 
     @abc.abstractmethod
-    def _beta(self): pass
+    def _beta(self):
+        '''Build the transmission rate vector beta.'''
 
     @abc.abstractmethod
-    def _H(self, q): pass
+    def _H(self, q):
+        '''Build the time step matrix H(q).'''
 
     @abc.abstractmethod
-    def _F(self, q): pass
+    def _F(self, q):
+        '''Build the transition matrix F(q).'''
 
     @abc.abstractmethod
-    def _T(self, q): pass
+    def _T(self, q):
+        '''Build the transition matrix F(q).'''
 
     @abc.abstractmethod
-    def _B(self): pass
+    def _B(self):
+        '''Build the birth matrix B.'''
 
     def _build_matrices(self):
         '''Build matrices needed by the solver.'''
@@ -77,6 +83,7 @@ class Base(metaclass=abc.ABCMeta):
         assert linalg.is_nonnegative(HFB_cur)
 
     def _preconditioner(self):
+        '''For sparse solvers, Build the Krylov preconditioner.'''
         M = (self.H['new']
              + self.t_step / 2 * self.F['new'])
         return M
@@ -142,6 +149,7 @@ class Base(metaclass=abc.ABCMeta):
         return y_new
 
     def _make_column_vector(self, y):
+        '''Convert `y` with shape (n, ) to shape (n, 1).'''
         assert numpy.ndim(y) == 1
         y = numpy.asarray(y)[:, None]
         if self._sparse:
@@ -149,7 +157,7 @@ class Base(metaclass=abc.ABCMeta):
         return y
 
     def jacobian(self, t_cur, y_cur, y_new):
-        '''The Jacobian at `t_cur`, given `y_cur` and `y_new`.'''
+        '''Calculate the Jacobian at `t_cur`, given `y_cur` and `y_new`.'''
         # Compute `D`, the derivative of `y_cur` with respect to `y_new`,
         # which is `M_new @ D = M_cur`.
         # The linear algebra is easier if `y_cur` and `y_new` have

@@ -13,22 +13,27 @@ class _Solver:
         self.model = model
         self.y = y
         self._sparse = self.model._solver._sparse
+        self._build_matrices()
+
+    def _build_matrices(self):
+        '''Build matrices needed by the solver.'''
         self.I = self._I()
 
     def _I(self):
+        '''Build the identity matrix.'''
         n = self.y.shape[-1]
         I = _utility.identity(n, sparse=self._sparse)
         return I
 
     def jacobian(self, t_cur):
-        '''The Jacobian at (t, y(t)).'''
+        '''Get the Jacobian at (t, y(t)).'''
         i = self.y.index.get_loc(t_cur)
         y_cur = self.y.iloc[i]
         y_new = self.y.iloc[i + 1]
         return self.model._solver.jacobian(t_cur, y_cur, y_new)
 
     def step(self, t_cur, Phi_cur, t_new, display=False):
-        '''Crank–Nicolson step.'''
+        '''Do a step.'''
         if display:
             print(f'{t_new=}')
         # The Crank–Nicolson scheme is

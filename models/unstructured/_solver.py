@@ -17,11 +17,13 @@ class Solver(_solver.Base):
         super().__init__(model)
 
     def _I(self):
+        '''Build the identity matrix.'''
         n = len(self.model.states)
         I = numpy.identity(n)
         return I
 
     def _beta(self):
+        '''Build the transmission rate vector beta.'''
         beta = (
             self.model.transmission.rate
             * numpy.array([
@@ -31,13 +33,14 @@ class Solver(_solver.Base):
         return beta
 
     def _H(self, q):
-        # `H` is independent of `q`.
+        '''Build the time step matrix H(q).'''
         H = self.I
         return H
 
-    # Build `_F_` on first use and then reuse.
     @functools.cached_property
     def _F_(self):
+        '''F is independent of q. `_F_` is built on first use and then
+        reused.'''
         mu = self.model.death_rate_mean
         omega = 1 / self.model.waning.mean
         rho = 1 / self.model.progression.mean
@@ -52,10 +55,11 @@ class Solver(_solver.Base):
         return F
 
     def _F(self, q):
-        # `F` is independent of `q`.
+        '''Build the transition matrix F(q).'''
         F = self._F_
         return F
 
+    '''T is independent of q. Build _T_ once and reuse.'''
     _T_ = numpy.array([
         [0, 0, 0, 0, 0],
         [0, - 1, 0, 0, 0],
@@ -65,12 +69,13 @@ class Solver(_solver.Base):
     ])
 
     def _T(self, q):
-        # `T` is independent of `q`.
+        '''Build the transmission matrix T(q).'''
         T = self._T_
         return T
 
     @staticmethod
     def _B():
+        '''Build the birth matrix B.'''
         B = numpy.array([
             [0, 0, 0, 0, 1],
             [1, 1, 1, 1, 0],

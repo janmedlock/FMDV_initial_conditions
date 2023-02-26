@@ -51,14 +51,14 @@ class Checker(_check_solver.Base):
         def Fyz(psi):
             if numpy.isscalar(psi):
                 psi = psi * numpy.ones(K)
-            Fyz_ = scipy.sparse.lil_array((K, K))
+            Fyz_ = scipy.sparse.dok_array((K, K))
             Fyz_[0] = psi
             return Fyz_
 
         def fXy(psi):
             if numpy.isscalar(psi):
                 psi = psi * numpy.ones(K)
-            fXy_ = scipy.sparse.lil_array((1, K))
+            fXy_ = scipy.sparse.dok_array((1, K))
             fXy_[0] = self.model.z_step * psi
             return fXy_
 
@@ -82,7 +82,7 @@ class Checker(_check_solver.Base):
     def T(self, q):
         # `T` is independent of `q`.
         K = len(self.model.z)
-        tyX = scipy.sparse.lil_array((K, 1))
+        tyX = scipy.sparse.dok_array((K, 1))
         tyX[0, 0] = 1 / self.model.z_step
         ZerosKK = scipy.sparse.csr_array((K, K))
         zerosK1 = scipy.sparse.csr_array((K, 1))
@@ -97,9 +97,9 @@ class Checker(_check_solver.Base):
 
     def B(self):
         K = len(self.model.z)
-        byX = scipy.sparse.lil_array((K, 1))
+        byX = scipy.sparse.dok_array((K, 1))
         byX[0, 0] = 1 / self.model.z_step
-        bXy = scipy.sparse.lil_array((1, K))
+        bXy = scipy.sparse.dok_array((1, K))
         bXy[0] = self.model.z_step
         ZerosKK = scipy.sparse.csr_array((K, K))
         zerosK1 = scipy.sparse.csr_array((K, 1))

@@ -81,8 +81,9 @@ class Checker(_check_solver.Base):
 
     def B(self):
         J = len(self.model.a)
-        BXW = scipy.sparse.lil_array((J, J))
-        BXW[0] = self.model.birth.maternity(self.model.a)
+        nu = self.model.birth.maternity(self.model.a)
+        BXW = scipy.sparse.dok_array((J, J))
+        BXW[0] = nu
         Zeros = scipy.sparse.csr_array((J, J))
         return scipy.sparse.bmat([
             [Zeros, Zeros, Zeros, Zeros, BXW],
