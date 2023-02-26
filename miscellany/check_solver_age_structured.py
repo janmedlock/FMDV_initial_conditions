@@ -5,7 +5,7 @@ import scipy.sparse
 
 from context import models
 import models.age_structured
-import models._utility
+import models._utility.sparse
 
 import _check_solver
 

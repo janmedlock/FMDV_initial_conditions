@@ -3,7 +3,7 @@
 import numpy
 import scipy.special
 
-from .numerical import weighted_sum
+from . import numerical
 
 
 class Identity:
@@ -71,7 +71,7 @@ class Simplex:
     def __call__(self, y):
         K = len(y)
         # `z` is on the unit simplex.
-        z = (y * self.weights) / weighted_sum(y, self.weights)
+        z = (y * self.weights) / numerical.weighted_sum(y, self.weights)
         remainder = 1 - numpy.hstack([0, numpy.cumsum(z[:-1])])
         assert (remainder >= 0).all()
         w_mid = self._w_mid(K)

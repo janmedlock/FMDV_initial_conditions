@@ -2,11 +2,8 @@
 
 import numpy
 
-from . import _fundamental
-from . import _poincaré
-from . import _utility
-from ._utility import linalg
-from ._utility import optimize
+from . import fundamental, poincaré
+from .._utility import linalg, numerical, optimize
 
 
 def _objective(y_0_cur, poincaré_map, weights):
@@ -22,7 +19,7 @@ def find_with_period(model, period, t_0, y_0_guess,
     `weighted_sum(y_0, weights)` constant.'''
     # Find a fixed point `y_0` of the Poincaré map, i.e. that gives
     # `y(t_0 + period) = y_0`.
-    poincaré_map = _poincaré.Map(model, period, t_0)
+    poincaré_map = poincaré.Map(model, period, t_0)
     # Ensure `y_guess` is nonnegative.
     y_0_guess = numpy.clip(y_0_guess, 0, None)
     result = optimize.root(_objective, y_0_guess,
@@ -33,8 +30,8 @@ def find_with_period(model, period, t_0, y_0_guess,
     y_0 = result.x
     # Scale `y_0` so that `weighted_sum()` is the same as for
     # `y_0_guess`.
-    y_0 *= (_utility.weighted_sum(y_0_guess, weights)
-            / _utility.weighted_sum(y_0, weights))
+    y_0 *= (numerical.weighted_sum(y_0_guess, weights)
+            / numerical.weighted_sum(y_0, weights))
     # Return the solution at the `t` values, not just at the end time.
     return poincaré_map.solve(y_0)
 
@@ -58,7 +55,7 @@ def find_subharmonic(model, period_0, t_0, y_0_guess,
 
 def monodromy_matrix(model, limit_cycle):
     '''Get the monodromy matrix.'''
-    Phi = _fundamental.solution(model, limit_cycle)
+    Phi = fundamental.solution(model, limit_cycle)
     return Phi[-1]
 
 
@@ -70,7 +67,7 @@ def characteristic_multipliers(model, limit_cycle, k=5):
     drop = numpy.abs(mlts - 1).argmin()
     if numpy.isclose(mlts[drop], 1):
         mlts = numpy.delete(mlts, drop)
-    return _utility.sort_by_abs(mlts)
+    return numerical.sort_by_abs(mlts)
 
 
 def characteristic_exponents(model, limit_cycle, k=5):

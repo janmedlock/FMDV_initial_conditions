@@ -2,9 +2,7 @@
 
 import numpy
 
-from . import _utility
-from ._utility import linalg
-from ._utility import optimize
+from .._utility import linalg, numerical, optimize
 
 
 def _objective(y_cur, solver, t, weights):
@@ -27,8 +25,8 @@ def find(model, y_guess, t=0, weights=1, **root_kwds):
     y = result.x
     # Scale `y` so that `weighted_sum()` is the same as for
     # `y_guess`.
-    y *= (_utility.weighted_sum(y_guess, weights)
-          / _utility.weighted_sum(y, weights))
+    y *= (numerical.weighted_sum(y_guess, weights)
+          / numerical.weighted_sum(y, weights))
     return y
 
 
@@ -37,4 +35,4 @@ def eigenvalues(model, equilibrium, t=0, k=5):
     n = len(equilibrium)
     J = model._solver.jacobian(t, equilibrium, equilibrium)
     evals = linalg.eigs(J, k=k, which='LR', return_eigenvectors=False)
-    return _utility.sort_by_real_part(evals)
+    return numerical.sort_by_real_part(evals)

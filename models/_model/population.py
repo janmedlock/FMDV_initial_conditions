@@ -5,9 +5,7 @@ import functools
 import numpy
 import scipy.optimize
 
-from . import _utility
-from ._utility import linalg
-from ._utility import sparse
+from .._utility import linalg, numerical, sparse
 
 
 class _Solver:
@@ -22,8 +20,8 @@ class _Solver:
         self.period = self.birth.period
         if self.period == 0:
             self.period = self.t_step
-        self.a = _utility.build_t(0, a_max, self.a_step)
-        self.t = _utility.build_t(0, self.period, self.t_step)
+        self.a = numerical.build_t(0, a_max, self.a_step)
+        self.t = numerical.build_t(0, self.period, self.t_step)
         assert numpy.isclose(self.t[-1], self.period)
         self._build_matrices()
         self._check_matrices()

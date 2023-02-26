@@ -5,7 +5,7 @@ import pandas
 
 from . import _solver
 from .. import _model
-from .. import _utility
+from .._utility import numerical
 
 
 class Model(_model.AgeIndependent):
@@ -17,7 +17,7 @@ class Model(_model.AgeIndependent):
 
     def __init__(self, z_step=0.001, z_max=3, **kwds):
         self.z_step = z_step
-        self.z = _utility.build_t(0, z_max, self.z_step)
+        self.z = numerical.build_t(0, z_max, self.z_step)
         super().__init__(**kwds)
 
     def _build_solution_index(self, states):

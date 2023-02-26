@@ -2,7 +2,7 @@
 
 import numpy
 
-from . import _population
+from ._model import population
 
 
 class Death:
@@ -45,8 +45,8 @@ class Death:
     def rate_population_mean(self, birth, *args, **kwds):
         '''Get the mean death rate when the population is at the stable
         age density.'''
-        (ages, density) = _population.stable_age_density(birth, self,
-                                                         *args, **kwds)
+        (ages, density) = population.stable_age_density(birth, self,
+                                                        *args, **kwds)
         age_step = numpy.mean(numpy.diff(ages))
         rate_total = (self.rate(ages) * density).sum() * age_step
         density_total = density.sum() * age_step

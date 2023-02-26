@@ -4,8 +4,8 @@ import numpy
 import scipy.integrate
 
 from context import models
-import models.death
 import models.unstructured
+import models.death
 
 
 def get_death_rate_mean():
@@ -17,7 +17,7 @@ def get_death_rate_mean():
     (numerator, _) = scipy.integrate.quad(numerator_integrand,
                                           0, numpy.PINF)
     (denominator, _) = scipy.integrate.quad(death.survival,
-                                             0, numpy.PINF)
+                                            0, numpy.PINF)
     return numerator / denominator
 
 

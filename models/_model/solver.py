@@ -4,10 +4,7 @@ import abc
 
 import numpy
 
-from . import _utility
-from ._utility import linalg
-from ._utility import sparse
-from ._utility import optimize
+from .._utility import linalg, numerical, optimize, sparse
 
 
 class Base(metaclass=abc.ABCMeta):
@@ -123,7 +120,7 @@ class Base(metaclass=abc.ABCMeta):
         '''Solve. `y` is storage for the solution, which will be built
         if not provided.'''
         if t is None:
-            t = _utility.build_t(*t_span, self.t_step)
+            t = numerical.build_t(*t_span, self.t_step)
         if y is None:
             y = numpy.empty((len(t), *numpy.shape(y_0)))
         y[0] = y_0
@@ -135,7 +132,7 @@ class Base(metaclass=abc.ABCMeta):
                           t=None, y_temp=None):
         '''Find the value of the solution at `t_span[1]`.'''
         if t is None:
-            t = _utility.build_t(*t_span, self.t_step)
+            t = numerical.build_t(*t_span, self.t_step)
         if y_temp is None:
             y_temp = numpy.empty((2, *numpy.shape(y_0)))
         (y_cur, y_new) = y_temp

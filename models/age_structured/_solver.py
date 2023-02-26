@@ -4,11 +4,11 @@ import functools
 
 import numpy
 
-from .. import _solver
+from .. import _model
 from .._utility import sparse
 
 
-class Solver(_solver.Base):
+class Solver(_model.solver.Base):
     '''Crank–Nicolson solver.'''
 
     _sparse = True

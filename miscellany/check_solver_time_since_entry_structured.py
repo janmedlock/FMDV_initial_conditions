@@ -5,7 +5,8 @@ import scipy.sparse
 
 from context import models
 import models.time_since_entry_structured
-import models._utility
+import models._utility.numerical
+import models._utility.sparse
 
 import _check_solver
 
@@ -65,7 +66,7 @@ class Checker(_check_solver.Base):
         def get_rate(which):
             param = getattr(self.model, which)
             rate = param.rate(self.model.z)
-            return models._utility.rate_make_finite(rate)
+            return models._utility.numerical.rate_make_finite(rate)
 
         mu = self.model.death_rate_mean
         omega = get_rate('waning')

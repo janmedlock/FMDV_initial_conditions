@@ -2,7 +2,7 @@
 
 import numpy
 
-from . import _utility
+from .._utility import numerical
 
 
 class Map:
@@ -11,7 +11,7 @@ class Map:
     def __init__(self, model, period, t_0):
         self._solver = model._solver
         self.t_span = (t_0, t_0 + period)
-        self.t = _utility.build_t(*self.t_span, model.t_step)
+        self.t = numerical.build_t(*self.t_span, model.t_step)
         # Use an initial condition to determine the shape for
         # `y_temp`.
         y_start = model.build_initial_conditions()

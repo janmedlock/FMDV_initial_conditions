@@ -4,12 +4,11 @@ import functools
 
 import numpy
 
-from .. import _solver
-from .. import _utility
-from .._utility import sparse
+from .. import _model
+from .._utility import numerical, sparse
 
 
-class Solver(_solver.Base):
+class Solver(_model.solver.Base):
     '''Crank–Nicolson solver.'''
 
     _sparse = True
@@ -150,7 +149,7 @@ class Solver(_solver.Base):
         '''Get the rate `which` and make finite any infinite entries.'''
         param = getattr(self.model, which)
         rate = param.rate(self.model.z)
-        return _utility.rate_make_finite(rate)
+        return numerical.rate_make_finite(rate)
 
     def _F(self, q):
         '''Build the transition matrix F(q).'''

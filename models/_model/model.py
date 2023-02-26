@@ -5,17 +5,10 @@ import abc
 import numpy
 import pandas
 
-from . import birth
-from . import death
-from . import parameters
-from . import progression
-from . import recovery
-from . import transmission
-from . import waning
-from . import _equilibrium
-from . import _limit_cycle
-from . import _population
-from . import _utility
+from . import equilibrium, limit_cycle, population
+from .. import (birth, death, progression, parameters,
+                recovery, transmission, waning)
+from .._utility import numerical
 
 
 class _Base(metaclass=abc.ABCMeta):
@@ -81,36 +74,36 @@ class _Base(metaclass=abc.ABCMeta):
             y_start = self.build_initial_conditions()
         (t_, soln) = self._solver.solve(t_span, y_start,
                                         t=t, y=y, display=display)
-        _utility.assert_nonnegative(soln)
+        numerical.assert_nonnegative(soln)
         return self.Solution(soln, t_)
 
     def find_equilibrium(self, eql_guess, t=0, **root_kwds):
         '''Find an equilibrium of the model.'''
-        eql = _equilibrium.find(self, eql_guess, t,
-                                weights=self._weights, **root_kwds)
-        _utility.assert_nonnegative(eql)
+        eql = equilibrium.find(self, eql_guess, t,
+                               weights=self._weights, **root_kwds)
+        numerical.assert_nonnegative(eql)
         return self.Solution(eql)
 
     def get_eigenvalues(self, eql, t=0, k=5):
         '''Get the eigenvalues of the Jacobian.'''
-        return _equilibrium.eigenvalues(self, eql, t, k=k)
+        return equilibrium.eigenvalues(self, eql, t, k=k)
 
     def find_limit_cycle(self, period_0, t_0, lcy_0_guess, **root_kwds):
         '''Find a limit cycle of the model.'''
-        (t, lcy) = _limit_cycle.find_subharmonic(self, period_0, t_0,
-                                                 lcy_0_guess,
-                                                 weights=self._weights,
-                                                 **root_kwds)
-        _utility.assert_nonnegative(lcy)
+        (t, lcy) = limit_cycle.find_subharmonic(self, period_0, t_0,
+                                                lcy_0_guess,
+                                                weights=self._weights,
+                                                **root_kwds)
+        numerical.assert_nonnegative(lcy)
         return self.Solution(lcy, t)
 
     def get_characteristic_multipliers(self, lcy, k=5):
         '''Get the characteristic multipliers.'''
-        return _limit_cycle.characteristic_multipliers(self, lcy, k=k)
+        return limit_cycle.characteristic_multipliers(self, lcy, k=k)
 
     def get_characteristic_exponents(self, lcy, k=5):
         '''Get the characteristic exponents.'''
-        return _limit_cycle.characteristic_exponents(self, lcy, k=k)
+        return limit_cycle.characteristic_exponents(self, lcy, k=k)
 
 
 class AgeIndependent(_Base):
@@ -136,8 +129,8 @@ class AgeDependent(_Base):
 
     def stable_age_density(self, *args, **kwds):
         '''Get the stable age density.'''
-        (a, v_dom) = _population.stable_age_density(self.birth, self.death,
-                                                    *args, **kwds)
+        (a, v_dom) = population.stable_age_density(self.birth, self.death,
+                                                   *args, **kwds)
         # Interpolate the logarithm of `v_dom` to `self.a`.
         assert numpy.all(v_dom > 0)
         logn = numpy.interp(self.a, a, numpy.log(v_dom))
