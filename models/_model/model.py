@@ -28,11 +28,11 @@ class _Base(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def _Solver(self):
-        '''A solver instance.'''
+        '''The solver class.'''
 
     @abc.abstractmethod
-    def _build_solution_index(self, states):
-        '''Build the solution index.'''
+    def _build_solution_index(self):
+        '''Build a `pandas.Index()` for solutions.'''
 
     @abc.abstractmethod
     def _build_weights(self):
@@ -45,9 +45,7 @@ class _Base(metaclass=abc.ABCMeta):
     def __init__(self, **kwds):
         self._init_parameters(**kwds)
         self._solver = self._Solver(self)
-        states = pandas.CategoricalIndex(self.states, self.states,
-                                         ordered=True, name='state')
-        self._solution_index = self._build_solution_index(states)
+        self._solution_index = self._build_solution_index()
         self._weights = self._build_weights()
 
     def _init_parameters(self, **kwds):

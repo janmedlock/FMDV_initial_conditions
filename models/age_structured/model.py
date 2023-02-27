@@ -5,6 +5,7 @@ import pandas
 
 from . import _solver
 from .. import _model
+from .. import unstructured
 from .._utility import numerical
 
 
@@ -18,29 +19,29 @@ class Model(_model.AgeDependent):
         self.a = numerical.build_t(0, a_max, self.a_step)
         super().__init__(**kwds)
 
-    def _build_solution_index(self, states):
-        '''Build the solution index.'''
+    def _build_solution_index(self):
+        '''Build a `pandas.Index()` for solutions.'''
+        states = unstructured.Model._build_solution_index(self)
         ages = pandas.Index(self.a, name='age')
-        states_ages = pandas.MultiIndex.from_product((states, ages))
-        return states_ages
+        idx = pandas.MultiIndex.from_product((states, ages))
+        return idx
 
     def _build_weights(self):
         '''Build weights for the state vector.'''
-        return self.a_step
+        weights_state = unstructured.Model._build_weights(self)
+        J = len(self.a)
+        weights_age = self.a_step * numpy.ones(J)
+        weights = numpy.kron(weights_state, weights_age)
+        return weights
 
-    def initial_conditions_from_unstructured(self, Y, *args, **kwds):
+    def build_initial_conditions_from_unstructured(self, Y, *args, **kwds):
         '''Build initial conditions from the unstructured `Y`.'''
         n = self.stable_age_density(*args, **kwds)
-        # [X * n for X in Y] stacked in one big vector.
-        return numpy.kron(Y, n)
+        y = numpy.kron(Y, n)
+        return y
 
     def build_initial_conditions(self, *args, **kwds):
         '''Build the initial conditions.'''
-        # Totals over age in each immune state.
-        M = 0
-        E = 0
-        I = 0.01
-        R = 0
-        S = 1 - M - E - I - R
-        Y = (M, S, E, I, R)
-        return self.initial_conditions_from_unstructured(Y, *args, **kwds)
+        Y = unstructured.Model.build_initial_conditions(self)
+        y = self.build_initial_conditions_from_unstructured(Y, *args, **kwds)
+        return y
