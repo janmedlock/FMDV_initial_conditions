@@ -8,12 +8,28 @@ import scipy.optimize
 from .._utility import linalg, numerical, sparse
 
 
+# Default age step.
+_A_STEP = 0.1
+
+# Default age maximum.
+_A_MAX = 50
+
+
+def integral_over_a(arr, a_step=_A_STEP, a_max=_A_MAX,
+                    *args, display=None, **kwds):
+    '''Integrate `arr` over age.'''
+    # The arguments mirror those of _Solver() and
+    # stable_age_density(). `a_step` is used, `a_max` and `display`
+    # are not used, and `args` and `kwds` are passed on to `.sum()`.
+    return arr.sum(*args, **kwds) * a_step
+
+
 class _Solver:
     '''Solver for the monodromy matrix of a linear age-structured
     model for the population size with age-dependent death rate,
     age-dependent maternity, and periodic time-dependent birth rate.'''
 
-    def __init__(self, birth, death, a_step=0.1, a_max=50):
+    def __init__(self, birth, death, a_step=_A_STEP, a_max=_A_MAX):
         self.birth = birth
         self.death = death
         self.a_step = self.t_step = a_step
@@ -145,7 +161,7 @@ class _Solver:
         (_, v_dom) = linalg.get_dominant_eigen(Psi, which='LM',
                                                return_eigenvector=True)
         # Normalize `v_dom` in place so that its integral over a is 1.
-        v_dom /= v_dom.sum() * self.a_step
+        v_dom /= integral_over_a(v_dom, a_step=self.a_step)
         return (self.a, v_dom)
 
 

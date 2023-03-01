@@ -27,6 +27,23 @@ class Mixin:
         weights = weights_state * weights_age
         return weights
 
+    def _integral_over_a_group(self, obj, axis):
+        '''Integrate one group over age.'''
+        a = _model.integral.get_level_values(obj, axis, 'age')
+        assert len(a) == len(self.a)
+        return obj.sum(axis=axis) * self.a_step
+
+    def integral_over_a(self, obj, *args, **kwds):
+        '''Integrate `obj` over 'age'.'''
+        if isinstance(obj, numpy.ndarray):
+            assert len(obj) == len(self.a)
+            return obj.sum(*args, **kwds) * self.a_step
+        elif isinstance(obj, (pandas.Series, pandas.DataFrame)):
+            return _model.integral.integral(obj, 'age',
+                                            self._integral_over_a_group)
+        else:
+            raise NotImplementedError
+
     def stable_age_density(self, *args, **kwds):
         '''Get the stable age density.'''
         (a, v_dom) = _population.stable_age_density(self.birth, self.death,
@@ -36,7 +53,7 @@ class Mixin:
         logn = numpy.interp(self.a, a, numpy.log(v_dom))
         n = numpy.exp(logn)
         # Normalize to integrate to 1.
-        n /= n.sum() * self.a_step
+        n /= self.integral_over_a(n)
         idx_age = self._get_index_level('age')
         dens = pandas.Series(n, index=idx_age)
         return dens

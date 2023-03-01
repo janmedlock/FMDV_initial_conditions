@@ -13,15 +13,15 @@ if __name__ == '__main__':
 
     model_constant = models.age_structured.Model(birth_variation=0)
     solution_constant = model_constant.solve((t_start, t_end))
-    ax_solution = solution_constant.age.aggregate() \
-                                   .plotting.solution()
+    ax_solution = model_constant.integral_over_a(solution_constant) \
+                                .plotting.solution()
     equilibrium = model_constant.find_equilibrium(solution_constant.loc[t_end])
-    ax_state = equilibrium.age.aggregate() \
-                          .plotting.state(states=plot_states)
+    ax_state = model_constant.integral_over_a(equilibrium) \
+                             .plotting.state(states=plot_states)
 
     model = models.age_structured.Model()
     solution = model.solve((t_start, t_end))
-    solution.age.aggregate() \
-            .plotting.solution(ax=ax_solution, legend=False)
+    model.integral_over_a(solution) \
+         .plotting.solution(ax=ax_solution, legend=False)
 
     matplotlib.pyplot.show()

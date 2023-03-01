@@ -47,7 +47,7 @@ class Death:
         age density.'''
         (ages, density) = _population.stable_age_density(birth, self,
                                                          *args, **kwds)
-        age_step = numpy.mean(numpy.diff(ages))
-        rate_total = (self.rate(ages) * density).sum() * age_step
-        density_total = density.sum() * age_step
+        rate_total = _population.integral_over_a(self.rate(ages) * density,
+                                                 *args, **kwds)
+        density_total = _population.integral_over_a(density, *args, **kwds)
         return rate_total / density_total

@@ -36,3 +36,13 @@ class Model(_model.Model, unstructured.Mixin, age_structured.Mixin,
         Y_state_age = self._build_initial_conditions_state_age(*args, **kwds)
         y = self._adjust_initial_conditions_for_z(Y_state_age, how=how)
         return y
+
+    def integral_over_a_and_z(self, obj, *args, **kwds):
+        '''Integrate `obj` over 'age' and 'time_since_entry'.'''
+        integrated_over_z = self.integral_over_z(obj,
+                                                 *args, **kwds)
+        integrated_over_z_and_a = self.integral_over_a(integrated_over_z,
+                                                       *args, **kwds)
+        return integrated_over_z_and_a
+
+    integral_over_z_and_a = integral_over_a_and_z

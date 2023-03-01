@@ -41,11 +41,32 @@ class Mixin:
         weights = weights_other * weights_z
         return weights
 
+    def _integral_over_z_group(self, obj, axis):
+        '''Integrate one group over time since entry.'''
+        z = _model.integral.get_level_values(obj, axis, 'time_since_entry')
+        if len(z) == 1:
+            z_step = 1
+        else:
+            assert len(z) == len(self.z)
+            z_step = self.z_step
+        return obj.sum(axis=axis) * z_step
+
+    def integral_over_z(self, obj, *args, **kwds):
+        '''Integrate `obj` over 'time_since_entry'.'''
+        if isinstance(obj, numpy.ndarray):
+            assert len(obj) == len(self.z)
+            return obj.sum(*args, **kwds) * self.z_step
+        elif isinstance(obj, (pandas.Series, pandas.DataFrame)):
+            return _model.integral.integral(obj, 'time_since_entry',
+                                            self._integral_over_z_group)
+        else:
+            raise NotImplementedError
+
     def _survival_scaled(self, waiting_time):
         '''`waiting_time.survival(z)` scaled to integrate to 1.'''
         survival = waiting_time.survival(self.z)
         # Scale to integrate to 1.
-        total = survival.sum() * self.z_step
+        total = self.integral_over_z(survival)
         return survival / total
 
     def _adjust_initial_conditions_for_z(self, Y_other, how='all_in_first'):
