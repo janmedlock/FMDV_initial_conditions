@@ -95,14 +95,22 @@ class Model(metaclass=abc.ABCMeta):
         '''Get the eigenvalues of the Jacobian.'''
         return equilibrium.eigenvalues(self, eql, t, k=k)
 
-    def find_limit_cycle(self, period_0, t_0, lcy_0_guess, **root_kwds):
+    def find_limit_cycle(self, period_0, t_0, lcy_0_guess,
+                         solution=True, **root_kwds):
         '''Find a limit cycle of the model.'''
-        (t, lcy) = limit_cycle.find_subharmonic(self, period_0, t_0,
-                                                lcy_0_guess,
-                                                weights=self._weights,
-                                                **root_kwds)
-        numerical.assert_nonnegative(lcy)
-        return self.Solution(lcy, t)
+        result = limit_cycle.find_subharmonic(self, period_0, t_0,
+                                              lcy_0_guess,
+                                              weights=self._weights,
+                                              solution=solution,
+                                              **root_kwds)
+        if solution:
+            (t, lcy) = result
+            numerical.assert_nonnegative(lcy)
+            return self.Solution(lcy, t)
+        else:
+            lcy_0 = result
+            numerical.assert_nonnegative(lcy_0)
+            return self.Solution(lcy_0)
 
     def get_characteristic_multipliers(self, lcy, k=5):
         '''Get the characteristic multipliers.'''

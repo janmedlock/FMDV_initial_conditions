@@ -1,10 +1,6 @@
 * models._model.equilibrium
   * Get started towards an equilbrium by solving without keeping solution
 
-* models._model.limit_cycle
-  * Split off finding initial condition from finding solution to save
-    memory
-
 * Time-since-entry model
   * Find limit cycle
     * Find exponents
