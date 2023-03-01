@@ -1,7 +1,28 @@
 '''Plot solutions and points in state space.'''
 
-import cycler
+import functools
+
 import matplotlib.pyplot
+import matplotlib.rcsetup
+
+
+_linestyles = matplotlib.rcsetup.cycler(
+    linestyle=['solid', 'dotted', 'dashed']
+)
+
+_markers = matplotlib.rcsetup.cycler(
+    marker=['o', '^', 's', '*', '+', 'x']
+)
+
+
+def _cycler_inner_product(*cyclers):
+    '''Get the inner product of the cyclers, reducing their length to
+    that of the smallest one.'''
+    # Make them all the same length.
+    stop = min(map(len, cyclers))
+    cyclers_ = map(lambda x: x[:stop], cyclers)
+    # Sum them.
+    return functools.reduce(lambda x, y: x + y, cyclers_)
 
 
 def population_size(obj):
@@ -16,6 +37,13 @@ def _get_states(obj, states):
     if states is None:
         return obj.axes[-1]
     return states
+
+
+def _state_prop_cycle():
+    '''Build a prop_cycle for the state plot.'''
+    orig = matplotlib.pyplot.rcParams['axes.prop_cycle']
+    prop_cycle = _cycler_inner_product(orig, _markers, _linestyles)
+    return prop_cycle
 
 
 def _state_make_axes(states):
@@ -49,18 +77,19 @@ def state(obj, states=None, ax=None, **kwds):
     return ax
 
 
-def _solution_prop_cycler(states):
-    '''Build a prop_cycler for the solution plot.'''
+def _solution_prop_cycle(states):
+    '''Build a prop_cycle for the solution plot.'''
     orig = matplotlib.pyplot.rcParams['axes.prop_cycle']
     inner = orig[:len(states)]
-    outer = cycler.cycler(linestyle=('solid', 'dotted', 'dashed'))
-    return outer * inner
+    outer = _linestyles
+    prop_cycle = outer * inner
+    return prop_cycle
 
 
 def _solution_make_axes(states):
     '''Make solution axes.'''
     fig = matplotlib.pyplot.figure()
-    prop_cycle = _solution_prop_cycler(states)
+    prop_cycle = _solution_prop_cycle(states)
     return fig.add_subplot(prop_cycle=prop_cycle)
 
 
@@ -70,3 +99,28 @@ def solution(obj, states=None, ax=None, **kwds):
     if ax is None:
         ax = _solution_make_axes(states)
     return obj[states].plot(ax=ax, **kwds)
+
+
+def _eigvals_prop_cycle():
+    '''Build a prop_cycle for the eigenvalue plot.'''
+    orig = matplotlib.pyplot.rcParams['axes.prop_cycle']
+    prop_cycle = _cycler_inner_product(orig, _markers)
+    return prop_cycle
+
+
+def _eigvals_make_axes():
+    fig = matplotlib.pyplot.figure()
+    prop_cycle = _eigvals_prop_cycle()
+    axis_labels = dict(xlabel=r'$\Re(\lambda)$',
+                       ylabel=r'$\Im(\lambda)$')
+    return fig.add_subplot(prop_cycle=prop_cycle,
+                           **axis_labels)
+
+
+def eigvals(eigs, ax=None, legend=False, **kwds):
+    if ax is None:
+        ax = _eigvals_make_axes()
+    ax.plot(eigs.real, eigs.imag, linestyle='', **kwds)
+    if legend:
+        ax.legend()
+    return ax

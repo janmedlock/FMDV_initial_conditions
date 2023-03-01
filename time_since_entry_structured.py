@@ -23,7 +23,8 @@ if __name__ == '__main__':
         states=plot_states
     )
     equilibrium_eigvals = model_constant.get_eigenvalues(equilibrium)
-    print(equilibrium_eigvals)
+    ax_eigvals = models.plotting.eigvals(equilibrium_eigvals,
+                                         label='equilibrium')
 
     model = models.time_since_entry_structured.Model()
     solution = model.solve((t_start, t_end))
