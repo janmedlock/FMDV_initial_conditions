@@ -14,17 +14,20 @@ if __name__ == '__main__':
     model_constant = models.time_since_entry_structured.Model(
         birth_variation=0)
     solution_constant = model_constant.solve((t_start, t_end))
-    ax_solution = model_constant.integral_over_z(solution_constant) \
-                                .plotting.solution()
+    ax_solution = models.plotting.solution(
+        model_constant.integral_over_z(solution_constant)
+    )
     equilibrium = model_constant.find_equilibrium(solution_constant.loc[t_end])
-    ax_state = model_constant.integral_over_z(equilibrium) \
-                             .plotting.state(states=plot_states)
+    ax_state = models.plotting.state(
+        model_constant.integral_over_z(equilibrium),
+        states=plot_states
+    )
     equilibrium_eigvals = model_constant.get_eigenvalues(equilibrium)
     print(equilibrium_eigvals)
 
     model = models.time_since_entry_structured.Model()
     solution = model.solve((t_start, t_end))
-    model.integral_over_z(solution) \
-         .plotting.solution(ax=ax_solution, legend=False)
+    models.plotting.solution(model.integral_over_z(solution),
+                             ax=ax_solution, legend=False)
 
     matplotlib.pyplot.show()
