@@ -5,7 +5,6 @@ periodic birth rate.'''
 import matplotlib.pyplot
 
 import models
-import models.age_structured
 
 
 if __name__ == '__main__':

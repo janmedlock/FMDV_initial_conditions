@@ -8,7 +8,7 @@ import pandas
 _ACCESSOR_NAME = 'plotting'
 
 
-class _BaseAccessor:
+class BaseAccessor:
     '''Common code for `SeriesAccessor()` and `DataFrameAccessor()`.'''
 
     def __init__(self, pandas_obj):
@@ -47,7 +47,7 @@ class _BaseAccessor:
 
 
 @pandas.api.extensions.register_series_accessor(_ACCESSOR_NAME)
-class SeriesAccessor(_BaseAccessor):
+class SeriesAccessor(BaseAccessor):
     '''API for a point in state space.'''
 
     def state(self, states=None, ax=None, **kwds):
@@ -60,7 +60,7 @@ class SeriesAccessor(_BaseAccessor):
 
 
 @pandas.api.extensions.register_dataframe_accessor(_ACCESSOR_NAME)
-class DataFrameAccessor(_BaseAccessor):
+class DataFrameAccessor(BaseAccessor):
     '''API for state vs. time.'''
 
     def _prop_cycler_solution(self, states):

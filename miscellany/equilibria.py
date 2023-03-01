@@ -4,9 +4,6 @@ import matplotlib.pyplot
 import numpy
 
 from context import models
-import models.age_structured
-import models.time_since_entry_structured
-import models.unstructured
 
 
 if __name__ == '__main__':

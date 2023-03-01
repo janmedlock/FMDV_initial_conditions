@@ -5,7 +5,6 @@ with periodic birth rate.'''
 import matplotlib.pyplot
 
 import models
-import models.time_since_entry_structured
 
 
 if __name__ == '__main__':

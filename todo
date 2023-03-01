@@ -1,3 +1,10 @@
+* models._model.equilibrium
+  * Get started towards an equilbrium by solving without keeping solution
+
+* models._model.limit_cycle
+  * Split off finding initial condition from finding solution to save
+    memory
+
 * Time-since-entry model
   * Find limit cycle
     * Find exponents
@@ -11,7 +18,7 @@
 * Combination model
   * Write numerical method as linear algebra
     * Kronecker product: `\otimes`, `numpy.kron()`
-  * Write code
+  * Write models.combination._solver.Solver
 
 * Can I find a limit-cycle of say period 6 then see if it is actually
   period 1, 2, or 3?

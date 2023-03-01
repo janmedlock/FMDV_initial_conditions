@@ -2,7 +2,7 @@
 
 import numpy
 
-from ._model import population
+from .age_structured import _population
 
 
 class _Birth:
@@ -41,13 +41,13 @@ class _Birth:
         '''Get the value for `self.mean` that gives zero population
         growth rate.'''
         # `self.mean` must be set for
-        # `population.birth_scaling_for_zero_population_growth()` to
+        # `_population.birth_scaling_for_zero_population_growth()` to
         # work. If it wasn't set before, we'll set it to a starting
         # guess, and it will be unset after.
         if mean_unset := not hasattr(self, 'mean'):
             self.mean = 0.5  # Starting guess.
-        scale = population.birth_scaling_for_zero_population_growth(self,
-                                                                    death)
+        scale = _population.birth_scaling_for_zero_population_growth(self,
+                                                                     death)
         mean_for_zero_population_growth = scale * self.mean
         if mean_unset:
             del self.mean
@@ -57,7 +57,7 @@ class _Birth:
 class BirthConstant(_Birth):
     '''Constant birth rate.'''
 
-    # `population.birth_scaling_for_zero_population_growth()` has a
+    # `_population.birth_scaling_for_zero_population_growth()` has a
     # shortcut when `period = 0`, so always return that value.
     @property
     def period(self):

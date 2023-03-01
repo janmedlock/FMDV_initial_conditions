@@ -5,13 +5,13 @@ import abc
 import numpy
 import pandas
 
-from . import equilibrium, limit_cycle, population
+from . import equilibrium, limit_cycle
 from .. import (birth, death, progression, parameters,
                 recovery, transmission, waning)
 from .._utility import numerical
 
 
-class _Base(metaclass=abc.ABCMeta):
+class Model(metaclass=abc.ABCMeta):
     '''Base class for models.'''
 
     states = ('maternal_immunity', 'susceptible', 'exposed',
@@ -31,7 +31,7 @@ class _Base(metaclass=abc.ABCMeta):
         '''The solver class.'''
 
     @abc.abstractmethod
-    def _build_solution_index(self):
+    def _build_index(self):
         '''Build a `pandas.Index()` for solutions.'''
 
     @abc.abstractmethod
@@ -45,7 +45,7 @@ class _Base(metaclass=abc.ABCMeta):
     def __init__(self, **kwds):
         self._init_parameters(**kwds)
         self._solver = self._Solver(self)
-        self._solution_index = self._build_solution_index()
+        self._index = self._build_index()
         self._weights = self._build_weights()
 
     def _init_parameters(self, **kwds):
@@ -57,13 +57,22 @@ class _Base(metaclass=abc.ABCMeta):
         self.transmission = transmission.Transmission(parameters_)
         self.waning = waning.Waning(parameters_)
 
+    def _get_index_level(self, level):
+        '''Get the index for `level`.'''
+        if isinstance(self._index, pandas.MultiIndex):
+            which = self._index.names.index(level)
+            idx_level = self._index.levels[which]
+            return idx_level
+        else:
+            return self._index
+
     def Solution(self, y, t=None):
         '''A solution.'''
         if t is None:
-            return pandas.Series(y, index=self._solution_index)
+            return pandas.Series(y, index=self._index)
         else:
             t = pandas.Index(t, name='time')
-            return pandas.DataFrame(y, index=t, columns=self._solution_index)
+            return pandas.DataFrame(y, index=t, columns=self._index)
 
     def solve(self, t_span,
               y_start=None, t=None, y=None, display=False):
@@ -104,7 +113,7 @@ class _Base(metaclass=abc.ABCMeta):
         return limit_cycle.characteristic_exponents(self, lcy, k=k)
 
 
-class AgeIndependent(_Base):
+class ModelAgeIndependent(Model):
     '''Base class for age-independent models.'''
 
     def _init_parameters(self, **kwds):
@@ -120,19 +129,3 @@ class AgeIndependent(_Base):
         '''For this unstructured model, the mean population growth
         rate is `self.birth_rate.mean - self.death_rate_mean`.'''
         return self.death_rate_mean
-
-
-class AgeDependent(_Base):
-    '''Base class for age-dependent models.'''
-
-    def stable_age_density(self, *args, **kwds):
-        '''Get the stable age density.'''
-        (a, v_dom) = population.stable_age_density(self.birth, self.death,
-                                                   *args, **kwds)
-        # Interpolate the logarithm of `v_dom` to `self.a`.
-        assert numpy.all(v_dom > 0)
-        logn = numpy.interp(self.a, a, numpy.log(v_dom))
-        n = numpy.exp(logn)
-        # Normalize to integrate to 1.
-        n /= n.sum() * self.a_step
-        return n

@@ -4,7 +4,6 @@ import numpy
 import scipy.sparse
 
 from context import models
-import models.time_since_entry_structured
 import models._utility.numerical
 import models._utility.sparse
 

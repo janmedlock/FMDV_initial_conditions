@@ -4,8 +4,6 @@ import numpy
 import scipy.integrate
 
 from context import models
-import models.unstructured
-import models.death
 
 
 def get_death_rate_mean():
