@@ -1,14 +1,20 @@
+* Unstructured
+  * How to choose t_step?
+
 * Time-since-entry model
+  * How to choose z_step & z_max?
   * Find limit cycle
     * Find exponents
 
 * Age-structured model
+  * How to choose a_step & a_max?
   * Find equiblibrium
     * Find eigenvalues
   * Find limit cycle
     * Find exponents
 
 * Combination model
+  * How to choose step, a_max, & z_max?
   * Write numerical method as linear algebra
     * Kronecker product: `\otimes`, `numpy.kron()`
   * Write models.combination._solver.Solver
