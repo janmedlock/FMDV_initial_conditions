@@ -7,7 +7,7 @@
 
 \renewcommand{\vec}[1]{\boldsymbol{\mathrm{#1}}}
 
-% Use arabic numbers for subequations.
+% Use Arabic numbers for subequations.
 \let\subequationsorig\subequations%
 \let\endsubequationsorig\endsubequations%
 \renewenvironment{subequations}{
@@ -209,7 +209,8 @@ Let
     \lambda^{\ell} &=
     \vec{\beta} \vec{x}^{\ell},
     \\
-    \mat{H} &=
+    \mat{H}_{\mathrm{new}} =
+    \mat{H}_{\mathrm{cur}} &=
     \begin{bmatrix}
       1 & 0 & 0 & 0 & 0 \\
       0 & 1 & 0 & 0 & 0 \\
@@ -218,7 +219,8 @@ Let
       0 & 0 & 0 & 0 & 1
     \end{bmatrix},
     \\
-    \mat{F} &=
+    \mat{F}_{\mathrm{new}} =
+    \mat{F}_{\mathrm{cur}} &=
     \begin{bmatrix}
       - \omega - \mu & 0 & 0 & 0 & 0 \\
       \omega & - \mu & 0 & 0 & 0 \\
@@ -227,7 +229,8 @@ Let
       0 & 0 & 0 & \gamma & - \mu
     \end{bmatrix},
     \\
-    \mat{T} &=
+    \mat{T}_{\mathrm{new}} =
+    \mat{T}_{\mathrm{cur}} &=
     \begin{bmatrix}
       0 & 0 & 0 & 0 & 0 \\
       0 & -1 & 0 & 0 & 0 \\
@@ -250,11 +253,11 @@ Let
   \begin{multline}
     \label{step_unstructured}
     \left[
-      \mat{H}
+      \mat{H}_{\mathrm{new}}
       - \frac{\Delta t}{2}
       \left(
-        \mat{F}
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}
+        \mat{F}_{\mathrm{new}}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
         + b^{\ell - 1 / 2} \mat{B}
       \right)
     \right]
@@ -262,11 +265,11 @@ Let
     \\
     =
     \left[
-      \mat{H}
+      \mat{H}_{\mathrm{cur}}
       + \frac{\Delta t}{2}
       \left(
-        \mat{F}
-        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
+        \mat{F}_{\mathrm{cur}}
+        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
         + b^{\ell - 1 / 2} \mat{B}
       \right)
     \right]
@@ -283,11 +286,11 @@ with respect to $\vec{x}^{\ell - 1}$:
   \frac{\md}{\md \vec{x}^{\ell - 1}}
   \left\{
     \left[
-      \mat{H}
+      \mat{H}_{\mathrm{new}}
       - \frac{\Delta t}{2}
       \left(
-        \mat{F}
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}
+        \mat{F}_{\mathrm{new}}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
         + b^{\ell - 1 / 2} \mat{B}
       \right)
     \right]
@@ -297,58 +300,60 @@ with respect to $\vec{x}^{\ell - 1}$:
   = \frac{\md}{\md \vec{x}^{\ell - 1}}
   \left\{
     \left[
-      \mat{H}
+      \mat{H}_{\mathrm{cur}}
       + \frac{\Delta t}{2}
       \left(
-        \mat{F}
-        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
+        \mat{F}_{\mathrm{cur}}
+        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
         + b^{\ell - 1 / 2} \mat{B}
       \right)
     \right]
     \vec{x}^{\ell - 1}
-  \right\}
+  \right\}.
 \end{multline}
-which gives
-\begin{multline}
-  \left[
-    \mat{H}
-    - \frac{\Delta t}{2}
-    \left(
-      \mat{F}
-      + \vec{\beta} \vec{x}^{\ell} \mat{T}
-      + \mat{T} \vec{x}^{\ell} \vec{\beta}
-      + b^{\ell - 1 / 2} \mat{B}
-    \right)
-  \right]
-  \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
-  \\
-  = \mat{H}
-  + \frac{\Delta t}{2}
-  \left(
-    \mat{F}
-    + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
-    + \mat{T} \vec{x}^{\ell - 1} \vec{\beta}
-    + b^{\ell - 1 / 2} \mat{B}
-  \right),
-\end{multline}
-which, given $\vec{x}^{\ell}$
-and $\vec{x}^{\ell - 1}$
-we solve for $\frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}$.
-The Jacobian is then
-\begin{equation}
-  \begin{split}
-    \mat{J}\left(t^{\ell - 1}, \vec{x}^{\ell}, \vec{x}^{\ell - 1}\right)
-    &= \frac{\md}{\md \vec{x}^{\ell - 1}}
-    \left(
-      \frac{\vec{x}^{\ell} - \vec{x}^{\ell - 1}}{\Delta t}
-    \right)
+This gives
+\begin{subequations}
+  \label{jacobian}
+  \begin{multline}
+    \left[
+      \mat{H}_{\mathrm{new}}
+      - \frac{\Delta t}{2}
+      \left(
+        \mat{F}_{\mathrm{new}}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
+        + \mat{T}_{\mathrm{new}} \vec{x}^{\ell} \vec{\beta}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right]
+    \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
     \\
-    &= \frac{1}{\Delta t} \left(
-      \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
-      - \mat{I}
-    \right).
-  \end{split}
-\end{equation}
+    = \mat{H}_{\mathrm{cur}}
+    + \frac{\Delta t}{2}
+    \left(
+      \mat{F}_{\mathrm{cur}}
+      + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
+      + \mat{T}_{\mathrm{cur}} \vec{x}^{\ell - 1} \vec{\beta}
+      + b^{\ell - 1 / 2} \mat{B}
+    \right),
+  \end{multline}
+  which, given $\vec{x}^{\ell}$ and $\vec{x}^{\ell - 1}$,
+  we solve for $\frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}$.
+  The Jacobian is then
+  \begin{equation}
+    \begin{split}
+      \mat{J}\left(t^{\ell - 1}, \vec{x}^{\ell}, \vec{x}^{\ell - 1}\right)
+      &= \frac{\md}{\md \vec{x}^{\ell - 1}}
+      \left(
+        \frac{\vec{x}^{\ell} - \vec{x}^{\ell - 1}}{\Delta t}
+      \right)
+      \\
+      &= \frac{1}{\Delta t} \left(
+        \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
+        - \mat{I}
+      \right).
+    \end{split}
+  \end{equation}
+\end{subequations}
 
 
 \section{Age-structured model}
@@ -1075,7 +1080,7 @@ which is identical to our Crank--Nicolson scheme applied to model
 
 \subsubsection{Linear algebra}
 
-Let
+For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
 \begin{subequations}
   \begin{align}
     \vec{x}^{\ell} &=
@@ -1159,29 +1164,7 @@ Let
       & \mat{F}_{q, \mathrm{XW}}(- \vec{\mu})
     \end{bmatrix},
     \\
-    \mat{T}_{\mathrm{new}, \mathrm{XW}} &=
-    \begin{bmatrix}
-      1 & 0 & \cdots & 0
-      \\
-      0 & \ddots & \ddots & \vdots
-      \\
-      \vdots & \ddots & \ddots & 0
-      \\
-      0 & \cdots & 0 & 1
-    \end{bmatrix},
-    \\
-    \mat{T}_{\mathrm{cur}, \mathrm{XW}} &=
-    \begin{bmatrix}
-      0 & \cdots & \cdots & 0 & 0
-      \\
-      1 & \ddots & & \vdots & \vdots
-      \\
-      0 & \ddots & \ddots & \vdots & \vdots
-      \\
-      \vdots & \ddots & \ddots & 0 & 0
-      \\
-      0 & \cdots & 0 & 1 & 1
-    \end{bmatrix},
+    \mat{T}_{q, \mathrm{XW}} &= \mat{H}_{q, \mathrm{XX}},
     \\
     \mat{T}_q &=
     \begin{bmatrix}
@@ -1247,78 +1230,7 @@ Let
 
 \paragraph{Jacobian}
 
-To find the Jacobian, we first differentiate \eqref{step_age_structured}
-with respect to $\vec{x}^{\ell - 1}$:
-\begin{multline}
-  \frac{\md}{\md \vec{x}^{\ell - 1}}
-  \left\{
-    \left[
-      \mat{H}_{\mathrm{new}}
-      - \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{new}}
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
-        + b^{\ell - 1 / 2} \mat{B}
-      \right)
-    \right]
-    \vec{x}^{\ell}
-  \right\}
-  \\
-  = \frac{\md}{\md \vec{x}^{\ell - 1}}
-  \left\{
-    \left[
-      \mat{H}_{\mathrm{cur}}
-      + \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{cur}}
-        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
-        + b^{\ell - 1 / 2} \mat{B}
-      \right)
-    \right]
-    \vec{x}^{\ell - 1}
-  \right\}
-\end{multline}
-which gives
-\begin{multline}
-  \left[
-    \mat{H}_{\mathrm{new}}
-    - \frac{\Delta t}{2}
-    \left(
-      \mat{F}_{\mathrm{new}}
-      + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
-      + \mat{T}_{\mathrm{new}} \vec{x}^{\ell} \vec{\beta}
-      + b^{\ell - 1 / 2} \mat{B}
-    \right)
-  \right]
-  \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
-  \\
-  = \mat{H}_{\mathrm{cur}}
-  + \frac{\Delta t}{2}
-  \left(
-    \mat{F}_{\mathrm{cur}}
-    + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
-    + \mat{T}_{\mathrm{cur}} \vec{x}^{\ell - 1} \vec{\beta}
-    + b^{\ell - 1 / 2} \mat{B}
-  \right),
-\end{multline}
-which, given $\vec{x}^{\ell}$
-and $\vec{x}^{\ell - 1}$
-we solve for $\frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}$.
-The Jacobian is then
-\begin{equation}
-  \begin{split}
-    \mat{J}\left(t^{\ell - 1}, \vec{x}^{\ell}, \vec{x}^{\ell - 1}\right)
-    &= \frac{\md}{\md \vec{x}^{\ell - 1}}
-    \left(
-      \frac{\vec{x}^{\ell} - \vec{x}^{\ell - 1}}{\Delta t}
-    \right)
-    \\
-    &= \frac{1}{\Delta t} \left(
-      \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
-      - \mat{I}
-    \right).
-  \end{split}
-\end{equation}
+The Jacobian is calculated using \eqref{jacobian}.
 
 
 \section{Time-since-entry-structured model}
@@ -1690,7 +1602,7 @@ which is identical to our Crank--Nicolson scheme applied to model
 
 \subsubsection{Linear algebra}
 
-Let
+For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
 \begin{subequations}
   \begin{align}
     \vec{x}^{\ell} &=
@@ -1791,7 +1703,8 @@ Let
       1 \\ 0 \\ \vdots \\ 0
     \end{bmatrix},
     \\
-    \mat{T} &=
+    \mat{T}_{\mathrm{new}} =
+    \mat{T}_{\mathrm{cur}} &=
     \begin{bmatrix}
       \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
@@ -1804,17 +1717,7 @@ Let
       \vec{0} & 0 & \vec{0} & \vec{0} & 0
     \end{bmatrix},
     \\
-    \vec{b}_{\mathrm{yX}} &=
-    \frac{1}{\Delta t}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix},
-    \\
-    \vec{b}_{\mathrm{Xy}} &=
-    \Delta t
-    \begin{bmatrix}
-      1 & \cdots & 1
-    \end{bmatrix},
+    \vec{b}_{\mathrm{yX}} &= \vec{t}_{\mathrm{yX}},
     \\
     \mat{B} &=
     \begin{bmatrix}
@@ -1838,7 +1741,7 @@ Let
       - \frac{\Delta t}{2}
       \left(
         \mat{F}_{\mathrm{new}}
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
         + b^{\ell - 1 / 2} \mat{B}
       \right)
     \right] \vec{x}^{\ell}
@@ -1848,7 +1751,7 @@ Let
       + \frac{\Delta t}{2}
       \left(
         \mat{F}_{\mathrm{cur}}
-        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
+        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
         + b^{\ell - 1 / 2} \mat{B}
       \right)
     \right] \vec{x}^{\ell - 1}.
@@ -1858,79 +1761,7 @@ Let
 
 \paragraph{Jacobian}
 
-To find the Jacobian, we first differentiate
-\eqref{step_time_since_entry_structured} with respect to
-$\vec{x}^{\ell - 1}$:
-\begin{multline}
-  \frac{\md}{\md \vec{x}^{\ell - 1}}
-  \left\{
-    \left[
-      \mat{H}_{\mathrm{new}}
-      - \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{new}}
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}
-        + b^{\ell - 1 / 2} \mat{B}
-      \right)
-    \right]
-    \vec{x}^{\ell}
-  \right\}
-  \\
-  = \frac{\md}{\md \vec{x}^{\ell - 1}}
-  \left\{
-    \left[
-      \mat{H}_{\mathrm{cur}}
-      + \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{cur}}
-        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
-        + b^{\ell - 1 / 2} \mat{B}
-      \right)
-    \right]
-    \vec{x}^{\ell - 1}
-  \right\}
-\end{multline}
-which gives
-\begin{multline}
-  \left[
-    \mat{H}_{\mathrm{new}}
-    - \frac{\Delta t}{2}
-    \left(
-      \mat{F}_{\mathrm{new}}
-      + \vec{\beta} \vec{x}^{\ell} \mat{T}
-      + \mat{T} \vec{x}^{\ell} \vec{\beta}
-      + b^{\ell - 1 / 2} \mat{B}
-    \right)
-  \right]
-  \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
-  \\
-  = \mat{H}_{\mathrm{cur}}
-  + \frac{\Delta t}{2}
-  \left(
-    \mat{F}_{\mathrm{cur}}
-    + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}
-    + \mat{T} \vec{x}^{\ell - 1} \vec{\beta}
-    + b^{\ell - 1 / 2} \mat{B}
-  \right),
-\end{multline}
-which, given $\vec{x}^{\ell}$
-and $\vec{x}^{\ell - 1}$
-we solve for $\frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}$.
-The Jacobian is then
-\begin{equation}
-  \begin{split}
-    \mat{J}\left(t^{\ell - 1}, \vec{x}^{\ell}, \vec{x}^{\ell - 1}\right)
-    &= \frac{\md}{\md \vec{x}^{\ell - 1}}
-    \left(
-      \frac{\vec{x}^{\ell} - \vec{x}^{\ell - 1}}{\Delta t}
-    \right)
-    \\
-    &= \frac{1}{\Delta t} \left(
-      \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
-      - \mat{I}
-    \right).
-  \end{split}
-\end{equation}
+The Jacobian is calculated using \eqref{jacobian}.
 
 
 \section{Age- and time-since-entry-structured model}
