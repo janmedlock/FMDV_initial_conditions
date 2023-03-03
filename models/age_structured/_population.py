@@ -8,39 +8,36 @@ import scipy.optimize
 from .._utility import linalg, numerical, sparse
 
 
-# Default age step.
-_A_STEP = 0.1
-
-# Default age maximum.
-_A_MAX = 50
-
-
-def integral_over_a(arr, a_step=_A_STEP, a_max=_A_MAX,
-                    *args, display=None, **kwds):
-    '''Integrate `arr` over age.'''
-    # The arguments mirror those of _Solver() and
-    # stable_age_density(). `a_step` is used, `a_max` and `display`
-    # are not used, and `args` and `kwds` are passed on to `.sum()`.
-    return arr.sum(*args, **kwds) * a_step
-
-
 class _Solver:
     '''Solver for the monodromy matrix of a linear age-structured
     model for the population size with age-dependent death rate,
     age-dependent maternity, and periodic time-dependent birth rate.'''
 
-    def __init__(self, birth, death, a_step=_A_STEP, a_max=_A_MAX):
+    # The default time step.
+    DEFAULT_T_STEP = 1e-1
+
+    # The default maximum age.
+    DEFAULT_A_MAX = 50
+
+    def __init__(self, birth, death,
+                 t_step=DEFAULT_T_STEP, a_max=DEFAULT_A_MAX):
         self.birth = birth
         self.death = death
-        self.a_step = self.t_step = a_step
+        self.t_step = t_step
         self.period = self.birth.period
         if self.period == 0:
             self.period = self.t_step
-        self.a = numerical.build_t(0, a_max, self.a_step)
         self.t = numerical.build_t(0, self.period, self.t_step)
         assert numpy.isclose(self.t[-1], self.period)
+        self.a_step = self._get_a_step(t_step)
+        self.a = numerical.build_t(0, a_max, self.a_step)
         self._build_matrices()
         self._check_matrices()
+
+    @staticmethod
+    def _get_a_step(t_step):
+        a_step = t_step
+        return a_step
 
     def _H(self, q):
         '''Build the time step matrix H(q).'''
@@ -161,8 +158,19 @@ class _Solver:
         (_, v_dom) = linalg.get_dominant_eigen(Psi, which='LM',
                                                return_eigenvector=True)
         # Normalize `v_dom` in place so that its integral over a is 1.
-        v_dom /= integral_over_a(v_dom, a_step=self.a_step)
+        v_dom /= self.integral_over_a(v_dom, t_step=self.t_step)
         return (self.a, v_dom)
+
+    @classmethod
+    def integral_over_a(cls, arr,
+                        t_step=DEFAULT_T_STEP, a_max=DEFAULT_A_MAX,
+                        *args, **kwds):
+        '''Integrate `arr` over age.'''
+        # The arguments mirror those of `_Solver()`: `t_step` is used,
+        # `a_max` is not used, and `args` and `kwds` are passed on to
+        # `.sum()`.
+        a_step = cls._get_a_step(t_step)
+        return arr.sum(*args, **kwds) * a_step
 
 
 def birth_scaling_for_zero_population_growth(birth, death,
@@ -192,3 +200,11 @@ def stable_age_density(birth, death,
     '''Find the stable age distribution.'''
     solver = _Solver(birth, death, *args, **kwds)
     return solver.stable_age_density(display=display)
+
+
+def integral_over_a(arr, *args, display=None, **kwds):
+    '''Integrate `arr` over age.'''
+    # The arguments mirror those of `stable_age_density()`: `display`
+    # is not used and `args` and `kwds` are passed on to
+    # `_Solver.integral_over_a()`.
+    return _Solver.integral_over_a(arr, *args, **kwds)

@@ -45,10 +45,6 @@ class Model(_model.ModelAgeIndependent, Mixin):
 
     _Solver = _solver.Solver
 
-    def __init__(self, t_step=0.001, **kwds):
-        self.t_step = t_step
-        super().__init__(**kwds)
-
     def _build_index(self):
         '''Build a `pandas.Index()` for solutions.'''
         idx = self._build_index_state()

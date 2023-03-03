@@ -25,6 +25,13 @@ class Model(metaclass=abc.ABCMeta):
     _states_have_antibodies = numpy.isin(states,
                                          states_with_antibodies)
 
+    # The default time step `t_step` for `Model()`. A necessary
+    # condition for nonnegative solutions is is that `t_step` must be
+    # less than 1 / rate for all of the model transition rates. In
+    # particular, `transmission_rate` and 1 / `progression_mean`,
+    # especially for SAT1, are just a bit less than 1000.
+    DEFAULT_T_STEP = 1e-3
+
     @property
     @abc.abstractmethod
     def _Solver(self):
@@ -42,9 +49,10 @@ class Model(metaclass=abc.ABCMeta):
     def build_initial_conditions(self):
         '''Build the initial conditions.'''
 
-    def __init__(self, **kwds):
+    def __init__(self, t_step=DEFAULT_T_STEP, **kwds):
+        self.t_step = t_step
         self._init_parameters(**kwds)
-        self._solver = self._Solver(self)
+        self._solver = self._Solver(self, t_step)
         self._index = self._build_index()
         self._weights = self._build_weights()
 

@@ -5,13 +5,26 @@ import pandas
 
 from . import _solver
 from .. import unstructured, _model
-from .._utility import numerical
 
 
-class Mixin:
+class Mixin(unstructured.Mixin):
     '''Attributes for models that have a time-since-entry variable.'''
 
     states_with_z = ['maternal_immunity', 'exposed', 'infectious']
+
+    # The default maximum time since entry `z_max` for `Model()`. HOW IS
+    # IT CHOSEN?
+    DEFAULT_Z_MAX = 3
+
+    @property
+    def z_step(self):
+        '''Get the time-since-entry step.'''
+        return self._solver.z_step
+
+    @property
+    def z(self):
+        '''Get the time-since-entry vector.'''
+        return self._solver.z
 
     def _extend_index_with_z(self, idx_other):
         '''Append a new level for 'time since entry'.'''
@@ -105,14 +118,13 @@ class Mixin:
         return y
 
 
-class Model(_model.ModelAgeIndependent, unstructured.Mixin, Mixin):
+class Model(_model.ModelAgeIndependent, Mixin):
     '''Time-since-entry-structured model.'''
 
     _Solver = _solver.Solver
 
-    def __init__(self, z_step=0.001, z_max=3, **kwds):
-        self.z_step = z_step
-        self.z = numerical.build_t(0, z_max, self.z_step)
+    def __init__(self, z_max=Mixin.DEFAULT_Z_MAX, **kwds):
+        self.z_max = z_max
         super().__init__(**kwds)
 
     def _build_index(self):

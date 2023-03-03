@@ -13,16 +13,17 @@ class Solver(_model.solver.Base):
 
     _sparse = True
 
-    def __init__(self, model):
-        self.z_step = self.t_step = model.z_step
-        super().__init__(model)
+    def __init__(self, model, t_step):
+        self.z_step = t_step
+        self.z = numerical.build_t(0, model.z_max, self.z_step)
+        super().__init__(model, t_step)
 
     @functools.cached_property
     def Zeros(self):
         '''These are zero matrices of different sizes used in
         constructing the other matrices. `Zeros` is built on first use
         and then reused.'''
-        K = len(self.model.z)
+        K = len(self.z)
         Zeros = {
             '11': sparse.array((1, 1)),
             '1K': sparse.array((1, K)),
@@ -38,7 +39,7 @@ class Solver(_model.solver.Base):
 
     def _myX(self):
         '''Build tyX and byX.'''
-        K = len(self.model.z)
+        K = len(self.z)
         shape = (K, 1)
         # The first entry is `1 / self.z_step`.
         data = {
@@ -51,14 +52,14 @@ class Solver(_model.solver.Base):
         '''Build the identity matrix.'''
         n = len(self.model.states)
         m = len(self.model.states_with_z)
-        K = len(self.model.z)
+        K = len(self.z)
         size = m * K + (n - m)
         I = sparse.identity(size)
         return I
 
     def _beta(self):
         '''Build the transmission rate vector beta.'''
-        K = len(self.model.z)
+        K = len(self.z)
         ones1K = numpy.ones((1, K))
         zeros = self.Zeros
         beta = (
@@ -77,7 +78,7 @@ class Solver(_model.solver.Base):
 
     def _Hyy(self, q):
         '''Build a diagonal block for a y state of H(q).'''
-        K = len(self.model.z)
+        K = len(self.z)
         if q == 'new':
             diags = {
                 0: numpy.ones(K)
@@ -108,7 +109,7 @@ class Solver(_model.solver.Base):
 
     def _fXy(self, psi):
         '''Build a block to an X state from a y state of F(q).'''
-        K = len(self.model.z)
+        K = len(self.z)
         if numpy.isscalar(psi):
             psi = psi * numpy.ones(K)
         # `[None]` adds a dimension, going from shape (K, ) to shape (1, K).
@@ -117,7 +118,7 @@ class Solver(_model.solver.Base):
 
     def _Fyy(self, q, psi):
         '''Build a diagonal block for a y state of F(q).'''
-        K = len(self.model.z)
+        K = len(self.z)
         if numpy.isscalar(psi):
             psi = psi * numpy.ones(K)
         if q == 'new':
@@ -136,7 +137,7 @@ class Solver(_model.solver.Base):
 
     def _Fyz(self, psi):
         '''Build an off-diagonal block between y states of F(q).'''
-        K = len(self.model.z)
+        K = len(self.z)
         shape = (K, K)
         # The first row is `psi`.
         data = {
@@ -148,7 +149,7 @@ class Solver(_model.solver.Base):
     def _get_rate(self, which):
         '''Get the rate `which` and make finite any infinite entries.'''
         param = getattr(self.model, which)
-        rate = param.rate(self.model.z)
+        rate = param.rate(self.z)
         return numerical.rate_make_finite(rate)
 
     def _F(self, q):
@@ -208,7 +209,7 @@ class Solver(_model.solver.Base):
 
     def _bXy(self):
         '''Build a block to an X state from a y state of B.'''
-        K = len(self.model.z)
+        K = len(self.z)
         shape = (1, K)
         bXy = self.z_step * numpy.ones(shape)
         return bXy

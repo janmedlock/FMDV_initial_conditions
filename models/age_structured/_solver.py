@@ -5,7 +5,7 @@ import functools
 import numpy
 
 from .. import _model
-from .._utility import sparse
+from .._utility import numerical, sparse
 
 
 class Solver(_model.solver.Base):
@@ -13,16 +13,17 @@ class Solver(_model.solver.Base):
 
     _sparse = True
 
-    def __init__(self, model):
-        self.a_step = self.t_step = model.a_step
-        super().__init__(model)
+    def __init__(self, model, t_step):
+        self.a_step = t_step
+        self.a = numerical.build_t(0, model.a_max, self.a_step)
+        super().__init__(model, t_step)
 
     @functools.cached_property
     def Zeros(self):
         '''These are zero matrices of different sizes used in
         constructing the other matrices. `Zeros` is built on first use
         and then reused.'''
-        J = len(self.model.a)
+        J = len(self.a)
         Zeros = {
             '1J': sparse.array((1, J)),
             'JJ': sparse.array((J, J))
@@ -31,7 +32,7 @@ class Solver(_model.solver.Base):
 
     def _MXW(self, q):
         '''Build HXX(q) and TXW(q).'''
-        J = len(self.model.a)
+        J = len(self.a)
         if q == 'new':
             diags = {
                 0: numpy.ones(J)
@@ -49,14 +50,14 @@ class Solver(_model.solver.Base):
     def _I(self):
         '''Build the identity matrix.'''
         n = len(self.model.states)
-        J = len(self.model.a)
+        J = len(self.a)
         size = n * J
         I = sparse.identity(size)
         return I
 
     def _beta(self):
         '''Build the transmission rate vector beta.'''
-        J = len(self.model.a)
+        J = len(self.a)
         ones1J = numpy.ones((1, J))
         zeros1J = self.Zeros['1J']
         beta = (
@@ -82,7 +83,7 @@ class Solver(_model.solver.Base):
 
     def _FXW(self, q, pi):
         '''Build a block of F(q).'''
-        J = len(self.model.a)
+        J = len(self.a)
         if numpy.isscalar(pi):
             pi = pi * numpy.ones(J)
         if q == 'new':
@@ -101,7 +102,7 @@ class Solver(_model.solver.Base):
 
     def _F(self, q):
         '''Build the transition matrix F(q).'''
-        mu = self.model.death.rate(self.model.a)
+        mu = self.model.death.rate(self.a)
         omega = 1 / self.model.waning.mean
         rho = 1 / self.model.progression.mean
         gamma = 1 / self.model.recovery.mean
@@ -135,9 +136,9 @@ class Solver(_model.solver.Base):
 
     def _BXW(self):
         '''Build a block of B.'''
-        J = len(self.model.a)
+        J = len(self.a)
         shape = (J, J)
-        nu = self.model.birth.maternity(self.model.a)
+        nu = self.model.birth.maternity(self.a)
         # The first row is `nu`.
         data = {
             (0, (None, )): nu

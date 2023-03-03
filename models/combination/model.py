@@ -4,19 +4,21 @@ time-since-entry–structured model.'''
 from . import _solver
 from .. import (age_structured, time_since_entry_structured,
                 unstructured, _model)
-from .._utility import numerical
 
 
-class Model(_model.Model, unstructured.Mixin, age_structured.Mixin,
-            time_since_entry_structured.Mixin):
+class Model(_model.Model,
+            time_since_entry_structured.Mixin,
+            age_structured.Mixin):
     '''Age– and time-since-entry–structured model.'''
 
     _Solver = _solver.Solver
 
-    def __init__(self, step=0.001, a_max=25, z_max=3, **kwds):
-        self.a_step = self.z_step = step
-        self.a = numerical.build_t(0, a_max, self.a_step)
-        self.z = numerical.build_t(0, z_max, self.z_step)
+    def __init__(self,
+                 a_max=age_structured.Mixin.DEFAULT_A_MAX,
+                 z_max=time_since_entry_structured.Mixin.DEFAULT_Z_MAX,
+                 **kwds):
+        self.a_max = a_max
+        self.z_max = z_max
         super().__init__(**kwds)
 
     def _build_index(self):

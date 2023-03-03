@@ -10,8 +10,9 @@ from .._utility import linalg, numerical, optimize, sparse
 class Base(metaclass=abc.ABCMeta):
     '''Base class for Crank–Nicolson solvers.'''
 
-    def __init__(self, model):
+    def __init__(self, model, t_step):
         self.model = model
+        self.t_step = t_step
         self._build_matrices()
         self._check_matrices()
         if self._sparse:

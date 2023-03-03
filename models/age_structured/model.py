@@ -5,11 +5,23 @@ import pandas
 
 from . import _population, _solver
 from .. import unstructured, _model
-from .._utility import numerical
 
 
-class Mixin:
+class Mixin(unstructured.Mixin):
     '''Attributes for models that have an age variable.'''
+
+    # The default maximum age `a_max` for `Model()`. HOW IS IT CHOSEN?
+    DEFAULT_A_MAX = 25
+
+    @property
+    def a_step(self):
+        '''Get the age step.'''
+        return self._solver.a_step
+
+    @property
+    def a(self):
+        '''Get the age vector.'''
+        return self._solver.a
 
     def _build_index_state_age(self):
         '''Build the 'state' and 'age' levels of a `pandas.Index()`
@@ -66,14 +78,13 @@ class Mixin:
         return y
 
 
-class Model(_model.Model, unstructured.Mixin, Mixin):
+class Model(_model.Model, Mixin):
     '''Age-structured model.'''
 
     _Solver = _solver.Solver
 
-    def __init__(self, a_step=0.001, a_max=25, **kwds):
-        self.a_step = a_step
-        self.a = numerical.build_t(0, a_max, self.a_step)
+    def __init__(self, a_max=Mixin.DEFAULT_A_MAX, **kwds):
+        self.a_max = a_max
         super().__init__(**kwds)
 
     def _build_index(self):

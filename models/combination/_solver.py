@@ -1,6 +1,7 @@
 '''Solver.'''
 
 from .. import _model
+from .._utility import numerical
 
 
 class Solver(_model.solver.Base):
@@ -8,9 +9,12 @@ class Solver(_model.solver.Base):
 
     _sparse = True
 
-    def __init__(self, model):
-        self.a_step = self.z_step = self.t_step = model.z_step
-        super().__init__(model)
+    def __init__(self, model, t_step):
+        self.a_step = t_step
+        self.z_step = t_step
+        self.a = numerical.build_t(0, model.a_max, self.a_step)
+        self.z = numerical.build_t(0, model.z_max, self.z_step)
+        super().__init__(model, t_step)
 
     def _I(self):
         '''Build the identity matrix.'''
