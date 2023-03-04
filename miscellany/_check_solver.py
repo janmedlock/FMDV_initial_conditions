@@ -3,7 +3,7 @@
 import abc
 
 from context import models
-from models._utility import sparse
+from models import _utility
 
 
 class Base:
@@ -33,6 +33,6 @@ class Base:
             checker = getattr(self, name)
             if isinstance(matrix, dict):
                 for q in ('new', 'cur'):
-                    assert sparse.equals(matrix[q], checker(q))
+                    assert _utility.sparse.equals(matrix[q], checker(q))
             else:
-                assert sparse.equals(matrix, checker())
+                assert _utility.sparse.equals(matrix, checker())

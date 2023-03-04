@@ -1,7 +1,6 @@
 '''Solver.'''
 
-from .. import _model
-from .._utility import numerical
+from .. import _model, _utility
 
 
 class Solver(_model.solver.Base):
@@ -12,8 +11,8 @@ class Solver(_model.solver.Base):
     def __init__(self, model, t_step):
         self.a_step = t_step
         self.z_step = t_step
-        self.a = numerical.build_t(0, model.a_max, self.a_step)
-        self.z = numerical.build_t(0, model.z_max, self.z_step)
+        self.a = _utility.numerical.build_t(0, model.a_max, self.a_step)
+        self.z = _utility.numerical.build_t(0, model.z_max, self.z_step)
         super().__init__(model, t_step)
 
     def _I(self):

@@ -4,39 +4,45 @@ import numpy
 import pandas
 
 from . import _population, _solver
-from .. import unstructured, _model
+from .. import parameters, unstructured, _model
 
 
-class Mixin(unstructured.Mixin):
-    '''Attributes for models that have an age variable.'''
+class Model(parameters.AgeDependent,
+            unstructured.Model):
+    '''Age-structured model.'''
 
-    # The default maximum age `a_max` for `Model()`. HOW IS IT CHOSEN?
-    DEFAULT_A_MAX = 25
+    _Solver = _solver.Solver
+
+    # The default maximum age `a_max`.
+    # TODO: HOW WAS IT CHOSEN?
+    _a_max_default = 25
+
+    def __init__(self, a_max=_a_max_default, **kwds):
+        self.a_max = a_max
+        super().__init__(**kwds)
 
     @property
     def a_step(self):
-        '''Get the age step.'''
         return self._solver.a_step
 
     @property
     def a(self):
-        '''Get the age vector.'''
         return self._solver.a
 
-    def _build_index_state_age(self):
-        '''Build the 'state' and 'age' levels of a `pandas.Index()`
-        for solutions.'''
-        idx_state = self._build_index_state()
+    def _build_index(self):
+        '''Extend the `pandas.Index()` for solutions with the 'age'
+        level.'''
+        idx_other = super()._build_index()
         idx_age = pandas.Index(self.a, name='age')
-        idx = pandas.MultiIndex.from_product([idx_state, idx_age])
+        idx = pandas.MultiIndex.from_product([idx_other, idx_age])
         return idx
 
-    def _build_weights_state_age(self):
-        '''Build weights for the 'state' and 'age' levels.'''
-        weights_state = self._build_weights_state()
+    def _build_weights(self):
+        '''Adjust the weights for the 'age' level.'''
+        weights_other = super()._build_weights()
         # Each 'age' has weight `self.a_step`.
         weights_age = self.a_step
-        weights = weights_state * weights_age
+        weights = weights_other * weights_age
         return weights
 
     def _integral_over_a_group(self, obj, axis):
@@ -70,34 +76,9 @@ class Mixin(unstructured.Mixin):
         dens = pandas.Series(n, index=idx_age)
         return dens
 
-    def _build_initial_conditions_state_age(self, *args, **kwds):
-        '''Build the initial conditions for the 'state' and 'age' levels.'''
-        Y_state = self._build_initial_conditions_state()
-        n_age = self.stable_age_density(*args, **kwds)
-        y = Y_state * n_age
-        return y
-
-
-class Model(_model.Model, Mixin):
-    '''Age-structured model.'''
-
-    _Solver = _solver.Solver
-
-    def __init__(self, a_max=Mixin.DEFAULT_A_MAX, **kwds):
-        self.a_max = a_max
-        super().__init__(**kwds)
-
-    def _build_index(self):
-        '''Build a `pandas.Index()` for solutions.'''
-        idx = self._build_index_state_age()
-        return idx
-
-    def _build_weights(self):
-        '''Build weights for the state vector.'''
-        weights = self._build_weights_state_age()
-        return weights
-
     def build_initial_conditions(self, *args, **kwds):
-        '''Build the initial conditions.'''
-        y = self._build_initial_conditions_state_age(*args, **kwds)
+        '''Adjust the initial conditions for the 'age' level.'''
+        Y_other = super().build_initial_conditions()
+        n_age = self.stable_age_density(*args, **kwds)
+        y = Y_other * n_age
         return y

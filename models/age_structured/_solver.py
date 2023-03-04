@@ -4,8 +4,7 @@ import functools
 
 import numpy
 
-from .. import _model
-from .._utility import numerical, sparse
+from .. import _model, _utility
 
 
 class Solver(_model.solver.Base):
@@ -15,7 +14,7 @@ class Solver(_model.solver.Base):
 
     def __init__(self, model, t_step):
         self.a_step = t_step
-        self.a = numerical.build_t(0, model.a_max, self.a_step)
+        self.a = _utility.numerical.build_t(0, model.a_max, self.a_step)
         super().__init__(model, t_step)
 
     @functools.cached_property
@@ -25,8 +24,8 @@ class Solver(_model.solver.Base):
         and then reused.'''
         J = len(self.a)
         Zeros = {
-            '1J': sparse.array((1, J)),
-            'JJ': sparse.array((J, J))
+            '1J': _utility.sparse.array((1, J)),
+            'JJ': _utility.sparse.array((J, J))
         }
         return Zeros
 
@@ -44,7 +43,7 @@ class Solver(_model.solver.Base):
             }
         else:
             raise ValueError(f'{q=}!')
-        MXW = sparse.diags_from_dict(diags)
+        MXW = _utility.sparse.diags_from_dict(diags)
         return MXW
 
     def _I(self):
@@ -52,7 +51,7 @@ class Solver(_model.solver.Base):
         n = len(self.model.states)
         J = len(self.a)
         size = n * J
-        I = sparse.identity(size)
+        I = _utility.sparse.identity(size)
         return I
 
     def _beta(self):
@@ -63,7 +62,7 @@ class Solver(_model.solver.Base):
         beta = (
             self.model.transmission.rate
             * self.a_step
-            * sparse.hstack(
+            * _utility.sparse.hstack(
                 [zeros1J, zeros1J, zeros1J, ones1J, zeros1J]
             )
         )
@@ -78,7 +77,7 @@ class Solver(_model.solver.Base):
         '''Build the time step matrix H(q).'''
         n = len(self.model.states)
         HXX = self._HXX(q)
-        H = sparse.block_diag([HXX] * n)
+        H = _utility.sparse.block_diag([HXX] * n)
         return H
 
     def _FXW(self, q, pi):
@@ -97,7 +96,7 @@ class Solver(_model.solver.Base):
             }
         else:
             raise ValueError(f'{q=}!')
-        FXW = sparse.diags_from_dict(diags)
+        FXW = _utility.sparse.diags_from_dict(diags)
         return FXW
 
     def _F(self, q):
@@ -107,7 +106,7 @@ class Solver(_model.solver.Base):
         rho = 1 / self.model.progression.mean
         gamma = 1 / self.model.recovery.mean
         FXW = functools.partial(self._FXW, q)
-        F = sparse.bmat([
+        F = _utility.sparse.bmat([
             [FXW(- omega - mu), None, None, None, None],
             [FXW(omega), FXW(- mu), None, None, None],
             [None, None, FXW(- rho - mu), None, None],
@@ -125,7 +124,7 @@ class Solver(_model.solver.Base):
         '''Build the transmission matrix T(q).'''
         TXW = self._TXW(q)
         ZerosJJ = self.Zeros['JJ']
-        T = sparse.bmat([
+        T = _utility.sparse.bmat([
             [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ],
             [ZerosJJ,   - TXW, ZerosJJ, ZerosJJ, ZerosJJ],
             [ZerosJJ,     TXW, ZerosJJ, ZerosJJ, ZerosJJ],
@@ -143,14 +142,14 @@ class Solver(_model.solver.Base):
         data = {
             (0, (None, )): nu
         }
-        BXW = sparse.array_from_dict(data, shape=shape)
+        BXW = _utility.sparse.array_from_dict(data, shape=shape)
         return BXW
 
     def _B(self):
         '''Build the birth matrix B.'''
         BXW = self._BXW()
         ZerosJJ = self.Zeros['JJ']
-        B = sparse.bmat([
+        B = _utility.sparse.bmat([
             [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ,     BXW],
             [    BXW,     BXW,     BXW,     BXW, ZerosJJ],
             [ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ, ZerosJJ],

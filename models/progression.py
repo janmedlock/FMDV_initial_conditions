@@ -1,9 +1,9 @@
 '''Progression for exposed to infectious.'''
 
-from ._utility import waiting_time
+from . import _utility
 
 
-class Progression(waiting_time.Gamma):
+class Progression(_utility.waiting_time.Gamma):
     '''Progression for exposed to infectious.'''
 
     def __init__(self, parameters):

@@ -4,6 +4,8 @@ import dataclasses
 
 import numpy
 
+from . import birth, death, progression, recovery, transmission, waning
+
 
 @dataclasses.dataclass
 class _Parameters:
@@ -60,3 +62,37 @@ def Parameters(SAT=1, **kwds):
     except KeyError:
         raise ValueError(f'{SAT=}')
     return klass(**kwds)
+
+
+class _MixinBase:
+    '''Mixin to initialize parameters for models.'''
+
+    def _init_parameters(self, **kwds):
+        '''Initialize model parameters.'''
+        parameters = Parameters(**kwds)
+        self.death = death.Death(parameters)
+        self.birth = birth.Birth(parameters, self.death)
+        self.progression = progression.Progression(parameters)
+        self.recovery = recovery.Recovery(parameters)
+        self.transmission = transmission.Transmission(parameters)
+        self.waning = waning.Waning(parameters)
+
+
+class AgeIndependent(_MixinBase):
+    '''Mixin to initialize parameters for age-independent models.'''
+
+    def _init_parameters(self, **kwds):
+        '''Initialize model parameters.'''
+        super()._init_parameters(**kwds)
+        # Use `self.birth` with age-dependent `.mean` to find
+        # `self.death_rate_mean`.
+        self.death_rate_mean = self.death.rate_population_mean(self.birth)
+        # Set `self.birth.mean` so this age-independent model has
+        # zero population growth rate. For this model, the mean
+        # population growth rate is
+        # `self.birth.mean - self.death_rate_mean`.
+        self.birth.mean = self.death_rate_mean
+
+
+class AgeDependent(_MixinBase):
+    '''Mixin to initialize parameters for age-dependent models.'''

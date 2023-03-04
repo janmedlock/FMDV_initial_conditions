@@ -2,7 +2,7 @@
 
 import numpy
 
-from .._utility import linalg, numerical
+from .. import _utility
 
 
 class _Solver:
@@ -21,7 +21,7 @@ class _Solver:
     def _I(self):
         '''Build the identity matrix.'''
         n = self.y.shape[-1]
-        I = numerical.identity(n, sparse=self._sparse)
+        I = _utility.numerical.identity(n, sparse=self._sparse)
         return I
 
     def jacobian(self, t_cur):
@@ -43,9 +43,9 @@ class _Solver:
         IJ_new = self.I - t_step / 2 * J
         IJ_cur = self.I + t_step / 2 * J
         IJPhi_cur = IJ_cur @ Phi_cur
-        return linalg.solve(IJ_new, IJPhi_cur,
-                            overwrite_a=True,
-                            overwrite_b=True)
+        return _utility.linalg.solve(IJ_new, IJPhi_cur,
+                                     overwrite_a=True,
+                                     overwrite_b=True)
 
     def solve(self, display=False):
         '''Solve.'''

@@ -4,8 +4,7 @@ import functools
 
 import numpy
 
-from .. import _model
-from .._utility import numerical, sparse
+from .. import _model, _utility
 
 
 class Solver(_model.solver.Base):
@@ -15,7 +14,7 @@ class Solver(_model.solver.Base):
 
     def __init__(self, model, t_step):
         self.z_step = t_step
-        self.z = numerical.build_t(0, model.z_max, self.z_step)
+        self.z = _utility.numerical.build_t(0, model.z_max, self.z_step)
         super().__init__(model, t_step)
 
     @functools.cached_property
@@ -25,10 +24,10 @@ class Solver(_model.solver.Base):
         and then reused.'''
         K = len(self.z)
         Zeros = {
-            '11': sparse.array((1, 1)),
-            '1K': sparse.array((1, K)),
-            'K1': sparse.array((K, 1)),
-            'KK': sparse.array((K, K))
+            '11': _utility.sparse.array((1, 1)),
+            '1K': _utility.sparse.array((1, K)),
+            'K1': _utility.sparse.array((K, 1)),
+            'KK': _utility.sparse.array((K, K))
         }
         return Zeros
 
@@ -45,7 +44,7 @@ class Solver(_model.solver.Base):
         data = {
             (0, 0): 1 / self.z_step
         }
-        myX = sparse.array_from_dict(data, shape=shape)
+        myX = _utility.sparse.array_from_dict(data, shape=shape)
         return myX
 
     def _I(self):
@@ -54,7 +53,7 @@ class Solver(_model.solver.Base):
         m = len(self.model.states_with_z)
         K = len(self.z)
         size = m * K + (n - m)
-        I = sparse.identity(size)
+        I = _utility.sparse.identity(size)
         return I
 
     def _beta(self):
@@ -65,7 +64,7 @@ class Solver(_model.solver.Base):
         beta = (
             self.model.transmission.rate
             * self.z_step
-            * sparse.hstack(
+            * _utility.sparse.hstack(
                 [zeros['1K'], zeros['11'], zeros['1K'], ones1K, zeros['11']]
             )
         )
@@ -90,14 +89,14 @@ class Solver(_model.solver.Base):
             }
         else:
             raise ValueError(f'{q=}!')
-        Hyy = sparse.diags_from_dict(diags)
+        Hyy = _utility.sparse.diags_from_dict(diags)
         return Hyy
 
     def _H(self, q):
         '''Build the time step matrix H(q).'''
         hXX = self._hXX()
         Hyy = self._Hyy(q)
-        H = sparse.block_diag(
+        H = _utility.sparse.block_diag(
             [Hyy, hXX, Hyy, Hyy, hXX]
         )
         return H
@@ -132,7 +131,7 @@ class Solver(_model.solver.Base):
             }
         else:
             raise ValueError(f'{q=}!')
-        Fyy = sparse.diags_from_dict(diags)
+        Fyy = _utility.sparse.diags_from_dict(diags)
         return Fyy
 
     def _Fyz(self, psi):
@@ -143,14 +142,14 @@ class Solver(_model.solver.Base):
         data = {
             (0, (None, )): psi
         }
-        Fyz = sparse.array_from_dict(data, shape=shape)
+        Fyz = _utility.sparse.array_from_dict(data, shape=shape)
         return Fyz
 
     def _get_rate(self, which):
         '''Get the rate `which` and make finite any infinite entries.'''
         param = getattr(self.model, which)
         rate = param.rate(self.z)
-        return numerical.rate_make_finite(rate)
+        return _utility.numerical.rate_make_finite(rate)
 
     def _F(self, q):
         '''Build the transition matrix F(q).'''
@@ -162,7 +161,7 @@ class Solver(_model.solver.Base):
         fXy = self._fXy
         Fyy = functools.partial(self._Fyy, q)
         Fyz = self._Fyz
-        F = sparse.bmat([
+        F = _utility.sparse.bmat([
             [Fyy(- omega - mu), None, None, None, None],
             [fXy(omega), fXX(- mu), None, None, None],
             [None, None, Fyy(- rho - mu), None, None],
@@ -188,7 +187,7 @@ class Solver(_model.solver.Base):
         tXX = self._tXX()
         tyX = self._tyX()
         Zeros = self.Zeros
-        T = sparse.bmat([
+        T = _utility.sparse.bmat([
             [Zeros['KK'], Zeros['K1'], Zeros['KK'], Zeros['KK'], Zeros['K1']],
             [Zeros['1K'],       - tXX, Zeros['1K'], Zeros['1K'], Zeros['11']],
             [Zeros['KK'],         tyX, Zeros['KK'], Zeros['KK'], Zeros['K1']],
@@ -225,7 +224,7 @@ class Solver(_model.solver.Base):
         byX = self._byX()
         bXy = self._bXy()
         Zeros = self.Zeros
-        B = sparse.bmat([
+        B = _utility.sparse.bmat([
             [Zeros['KK'], Zeros['K1'], Zeros['KK'], Zeros['KK'],         byX],
             [        bXy,         bXX,         bXy,         bXy, Zeros['11']],
             [Zeros['KK'], Zeros['K1'], Zeros['KK'], Zeros['KK'], Zeros['K1']],

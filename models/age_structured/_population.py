@@ -5,7 +5,7 @@ import functools
 import numpy
 import scipy.optimize
 
-from .._utility import linalg, numerical, sparse
+from .. import _utility
 
 
 class _Solver:
@@ -13,24 +13,26 @@ class _Solver:
     model for the population size with age-dependent death rate,
     age-dependent maternity, and periodic time-dependent birth rate.'''
 
-    # The default time step.
-    DEFAULT_T_STEP = 1e-1
+    # The default time step `t_step`.
+    # TODO: HOW WAS IT CHOSEN?
+    _t_step_default = 1e-1
 
-    # The default maximum age.
-    DEFAULT_A_MAX = 50
+    # The default maximum age `a_max`.
+    # TODO: HOW WAS IT CHOSEN?
+    _a_max_default = 50
 
     def __init__(self, birth, death,
-                 t_step=DEFAULT_T_STEP, a_max=DEFAULT_A_MAX):
+                 t_step=_t_step_default, a_max=_a_max_default):
         self.birth = birth
         self.death = death
         self.t_step = t_step
         self.period = self.birth.period
         if self.period == 0:
             self.period = self.t_step
-        self.t = numerical.build_t(0, self.period, self.t_step)
+        self.t = _utility.numerical.build_t(0, self.period, self.t_step)
         assert numpy.isclose(self.t[-1], self.period)
         self.a_step = self._get_a_step(t_step)
-        self.a = numerical.build_t(0, a_max, self.a_step)
+        self.a = _utility.numerical.build_t(0, a_max, self.a_step)
         self._build_matrices()
         self._check_matrices()
 
@@ -53,7 +55,7 @@ class _Solver:
             }
         else:
             raise ValueError(f'{q=}!')
-        HXX = sparse.diags_from_dict(diags)
+        HXX = _utility.sparse.diags_from_dict(diags)
         return HXX
 
     def _F(self, q):
@@ -71,7 +73,7 @@ class _Solver:
             }
         else:
             raise ValueError(f'{q=}!')
-        F = sparse.diags_from_dict(diags)
+        F = _utility.sparse.diags_from_dict(diags)
         return F
 
     def _B(self):
@@ -83,7 +85,7 @@ class _Solver:
         data = {
             (0, (None, )): nu
         }
-        B = sparse.array_from_dict(data, shape=shape)
+        B = _utility.sparse.array_from_dict(data, shape=shape)
         return B
 
     def _build_matrices(self):
@@ -95,19 +97,19 @@ class _Solver:
 
     def _check_matrices(self):
         '''Check the solver matrices.'''
-        assert linalg.is_Z_matrix(self.H['new'])
-        assert linalg.is_nonnegative(self.H['cur'])
-        assert linalg.is_Metzler_matrix(self.F['new'])
-        assert linalg.is_Metzler_matrix(self.B)
-        assert linalg.is_nonnegative(self.B)
+        assert _utility.linalg.is_Z_matrix(self.H['new'])
+        assert _utility.linalg.is_nonnegative(self.H['cur'])
+        assert _utility.linalg.is_Metzler_matrix(self.F['new'])
+        assert _utility.linalg.is_Metzler_matrix(self.B)
+        assert _utility.linalg.is_nonnegative(self.B)
         HFB_new = (self.H['new']
                    - self.t_step / 2 * (self.F['new']
                                         + self.birth.rate_max * self.B))
-        assert linalg.is_M_matrix(HFB_new)
+        assert _utility.linalg.is_M_matrix(HFB_new)
         HFB_cur = (self.H['cur']
                    + self.t_step / 2 * (self.F['cur']
                                         + self.birth.rate_min * self.B))
-        assert linalg.is_nonnegative(HFB_cur)
+        assert _utility.linalg.is_nonnegative(HFB_cur)
 
     def step(self, t_cur, Phi_cur, birth_scaling, display=False):
         '''Do a step.'''
@@ -122,7 +124,7 @@ class _Solver:
         HFB_cur = (self.H['cur']
                    + self.t_step / 2 * (self.F['cur']
                                         + b_mid * self.B))
-        return linalg.solve(HFB_new, HFB_cur @ Phi_cur)
+        return _utility.linalg.solve(HFB_new, HFB_cur @ Phi_cur)
 
     def monodromy(self, birth_scaling=1, display=False):
         '''Get the monodromy matrix Psi = Phi(T), where Phi is the
@@ -145,8 +147,8 @@ class _Solver:
         '''Get the population growth rate.'''
         Psi = self.monodromy(birth_scaling, display=display)
         # Get the dominant Floquet multiplier.
-        rho_dom = linalg.get_dominant_eigen(Psi, which='LM',
-                                            return_eigenvector=False)
+        rho_dom = _utility.linalg.get_dominant_eigen(Psi, which='LM',
+                                                     return_eigenvector=False)
         # Convert the dominant Floquet multiplier to
         # the dominant Floquet exponent.
         mu_dom = numpy.log(rho_dom) / self.period
@@ -155,15 +157,16 @@ class _Solver:
     def stable_age_density(self, display=False):
         '''Get the stable age density.'''
         Psi = self.monodromy(display=display)
-        (_, v_dom) = linalg.get_dominant_eigen(Psi, which='LM',
-                                               return_eigenvector=True)
+        (_, v_dom) = _utility.linalg.get_dominant_eigen(
+            Psi, which='LM', return_eigenvector=True
+        )
         # Normalize `v_dom` in place so that its integral over a is 1.
         v_dom /= self.integral_over_a(v_dom, t_step=self.t_step)
         return (self.a, v_dom)
 
     @classmethod
     def integral_over_a(cls, arr,
-                        t_step=DEFAULT_T_STEP, a_max=DEFAULT_A_MAX,
+                        t_step=_t_step_default, a_max=_a_max_default,
                         *args, **kwds):
         '''Integrate `arr` over age.'''
         # The arguments mirror those of `_Solver()`: `t_step` is used,

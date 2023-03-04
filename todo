@@ -1,5 +1,7 @@
 * Reduce models.age_structured._population._Solver.DEFAULT_T_STEP to 1e-2
 
+* Make Solvers inherit from each other
+
 * Time-since-entry model
   * How to choose z_max?
   * Find limit cycle
@@ -7,6 +9,7 @@
 
 * Age-structured model
   * How to choose a_max?
+  * _population: how to choose t_step and a_max?
   * Find equiblibrium
     * Find eigenvalues
   * Find limit cycle

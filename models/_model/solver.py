@@ -4,7 +4,7 @@ import abc
 
 import numpy
 
-from .._utility import linalg, numerical, optimize, sparse
+from .. import _utility
 
 
 class Base(metaclass=abc.ABCMeta):
@@ -64,21 +64,21 @@ class Base(metaclass=abc.ABCMeta):
 
     def _check_matrices(self):
         '''Check the solver matrices.'''
-        assert linalg.is_nonnegative(self.beta)
-        assert linalg.is_Z_matrix(self.H['new'])
-        assert linalg.is_nonnegative(self.H['cur'])
-        assert linalg.is_Metzler_matrix(self.F['new'])
-        assert linalg.is_Metzler_matrix(self.T['new'])
-        assert linalg.is_Metzler_matrix(self.B)
-        assert linalg.is_nonnegative(self.B)
+        assert _utility.linalg.is_nonnegative(self.beta)
+        assert _utility.linalg.is_Z_matrix(self.H['new'])
+        assert _utility.linalg.is_nonnegative(self.H['cur'])
+        assert _utility.linalg.is_Metzler_matrix(self.F['new'])
+        assert _utility.linalg.is_Metzler_matrix(self.T['new'])
+        assert _utility.linalg.is_Metzler_matrix(self.B)
+        assert _utility.linalg.is_nonnegative(self.B)
         HFB_new = (self.H['new']
                    - self.t_step / 2 * (self.F['new']
                                         + self.model.birth.rate_max * self.B))
-        assert linalg.is_M_matrix(HFB_new)
+        assert _utility.linalg.is_M_matrix(HFB_new)
         HFB_cur = (self.H['cur']
                    + self.t_step / 2 * (self.F['cur']
                                         + self.model.birth.rate_min * self.B))
-        assert linalg.is_nonnegative(HFB_cur)
+        assert _utility.linalg.is_nonnegative(HFB_cur)
 
     def _preconditioner(self):
         '''For sparse solvers, Build the Krylov preconditioner.'''
@@ -108,10 +108,10 @@ class Base(metaclass=abc.ABCMeta):
                                          + b_mid * self.B))
         HFTBy_cur = HFTB_cur @ y_cur
         y_new_guess = y_cur
-        result = optimize.root(self._objective, y_new_guess,
-                               args=(HFB_new, HFTBy_cur),
-                               sparse=self._sparse,
-                               **self._root_kwds)
+        result = _utility.optimize.root(self._objective, y_new_guess,
+                                        args=(HFB_new, HFTBy_cur),
+                                        sparse=self._sparse,
+                                        **self._root_kwds)
         assert result.success, f'{t_cur=}\n{result=}'
         y_new = result.x
         return y_new
@@ -121,7 +121,7 @@ class Base(metaclass=abc.ABCMeta):
         '''Solve. `y` is storage for the solution, which will be built
         if not provided.'''
         if t is None:
-            t = numerical.build_t(*t_span, self.t_step)
+            t = _utility.numerical.build_t(*t_span, self.t_step)
         if y is None:
             y = numpy.empty((len(t), *numpy.shape(y_0)))
         y[0] = y_0
@@ -133,7 +133,7 @@ class Base(metaclass=abc.ABCMeta):
                           t=None, y_temp=None):
         '''Find the value of the solution at `t_span[1]`.'''
         if t is None:
-            t = numerical.build_t(*t_span, self.t_step)
+            t = _utility.numerical.build_t(*t_span, self.t_step)
         if y_temp is None:
             y_temp = numpy.empty((2, *numpy.shape(y_0)))
         (y_cur, y_new) = y_temp
@@ -151,7 +151,7 @@ class Base(metaclass=abc.ABCMeta):
         assert numpy.ndim(y) == 1
         y = numpy.asarray(y)[:, None]
         if self._sparse:
-            y = sparse.array(y)
+            y = _utility.sparse.array(y)
         return y
 
     def jacobian(self, t_cur, y_cur, y_new):
@@ -178,8 +178,8 @@ class Base(metaclass=abc.ABCMeta):
                                  + self.T['cur'] @ y_cur @ self.beta
                                  + b_mid * self.B)
         )
-        D = linalg.solve(M_new, M_cur,
-                         overwrite_a=True,
-                         overwrite_b=True)
+        D = _utility.linalg.solve(M_new, M_cur,
+                                  overwrite_a=True,
+                                  overwrite_b=True)
         J = (D - self.I) / self.t_step
         return J

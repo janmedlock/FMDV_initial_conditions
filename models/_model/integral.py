@@ -1,4 +1,4 @@
-'''Helers for integrals over variables.'''
+'''Helpers for integrals over variables.'''
 
 
 def get_level_values(obj, axis, level):

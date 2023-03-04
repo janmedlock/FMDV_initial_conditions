@@ -1,16 +1,18 @@
 '''Based on our FMDV work, this is an unstructured model.'''
 
-import numpy
 import pandas
 
 from . import _solver
-from .. import _model
+from .. import parameters, _model, _utility
 
 
-class Mixin:
-    '''Attributes for models that have a state variable.'''
+class Model(parameters.AgeIndependent,
+            _model.model.Model):
+    '''Unstructured model.'''
 
-    def _build_index_state(self):
+    _Solver = _solver.Solver
+
+    def _build_index(self):
         '''Build the 'state' level `pandas.Index()` for solutions.'''
         # Use `pandas.CategoricalIndex()` to preserve the order of the
         # states.
@@ -19,13 +21,13 @@ class Mixin:
                                       ordered=True, name='state')
         return idx
 
-    def _build_weights_state(self):
+    def _build_weights(self):
         '''Build weights for the 'state' level.'''
         # Each 'state' has weight 1.
         weights = pandas.Series(1, index=self._index)
         return weights
 
-    def _build_initial_conditions_state(self):
+    def build_initial_conditions(self):
         '''Build the initial conditions for the 'state' level.'''
         M = 0
         E = 0
@@ -37,25 +39,4 @@ class Mixin:
         # Broadcast out to the full index `self._index`.
         ones = pandas.Series(1, index=self._index)
         Y = Y_state * ones
-        return Y
-
-
-class Model(_model.ModelAgeIndependent, Mixin):
-    '''Unstructured model.'''
-
-    _Solver = _solver.Solver
-
-    def _build_index(self):
-        '''Build a `pandas.Index()` for solutions.'''
-        idx = self._build_index_state()
-        return idx
-
-    def _build_weights(self):
-        '''Build weights for the state vector.'''
-        weights = self._build_weights_state()
-        return weights
-
-    def build_initial_conditions(self):
-        '''Build the initial conditions.'''
-        Y = self._build_initial_conditions_state()
         return Y
