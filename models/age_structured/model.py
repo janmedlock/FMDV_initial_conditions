@@ -3,7 +3,7 @@
 import numpy
 import pandas
 
-from . import _population, _solver
+from . import _age, _population, _solver
 from .. import parameters, unstructured, _model, _utility
 
 
@@ -13,11 +13,7 @@ class Model(parameters.AgeDependent,
 
     _Solver = _solver.Solver
 
-    # The default maximum age `a_max`.
-    # TODO: HOW WAS IT CHOSEN?
-    _a_max_default = 25
-
-    def __init__(self, *args, a_max=_a_max_default, **kwds):
+    def __init__(self, *args, a_max=_age.max_default, **kwds):
         super().__init__(*args, **kwds)
         self.a_step = self._Solver._get_a_step(self.t_step)
         self.a = _utility.numerical.build_t(0, a_max, self.a_step)

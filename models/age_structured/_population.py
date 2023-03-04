@@ -5,6 +5,7 @@ import functools
 import numpy
 import scipy.optimize
 
+from . import _age
 from .. import _utility
 
 
@@ -17,12 +18,8 @@ class _Solver:
     # TODO: HOW WAS IT CHOSEN?
     _t_step_default = 1e-1
 
-    # The default maximum age `a_max`.
-    # TODO: HOW WAS IT CHOSEN?
-    _a_max_default = 50
-
     def __init__(self, birth, death,
-                 t_step=_t_step_default, a_max=_a_max_default):
+                 t_step=_t_step_default, a_max=_age.max_default):
         self.birth = birth
         self.death = death
         self.t_step = t_step
@@ -166,7 +163,7 @@ class _Solver:
 
     @classmethod
     def integral_over_a(cls, arr,
-                        t_step=_t_step_default, a_max=_a_max_default,
+                        t_step=_t_step_default, a_max=_age.max_default,
                         *args, **kwds):
         '''Integrate `arr` over age.'''
         # The arguments mirror those of `_Solver()`: `t_step` is used,
