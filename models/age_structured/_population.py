@@ -9,7 +9,7 @@ from . import _age
 from .. import _utility
 
 
-class _Solver:
+class Solver:
     '''Solver for the monodromy matrix of a linear age-structured
     model for the population size with age-dependent death rate,
     age-dependent maternity, and periodic time-dependent birth rate.'''
@@ -19,7 +19,8 @@ class _Solver:
     _t_step_default = 1e-1
 
     def __init__(self, birth, death,
-                 t_step=_t_step_default, a_max=_age.max_default):
+                 t_step=_t_step_default,
+                 a_max=_age.max_default):
         self.birth = birth
         self.death = death
         self.t_step = t_step
@@ -28,16 +29,11 @@ class _Solver:
             self.period = self.t_step
         self.t = _utility.numerical.build_t(0, self.period, self.t_step)
         assert numpy.isclose(self.t[-1], self.period)
-        self.a_step = self._get_a_step(t_step)
+        self.a_step = self.t_step
         self.a = _utility.numerical.build_t(0, a_max, self.a_step)
         _age.check_max(self)
         self._build_matrices()
         self._check_matrices()
-
-    @staticmethod
-    def _get_a_step(t_step):
-        a_step = t_step
-        return a_step
 
     def _H(self, q):
         '''Build the time step matrix H(q).'''
@@ -141,9 +137,9 @@ class _Solver:
                                    display=display)
         return Phi_new
 
-    def population_growth_rate(self, birth_scaling, display=False):
+    def population_growth_rate(self, birth_scaling, **kwds):
         '''Get the population growth rate.'''
-        Psi = self.monodromy(birth_scaling, display=display)
+        Psi = self.monodromy(birth_scaling, **kwds)
         # Get the dominant Floquet multiplier.
         rho_dom = _utility.linalg.get_dominant_eigen(Psi, which='LM',
                                                      return_eigenvector=False)
@@ -152,60 +148,35 @@ class _Solver:
         mu_dom = numpy.log(rho_dom) / self.period
         return mu_dom
 
-    def stable_age_density(self, display=False):
+    def birth_scaling_for_zero_population_growth(self, **kwds):
+        '''Find the birth scaling that gives zero population growth rate.'''
+        # Set `kwds`, if any.
+        fcn = functools.partial(self.population_growth_rate, **kwds)
+        # `.population_growth_rate()` is increasing in
+        # `birth_scaling`. Find a starting bracket `(lower, upper)` with
+        # `.population_growth_rate(upper) > 0` and
+        # `.population_growth_rate(lower) < 0`.
+        SCALE = 2
+        upper = 1  # Starting guess.
+        while fcn(upper) < 0:
+            upper *= SCALE
+        lower = upper / SCALE  # Starting guess.
+        while fcn(lower) > 0:
+            (lower, upper) = (lower / SCALE, lower)
+        scaling = scipy.optimize.brentq(fcn, lower, upper)
+        return scaling
+
+    def integral_over_a(self, arr, *args, **kwds):
+        '''Integrate `arr` over age. `args` and `kwds` are passed on
+         to `.sum()`.'''
+        return arr.sum(*args, **kwds) * self.a_step
+
+    def stable_age_density(self, **kwds):
         '''Get the stable age density.'''
-        Psi = self.monodromy(display=display)
+        Psi = self.monodromy(**kwds)
         (_, v_dom) = _utility.linalg.get_dominant_eigen(
             Psi, which='LM', return_eigenvector=True
         )
         # Normalize `v_dom` in place so that its integral over a is 1.
-        v_dom /= self.integral_over_a(v_dom, t_step=self.t_step)
+        v_dom /= self.integral_over_a(v_dom)
         return (self.a, v_dom)
-
-    @classmethod
-    def integral_over_a(cls, arr,
-                        t_step=_t_step_default, a_max=_age.max_default,
-                        *args, **kwds):
-        '''Integrate `arr` over age.'''
-        # The arguments mirror those of `_Solver()`: `t_step` is used,
-        # `a_max` is not used, and `args` and `kwds` are passed on to
-        # `.sum()`.
-        a_step = cls._get_a_step(t_step)
-        return arr.sum(*args, **kwds) * a_step
-
-
-def birth_scaling_for_zero_population_growth(birth, death,
-                                             *args, display=False, **kwds):
-    '''Find the birth scaling that gives zero population growth rate.'''
-    solver = _Solver(birth, death, *args, **kwds)
-    # Set the parameter `display`.
-    fcn = functools.partial(solver.population_growth_rate,
-                            display=display)
-    # `_Solver.population_growth_rate()` is increasing in
-    # `birth_scaling`. Find a starting bracket `(lower, upper)` with
-    # `solver.population_growth_rate(upper) > 0` and
-    # `solver.population_growth_rate(lower) < 0`.
-    SCALE = 2
-    upper = 1  # Starting guess.
-    while fcn(upper) < 0:
-        upper *= SCALE
-    lower = upper / SCALE  # Starting guess.
-    while fcn(lower) > 0:
-        (lower, upper) = (lower / SCALE, lower)
-    scaling = scipy.optimize.brentq(fcn, lower, upper)
-    return scaling
-
-
-def stable_age_density(birth, death,
-                       *args, display=False, **kwds):
-    '''Find the stable age distribution.'''
-    solver = _Solver(birth, death, *args, **kwds)
-    return solver.stable_age_density(display=display)
-
-
-def integral_over_a(arr, *args, display=None, **kwds):
-    '''Integrate `arr` over age.'''
-    # The arguments mirror those of `stable_age_density()`: `display`
-    # is not used and `args` and `kwds` are passed on to
-    # `_Solver.integral_over_a()`.
-    return _Solver.integral_over_a(arr, *args, **kwds)

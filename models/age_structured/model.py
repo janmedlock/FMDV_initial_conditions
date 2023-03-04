@@ -52,10 +52,9 @@ class Model(parameters.AgeDependent,
         else:
             raise NotImplementedError
 
-    def stable_age_density(self, *args, **kwds):
+    def stable_age_density(self, **kwds):
         '''Get the stable age density.'''
-        (a, v_dom) = _population.stable_age_density(self.birth, self.death,
-                                                    *args, **kwds)
+        (a, v_dom) = self.birth._stable_age_density(**kwds)
         # Interpolate the logarithm of `v_dom` to `self.a`.
         assert numpy.all(v_dom > 0)
         logn = numpy.interp(self.a, a, numpy.log(v_dom))

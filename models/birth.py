@@ -8,7 +8,7 @@ from .age_structured import _population
 class _Birth:
     '''Base for births.'''
 
-    def __init__(self, parameters, death):
+    def __init__(self, parameters, death, *args, display=False, **kwds):
         self.variation = parameters.birth_variation
         assert self.variation >= 0
         self.period = parameters.birth_period
@@ -16,7 +16,15 @@ class _Birth:
         self.age_menarche = parameters.birth_age_menarche
         self.age_menopause = parameters.birth_age_menopause
         assert 0 <= self.age_menarche <= self.age_menopause
-        self.mean = self._mean_for_zero_population_growth(death)
+        self._death = death
+        # `self.mean` must be set to initialize `_population.Solver()`
+        # and to call
+        # `_population.Solver.birth_scaling_for_zero_population_growth()`
+        # in `self._mean_for_zero_population_growth()`, so set a
+        # starting guess for `self.mean`.
+        self.mean = 0.5
+        self._solver = _population.Solver(self, self._death, *args, **kwds)
+        self.mean = self._mean_for_zero_population_growth(display=display)
         assert self.mean >= 0
 
     def maternity(self, age):
@@ -41,21 +49,20 @@ class _Birth:
         '''Birth rate maximum.'''
         return self.mean * (1 + self.amplitude)
 
-    def _mean_for_zero_population_growth(self, death):
+    def _mean_for_zero_population_growth(self, **kwds):
         '''Get the value for `self.mean` that gives zero population
         growth rate.'''
-        # `self.mean` must be set for
-        # `_population.birth_scaling_for_zero_population_growth()` to
-        # work. If it wasn't set before, we'll set it to a starting
-        # guess, and it will be unset after.
-        if mean_unset := not hasattr(self, 'mean'):
-            self.mean = 0.5  # Starting guess.
-        scale = _population.birth_scaling_for_zero_population_growth(self,
-                                                                     death)
+        scale = self._solver.birth_scaling_for_zero_population_growth(**kwds)
         mean_for_zero_population_growth = scale * self.mean
-        if mean_unset:
-            del self.mean
         return mean_for_zero_population_growth
+
+    def _integral_over_a(self, arr, *args, **kwds):
+        '''Integrate `arr` over age.'''
+        return self._solver.integral_over_a(arr, *args, **kwds)
+
+    def _stable_age_density(self, **kwds):
+        '''Get the stable age density.'''
+        return self._solver.stable_age_density(**kwds)
 
     def _age_max(self):
         '''Get the last age where `.maternity()` changes.'''
@@ -73,8 +80,8 @@ class BirthConstant(_Birth):
         super().__init__(parameters, death)
         assert self.variation == 0
 
-    # `_population.birth_scaling_for_zero_population_growth()` has a
-    # shortcut when `period = 0`, so always return that value.
+    # `_population.Solver.birth_scaling_for_zero_population_growth()`
+    # has a shortcut when `period = 0`, so always return that value.
     @property
     def period(self):
         return 0
