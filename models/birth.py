@@ -17,13 +17,13 @@ class _Birth:
         self.age_menopause = parameters.birth_age_menopause
         assert 0 <= self.age_menarche <= self.age_menopause
         self._death = death
-        # `self.mean` must be set to initialize `_population.Solver()`
+        # `self.mean` must be set to initialize `_population.Model()`
         # and to call
-        # `_population.Solver.birth_scaling_for_zero_population_growth()`
+        # `_population.Model.birth_scaling_for_zero_population_growth()`
         # in `self._mean_for_zero_population_growth()`, so set a
         # starting guess for `self.mean`.
         self.mean = 0.5
-        self._solver = _population.Solver(self, self._death, *args, **kwds)
+        self._model = _population.Model(self, self._death, *args, **kwds)
         self.mean = self._mean_for_zero_population_growth(display=display)
         assert self.mean >= 0
 
@@ -52,17 +52,17 @@ class _Birth:
     def _mean_for_zero_population_growth(self, **kwds):
         '''Get the value for `self.mean` that gives zero population
         growth rate.'''
-        scale = self._solver.birth_scaling_for_zero_population_growth(**kwds)
+        scale = self._model.birth_scaling_for_zero_population_growth(**kwds)
         mean_for_zero_population_growth = scale * self.mean
         return mean_for_zero_population_growth
 
     def _integral_over_a(self, arr, *args, **kwds):
         '''Integrate `arr` over age.'''
-        return self._solver.integral_over_a(arr, *args, **kwds)
+        return self._model.integral_over_a(arr, *args, **kwds)
 
     def _stable_age_density(self, **kwds):
         '''Get the stable age density.'''
-        return self._solver.stable_age_density(**kwds)
+        return self._model.stable_age_density(**kwds)
 
     def _age_max(self):
         '''Get the last age where `.maternity()` changes.'''
@@ -80,7 +80,7 @@ class BirthConstant(_Birth):
         super().__init__(parameters, death)
         assert self.variation == 0
 
-    # `_population.Solver.birth_scaling_for_zero_population_growth()`
+    # `_population.Model.birth_scaling_for_zero_population_growth()`
     # has a shortcut when `period = 0`, so always return that value.
     @property
     def period(self):

@@ -1,15 +1,15 @@
-'''Models of population size.'''
+'''Age-structured population model.'''
 
 import functools
 
 import numpy
 import scipy.optimize
 
-from . import _age
-from .. import _utility
+from .. import _age
+from ... import _utility
 
 
-class Solver:
+class Model:
     '''Solver for the monodromy matrix of a linear age-structured
     model for the population size with age-dependent death rate,
     age-dependent maternity, and periodic time-dependent birth rate.'''
