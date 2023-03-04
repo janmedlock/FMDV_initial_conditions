@@ -10,9 +10,9 @@ from .. import _utility
 class Base(metaclass=abc.ABCMeta):
     '''Base class for Crank–Nicolson solvers.'''
 
-    def __init__(self, model, t_step):
+    def __init__(self, model):
         self.model = model
-        self.t_step = t_step
+        self.t_step = model.t_step
         self._build_matrices()
         self._check_matrices()
         if self._sparse:

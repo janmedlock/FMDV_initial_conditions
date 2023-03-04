@@ -28,7 +28,7 @@ class Model(metaclass=abc.ABCMeta):
     @functools.cached_property
     def _solver(self):
         '''`._solver` is built on first use and then reused.'''
-        _solver = self._Solver(self, self.t_step)
+        _solver = self._Solver(self)
         return _solver
 
     def _get_index_level(self, level):

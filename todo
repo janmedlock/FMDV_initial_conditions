@@ -9,7 +9,6 @@
 
 * Age-structured model
   * _population
-    * Split Solver into Model and _Solver
     * Reduce Solver._t_step_default to 1e-2
     * How to choose t_step?
   * Find equiblibrium
