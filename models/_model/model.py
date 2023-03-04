@@ -11,42 +11,16 @@ from .. import _utility
 class Model(metaclass=abc.ABCMeta):
     '''Base class for models.'''
 
-    states = ['maternal_immunity', 'susceptible', 'exposed',
-              'infectious', 'recovered']
-
-    # This determines whether offspring are born with maternal
-    # immunity.
-    states_with_antibodies = ['recovered']
-
-    # The default time step `t_step`. A necessary condition for
-    # nonnegative solutions is is that `t_step` must be less than 1 /
-    # rate for all of the model transition rates. In particular,
-    # `transmission_rate` and 1 / `progression_mean`, especially for
-    # SAT1, are just a bit less than 1000.
-    _t_step_default = 1e-3
-
     @property
     @abc.abstractmethod
     def _Solver(self):
         '''The solver class.'''
 
     @abc.abstractmethod
-    def _build_index(self):
-        '''Build a `pandas.Index()` for solutions.'''
-
-    @abc.abstractmethod
-    def _build_weights(self):
-        '''Build weights for the state vector.'''
-
-    @abc.abstractmethod
-    def build_initial_conditions(self):
-        '''Build the initial conditions.'''
-
-    @abc.abstractmethod
     def _init_parameters(self, **kwds):
         '''Initialize model parameters.'''
 
-    def __init__(self, t_step=_t_step_default, **kwds):
+    def __init__(self, t_step, **kwds):
         self.t_step = t_step
         self._init_parameters(**kwds)
         self._solver = self._Solver(self, t_step)
@@ -61,6 +35,15 @@ class Model(metaclass=abc.ABCMeta):
             return idx_level
         else:
             return self._index
+
+    def _build_index(self):
+        '''Build a `pandas.Index()` for solutions.'''
+
+    def _build_weights(self):
+        '''Build weights for the state vector.'''
+
+    def build_initial_conditions(self):
+        '''Build the initial conditions.'''
 
     def Solution(self, y, t=None):
         '''A solution.'''
