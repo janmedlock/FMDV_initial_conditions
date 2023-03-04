@@ -9,11 +9,21 @@ class Solver(_model.solver.Base):
     _sparse = True
 
     def __init__(self, model, t_step):
-        self.a_step = t_step
-        self.z_step = t_step
-        self.a = _utility.numerical.build_t(0, model.a_max, self.a_step)
-        self.z = _utility.numerical.build_t(0, model.z_max, self.z_step)
+        self.a_step = self._get_a_step(t_step)
+        self.z_step = self._get_z_step(t_step)
+        self.a = model.a
+        self.z = model.z
         super().__init__(model, t_step)
+
+    @staticmethod
+    def _get_a_step(t_step):
+        a_step = t_step
+        return a_step
+
+    @staticmethod
+    def _get_z_step(t_step):
+        z_step = t_step
+        return z_step
 
     def _I(self):
         '''Build the identity matrix.'''

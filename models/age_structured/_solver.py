@@ -13,9 +13,14 @@ class Solver(_model.solver.Base):
     _sparse = True
 
     def __init__(self, model, t_step):
-        self.a_step = t_step
-        self.a = _utility.numerical.build_t(0, model.a_max, self.a_step)
+        self.a_step = self._get_a_step(t_step)
+        self.a = model.a
         super().__init__(model, t_step)
+
+    @staticmethod
+    def _get_a_step(t_step):
+        a_step = t_step
+        return a_step
 
     @functools.cached_property
     def Zeros(self):

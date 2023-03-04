@@ -1,6 +1,7 @@
 '''Model base class.'''
 
 import abc
+import functools
 
 import pandas
 
@@ -23,9 +24,12 @@ class Model(metaclass=abc.ABCMeta):
     def __init__(self, t_step, **kwds):
         self.t_step = t_step
         self._init_parameters(**kwds)
-        self._solver = self._Solver(self, t_step)
-        self._index = self._build_index()
-        self._weights = self._build_weights()
+
+    @functools.cached_property
+    def _solver(self):
+        '''`._solver` is built on first use and then reused.'''
+        _solver = self._Solver(self, self.t_step)
+        return _solver
 
     def _get_index_level(self, level):
         '''Get the index for `level`.'''
@@ -39,8 +43,20 @@ class Model(metaclass=abc.ABCMeta):
     def _build_index(self):
         '''Build a `pandas.Index()` for solutions.'''
 
+    @functools.cached_property
+    def _index(self):
+        '''`._index` is built on first use and then reused.'''
+        _index = self._build_index()
+        return _index
+
     def _build_weights(self):
         '''Build weights for the state vector.'''
+
+    @functools.cached_property
+    def _weights(self):
+        '''`._weights` is built on first use and then reused.'''
+        _weights = self._build_weights()
+        return _weights
 
     def build_initial_conditions(self):
         '''Build the initial conditions.'''

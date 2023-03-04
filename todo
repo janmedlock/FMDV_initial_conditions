@@ -1,6 +1,9 @@
 * Reduce models.age_structured._population._Solver.DEFAULT_T_STEP to 1e-2
 
 * Make Solvers inherit from each other
+  * Move '_Hq()', '_Fq()', '_Tq()', '_B', etc into _model.solver.Solver()
+
+* Profile initializing solvers, solving, finding equilibria, etc.
 
 * Time-since-entry model
   * How to choose z_max?

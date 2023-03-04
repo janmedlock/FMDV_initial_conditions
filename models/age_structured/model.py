@@ -4,7 +4,7 @@ import numpy
 import pandas
 
 from . import _population, _solver
-from .. import parameters, unstructured, _model
+from .. import parameters, unstructured, _model, _utility
 
 
 class Model(parameters.AgeDependent,
@@ -17,17 +17,10 @@ class Model(parameters.AgeDependent,
     # TODO: HOW WAS IT CHOSEN?
     _a_max_default = 25
 
-    def __init__(self, a_max=_a_max_default, **kwds):
-        self.a_max = a_max
-        super().__init__(**kwds)
-
-    @property
-    def a_step(self):
-        return self._solver.a_step
-
-    @property
-    def a(self):
-        return self._solver.a
+    def __init__(self, *args, a_max=_a_max_default, **kwds):
+        super().__init__(*args, **kwds)
+        self.a_step = self._Solver._get_a_step(self.t_step)
+        self.a = _utility.numerical.build_t(0, a_max, self.a_step)
 
     def _build_index(self):
         '''Extend the `pandas.Index()` for solutions with the 'age'

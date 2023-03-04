@@ -4,7 +4,7 @@ import numpy
 import pandas
 
 from . import _solver
-from .. import unstructured, _model
+from .. import unstructured, _model, _utility
 
 
 class Model(unstructured.Model):
@@ -18,19 +18,10 @@ class Model(unstructured.Model):
     # TODO: HOW WAS IT CHOSEN?
     _z_max_default = 3
 
-    def __init__(self, z_max=_z_max_default, **kwds):
-        self.z_max = z_max
-        super().__init__(**kwds)
-
-    @property
-    def z_step(self):
-        '''Get the time-since-entry step.'''
-        return self._solver.z_step
-
-    @property
-    def z(self):
-        '''Get the time-since-entry vector.'''
-        return self._solver.z
+    def __init__(self, *args, z_max=_z_max_default, **kwds):
+        super().__init__(*args, **kwds)
+        self.z_step = self._Solver._get_z_step(self.t_step)
+        self.z = _utility.numerical.build_t(0, z_max, self.z_step)
 
     def _extend_index(self, idx_other):
         '''Extend `idx_other` with the 'time-since-entry' level.'''
