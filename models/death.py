@@ -2,6 +2,7 @@
 
 import numpy
 
+from . import _utility
 from .age_structured import _population
 
 
@@ -15,7 +16,16 @@ class Death:
                         (3, 12): 0.88,
                         (12, numpy.PINF): 0.66}
 
+    assert numpy.all(0 <= val <= 1
+                     for val in _annual_survival.values())
+
     (_left, _right) = numpy.array(list(zip(*_annual_survival.keys())))
+
+    assert _utility.numerical.is_increasing(_left)
+    assert _utility.numerical.is_increasing(_right)
+    assert _left[0] == 0
+    assert numpy.all(_left[1:] == _right[:-1])
+    assert numpy.isposinf(_right[-1])
 
     # Death rate values with units per year.
     _rate = - numpy.log(list(_annual_survival.values()))
@@ -34,12 +44,14 @@ class Death:
                             numpy.nan)
 
     def logsurvival(self, age):
+        '''Log survival.'''
         age = numpy.asarray(age)
         exposure = (numpy.clip(age[..., None], self._left, self._right)
                     - self._left)
         return numpy.sum(- self._rate * exposure, axis=-1)
 
     def survival(self, age):
+        '''Survival.'''
         return numpy.exp(self.logsurvival(age))
 
     def rate_population_mean(self, birth, *args, **kwds):
@@ -51,3 +63,8 @@ class Death:
                                                  *args, **kwds)
         density_total = _population.integral_over_a(density, *args, **kwds)
         return rate_total / density_total
+
+    def _age_max(self):
+        '''Get the last age where `._annual_survival` changes.'''
+        age_max = self._left.max()
+        return age_max

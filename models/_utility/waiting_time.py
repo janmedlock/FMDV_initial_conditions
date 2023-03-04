@@ -9,7 +9,9 @@ class Gamma:
 
     def __init__(self, mean, shape):
         self.mean = mean
+        assert self.mean > 0
         self.shape = shape
+        assert self.shape > 0
         scale = self.mean / self.shape
         self._rv = scipy.stats.gamma(self.shape, scale=scale)
 

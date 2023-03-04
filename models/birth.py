@@ -10,10 +10,14 @@ class _Birth:
 
     def __init__(self, parameters, death):
         self.variation = parameters.birth_variation
+        assert self.variation >= 0
         self.period = parameters.birth_period
+        assert self.period >= 0
         self.age_menarche = parameters.birth_age_menarche
         self.age_menopause = parameters.birth_age_menopause
+        assert 0 <= self.age_menarche <= self.age_menopause
         self.mean = self._mean_for_zero_population_growth(death)
+        assert self.mean >= 0
 
     def maternity(self, age):
         '''Maternity.'''
@@ -53,9 +57,21 @@ class _Birth:
             del self.mean
         return mean_for_zero_population_growth
 
+    def _age_max(self):
+        '''Get the last age where `.maternity()` changes.'''
+        if numpy.isfinite(self.age_menopause):
+            age_max = self.age_menopause
+        else:
+            age_max = self.age_menarche
+        return age_max
+
 
 class BirthConstant(_Birth):
     '''Constant birth rate.'''
+
+    def __init__(self, parameters, death):
+        super().__init__(parameters, death)
+        assert self.variation == 0
 
     # `_population.birth_scaling_for_zero_population_growth()` has a
     # shortcut when `period = 0`, so always return that value.
@@ -74,6 +90,10 @@ class BirthConstant(_Birth):
 
 class BirthPeriodic(_Birth):
     '''Periodic birth rate.'''
+
+    def __init__(self, parameters, death):
+        super().__init__(parameters, death)
+        assert self.variation > 0
 
     def rate(self, t):
         '''Periodic birth rate.'''

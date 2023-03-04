@@ -35,6 +35,11 @@ def sort_by_real_part(arr):
     return _sort_by(arr, numpy.real)
 
 
+def is_increasing(arr):
+    '''Check whether `arr` is increasing.'''
+    return numpy.all(numpy.diff(arr) > 0)
+
+
 def assert_nonnegative(y):
     '''Check that `y` is non-negative.'''
     assert numpy.all((y >= 0) | numpy.isclose(y, 0))

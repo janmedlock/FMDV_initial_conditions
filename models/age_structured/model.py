@@ -17,6 +17,7 @@ class Model(parameters.AgeDependent,
         super().__init__(*args, **kwds)
         self.a_step = self._Solver._get_a_step(self.t_step)
         self.a = _utility.numerical.build_t(0, a_max, self.a_step)
+        _age.check_max(self)
 
     def _build_index(self):
         '''Extend the `pandas.Index()` for solutions with the 'age'

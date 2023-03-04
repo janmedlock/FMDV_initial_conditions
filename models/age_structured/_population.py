@@ -30,6 +30,7 @@ class _Solver:
         assert numpy.isclose(self.t[-1], self.period)
         self.a_step = self._get_a_step(t_step)
         self.a = _utility.numerical.build_t(0, a_max, self.a_step)
+        _age.check_max(self)
         self._build_matrices()
         self._check_matrices()
 

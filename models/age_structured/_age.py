@@ -8,3 +8,10 @@
 # parameters changes. The age-dependent parameters are `death` and
 # `birth.maternity`.
 max_default = 12
+
+
+def check_max(model):
+    '''Check that 'a_max' is large enough.'''
+    a_max = model.a[-1]
+    assert a_max >= model.death._age_max()
+    assert a_max >= model.birth._age_max()

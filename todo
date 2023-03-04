@@ -4,7 +4,6 @@
 * Profile initializing solvers, solving, finding equilibria, etc.
 
 * Time-since-entry model
-  * How to choose z_max?
   * Find limit cycle
     * Find exponents
 
@@ -18,7 +17,6 @@
     * Find exponents
 
 * Combination model
-  * How to choose step, a_max, & z_max?
   * Write numerical method as linear algebra
     * Kronecker product: `\otimes`, `numpy.kron()`
   * Write models.combination._solver.Solver

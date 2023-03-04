@@ -15,7 +15,14 @@ class Model(unstructured.Model):
     states_with_z = ['maternal_immunity', 'exposed', 'infectious']
 
     # The default maximum time since entry `z_max`.
-    # TODO: HOW WAS IT CHOSEN?
+    # This was chosen to ensure that the survival for all of the
+    # time-since-entry-dependent model processes at `z_max` was
+    # small. Those processes are 'waning', 'progression', and
+    # 'recovery': 'waning' is by far the slowest, i.e. the one that
+    # determines where `z_max` is large enough. See the method
+    # `._check_survivals_at_zmax()` at the end of this class. At
+    # `z_max` = 3, the survival for waning is less than 1.1e-4 and the
+    # survivals for the other processes are less than 1e-270.
     _z_max_default = 3
 
     def __init__(self, *args, z_max=_z_max_default, **kwds):
@@ -87,6 +94,29 @@ class Model(unstructured.Model):
         total = self.integral_over_z(survival)
         return survival / total
 
+    def _survivals_scaled(self):
+        '''Get scaled survivals.'''
+        idx_state = self._get_index_level('state')
+        idx_state_z = self._extend_index(idx_state)
+        n_z = pandas.Series(1, index=idx_state_z)
+        n_z['maternal_immunity'] = self._survival_scaled(self.waning)
+        n_z['exposed'] = self._survival_scaled(self.progression)
+        n_z['infectious'] = self._survival_scaled(self.recovery)
+        return n_z
+
+    def _all_in_first(self):
+        '''Get a vector with all the density in the first time since
+        entry.'''
+        idx_state = self._get_index_level('state')
+        idx_state_z = self._extend_index(idx_state)
+        n_z = pandas.Series(1, index=idx_state_z)
+        idx_z = self._get_index_level('time_since_entry')
+        n_with_z = pandas.Series(0, index=idx_z)
+        n_with_z.iloc[0] = 1 / self.z_step
+        for state in self.states_with_z:
+            n_z[state] = n_with_z
+        return n_z
+
     def build_initial_conditions(self, how='survival', *args, **kwds):
         '''Adjust the initial conditions for the 'time-since-entry' level.'''
         Y_other = super().build_initial_conditions(*args, **kwds)
@@ -95,24 +125,18 @@ class Model(unstructured.Model):
         n_z = pandas.Series(1, index=idx_state_z)
         if how == 'survival':
             # Use survivals to get density within states.
-            n_z['maternal_immunity'] = self._survival_scaled(self.waning)
-            n_z['exposed'] = self._survival_scaled(self.progression)
-            n_z['infectious'] = self._survival_scaled(self.recovery)
+            n_z = self._survivals_scaled()
         elif how == 'all_in_first':
             # For states with 'time_since_entry', put all of the
             # density in the first 'time_since_entry'.
-            idx_z = self._get_index_level('time_since_entry')
-            n_with_z = pandas.Series(0, index=idx_z)
-            n_with_z.iloc[0] = 1 / self.z_step
-            for state in self.states_with_z:
-                n_z[state] = n_with_z
+            n_z = self._all_in_first()
         else:
             raise ValueError(f'Unknown {how=}!')
         y = Y_other * n_z
         if len(y.index.names) > 2:
-            # Fix the index of y.
+            # Fix the index of `y`.
             # Move 'time_since_entry' from the 2nd position to the
-            # end.
+            # last position.
             order = [0, *range(2, len(y.index.names)), 1]
             y = y.reorder_levels(order)
             # Fix index dtypes.
@@ -122,3 +146,14 @@ class Model(unstructured.Model):
             y = y.set_axis(idx)
             y.sort_index(inplace=True)
         return y
+
+    @classmethod
+    def _check_survivals_at_z_max(cls, *args, **kwds):
+        '''Get the survivals at `z_max` to check whether `z_max` is
+        large enough.'''
+        self = cls(*args, **kwds)
+        survivals_scaled = self._survivals_scaled() \
+                               .loc[self.states_with_z]
+        z = self.z
+        survivals = survivals_scaled / survivals_scaled.loc[:, z[0]]
+        return survivals.loc[:, z[-1]]
