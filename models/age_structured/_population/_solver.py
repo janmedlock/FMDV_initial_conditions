@@ -5,6 +5,7 @@ import functools
 import numpy
 import scipy.optimize
 
+from . import _integral
 from ... import _utility
 
 
@@ -12,11 +13,17 @@ class Solver:
     '''Crank–Nicolson solver.'''
 
     def __init__(self, model):
-        self.model = model
-        self.t_step = self.model.t_step
-        self.a_step = self.model.a_step
-        self.t = self.model.t
-        self.a = self.model.a
+        self.birth = model.birth
+        self.death = model.death
+        self.t_step = model.t_step
+        self.a_step = model.a_step
+        self.period = self.birth.period
+        if self.period == 0:
+            self.period = self.t_step
+        assert self.period > 0
+        self.t = _utility.numerical.build_t(0, self.period, self.t_step)
+        assert numpy.isclose(self.t[-1], self.period)
+        self.a = _utility.numerical.build_t(0, model.a_max, self.a_step)
         self._build_matrices()
         self._check_matrices()
 
@@ -46,7 +53,7 @@ class Solver:
     def _F(self, q):
         '''Build the transition matrix F(q).'''
         J = len(self.a)
-        mu = self.model.death.rate(self.a)
+        mu = self.death.rate(self.a)
         if q == 'new':
             diags = {
                 0: - mu
@@ -65,7 +72,7 @@ class Solver:
         '''Build matrices needed by the solver.'''
         J = len(self.a)
         shape = (J, J)
-        nu = self.model.birth.maternity(self.a)
+        nu = self.birth.maternity(self.a)
         # The first row is `nu`.
         data = {
             (0, (None, )): nu
@@ -89,11 +96,11 @@ class Solver:
         assert _utility.linalg.is_nonnegative(self.B)
         HFB_new = (self.H['new']
                    - self.t_step / 2 * (self.F['new']
-                                        + self.model.birth.rate_max * self.B))
+                                        + self.birth.rate_max * self.B))
         assert _utility.linalg.is_M_matrix(HFB_new)
         HFB_cur = (self.H['cur']
                    + self.t_step / 2 * (self.F['cur']
-                                        + self.model.birth.rate_min * self.B))
+                                        + self.birth.rate_min * self.B))
         assert _utility.linalg.is_nonnegative(HFB_cur)
 
     def step(self, t_cur, Phi_cur, birth_scaling, display=False):
@@ -102,7 +109,7 @@ class Solver:
             t_new = t_cur + self.t_step
             print(f'{t_new=}')
         t_mid = t_cur + self.t_step / 2
-        b_mid = birth_scaling * self.model.birth.rate(t_mid)
+        b_mid = birth_scaling * self.birth.rate(t_mid)
         HFB_new = (self.H['new']
                    - self.t_step / 2 * (self.F['new']
                                         + b_mid * self.B))
@@ -136,7 +143,7 @@ class Solver:
                                                      return_eigenvector=False)
         # Convert the dominant Floquet multiplier to
         # the dominant Floquet exponent.
-        mu_dom = numpy.log(rho_dom) / self.model.period
+        mu_dom = numpy.log(rho_dom) / self.period
         return mu_dom
 
     def birth_scaling_for_zero_population_growth(self, **kwds):
@@ -157,11 +164,6 @@ class Solver:
         scaling = scipy.optimize.brentq(fcn, lower, upper)
         return scaling
 
-    def integral_over_a(self, arr, *args, **kwds):
-        '''Integrate `arr` over age. `args` and `kwds` are passed on
-         to `.sum()`.'''
-        return arr.sum(*args, **kwds) * self.a_step
-
     def stable_age_density(self, **kwds):
         '''Get the stable age density.'''
         Psi = self.monodromy(**kwds)
@@ -169,5 +171,5 @@ class Solver:
             Psi, which='LM', return_eigenvector=True
         )
         # Normalize `v_dom` in place so that its integral over a is 1.
-        v_dom /= self.integral_over_a(v_dom)
+        v_dom /= _integral.over_a(v_dom, self.a_step)
         return (self.a, v_dom)

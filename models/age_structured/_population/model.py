@@ -1,10 +1,9 @@
 '''Age-structured population model.'''
 
-import numpy
+import functools
 
-from . import _solver
+from . import _integral, _solver
 from .. import _age
-from ... import _utility
 
 
 class Model:
@@ -13,8 +12,9 @@ class Model:
     age-dependent maternity, and periodic time-dependent birth rate.'''
 
     # The default time step `t_step`.
-    # TODO: HOW WAS IT CHOSEN?
-    _t_step_default = 1e-1
+    # `t_step` = 1e-2 gives a relative error in `.stable_age_density()`
+    # of less than 1e-3. (See `../../miscellany/population_step_size.py`.)
+    _t_step_default = 1e-2
 
     def __init__(self, birth, death,
                  t_step=_t_step_default,
@@ -23,27 +23,29 @@ class Model:
         self.death = death
         assert t_step > 0
         self.t_step = t_step
-        self.period = self.birth.period
-        assert self.period >= 0
-        if self.period == 0:
-            self.period = self.t_step
-        self.t = _utility.numerical.build_t(0, self.period, self.t_step)
-        assert numpy.isclose(self.t[-1], self.period)
+        assert a_max > 0
+        _age.check_max(self, a_max)
+        self.a_max = a_max
         self.a_step = _solver.Solver._get_a_step(self.t_step)
         assert self.a_step > 0
-        _age.check_max(a_max, self)
-        self.a = _utility.numerical.build_t(0, a_max, self.a_step)
-        self._solver = _solver.Solver(self)
 
-    def birth_scaling_for_zero_population_growth(self, **kwds):
-        '''Find the birth scaling that gives zero population growth rate.'''
-        return self._solver.birth_scaling_for_zero_population_growth(**kwds)
+    @functools.cached_property
+    def _solver(self):
+        '''`._solver` is built on first use and then reused.'''
+        _solver_ = _solver.Solver(self)
+        return _solver_
 
     def integral_over_a(self, arr, *args, **kwds):
         '''Integrate `arr` over age. `args` and `kwds` are passed on
          to `.sum()`.'''
-        return self._solver.integral_over_a(arr, *args, **kwds)
+        return _integral.over_a(arr, self.a_step, *args, **kwds)
 
+    # TODO: Cache this method.
+    def birth_scaling_for_zero_population_growth(self, **kwds):
+        '''Find the birth scaling that gives zero population growth rate.'''
+        return self._solver.birth_scaling_for_zero_population_growth(**kwds)
+
+    # TODO: Cache this method.
     def stable_age_density(self, **kwds):
         '''Get the stable age density.'''
         return self._solver.stable_age_density(**kwds)

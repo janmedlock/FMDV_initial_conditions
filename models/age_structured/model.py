@@ -21,9 +21,9 @@ class Model(unstructured.Model):
 
     def _init_post(self):
         '''Final initialization.'''
+        _age.check_max(self.parameters, self.a_max)
         self.a_step = self._Solver._get_a_step(self.t_step)
         assert self.a_step > 0
-        _age.check_max(self.a_max, self.parameters)
         self.a = _utility.numerical.build_t(0, self.a_max, self.a_step)
         super()._init_post()
 

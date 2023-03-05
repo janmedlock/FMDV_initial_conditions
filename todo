@@ -1,11 +1,10 @@
+* Use joblib.cache in models.age_structured._population._solver
+
 * Time-since-entry model
   * Find limit cycle
     * Find exponents
 
 * Age-structured model
-  * _population
-    * Reduce Solver._t_step_default to 1e-2 or even smaller
-    * How to choose t_step?
   * Find equiblibrium
     * Find eigenvalues
   * Find limit cycle

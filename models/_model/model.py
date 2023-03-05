@@ -23,6 +23,7 @@ class Model(metaclass=abc.ABCMeta):
         '''The solver class.'''
 
     def __init__(self, t_step, **kwds):
+        assert t_step > 0
         self.t_step = t_step
         self.parameters = self._Parameters(**kwds)
         self._init_post()
