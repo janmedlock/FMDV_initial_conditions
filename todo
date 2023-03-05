@@ -1,15 +1,10 @@
-* Make Solvers inherit from each other
-  * Move '_Hq()', '_Fq()', '_Tq()', '_B', etc into _model.solver.Solver()
-
-* Profile initializing solvers, solving, finding equilibria, etc.
-
 * Time-since-entry model
   * Find limit cycle
     * Find exponents
 
 * Age-structured model
   * _population
-    * Reduce Solver._t_step_default to 1e-2
+    * Reduce Solver._t_step_default to 1e-2 or even smaller
     * How to choose t_step?
   * Find equiblibrium
     * Find eigenvalues
@@ -20,6 +15,11 @@
   * Write numerical method as linear algebra
     * Kronecker product: `\otimes`, `numpy.kron()`
   * Write models.combination._solver.Solver
+
+* Profile initializing solvers, solving, finding equilibria, etc.
+
+* Make Solvers inherit from each other
+  * Move '_Hq()', '_Fq()', '_Tq()', '_B', etc into _model.solver.Solver()
 
 * Can I find a limit-cycle of say period 6 then see if it is actually
   period 1, 2, or 3?
