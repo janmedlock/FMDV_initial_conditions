@@ -21,13 +21,16 @@ class Model:
                  a_max=_age.max_default):
         self.birth = birth
         self.death = death
+        assert t_step > 0
         self.t_step = t_step
         self.period = self.birth.period
+        assert self.period >= 0
         if self.period == 0:
             self.period = self.t_step
         self.t = _utility.numerical.build_t(0, self.period, self.t_step)
         assert numpy.isclose(self.t[-1], self.period)
         self.a_step = _solver.Solver._get_a_step(self.t_step)
+        assert self.a_step > 0
         _age.check_max(a_max, self)
         self.a = _utility.numerical.build_t(0, a_max, self.a_step)
         self._solver = _solver.Solver(self)

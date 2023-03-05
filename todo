@@ -1,7 +1,3 @@
-* Add assertions on step sizes > 0
-
-* Make assertions before assignment, where possible
-
 * Make Solvers inherit from each other
   * Move '_Hq()', '_Fq()', '_Tq()', '_B', etc into _model.solver.Solver()
 

@@ -15,12 +15,14 @@ class Model(unstructured.Model):
     _Solver = _solver.Solver
 
     def __init__(self, *args, a_max=_age.max_default, **kwds):
+        assert a_max > 0
         self.a_max = a_max
         super().__init__(*args, **kwds)
 
     def _init_post(self):
         '''Final initialization.'''
         self.a_step = self._Solver._get_a_step(self.t_step)
+        assert self.a_step > 0
         _age.check_max(self.a_max, self.parameters)
         self.a = _utility.numerical.build_t(0, self.a_max, self.a_step)
         super()._init_post()

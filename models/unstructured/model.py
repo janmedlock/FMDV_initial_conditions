@@ -28,6 +28,7 @@ class Model(_model.model.Model):
     _t_step_default = 1e-3
 
     def __init__(self, t_step=_t_step_default, **kwds):
+        assert t_step > 0
         super().__init__(t_step, **kwds)
 
     def _build_index(self):
