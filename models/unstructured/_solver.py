@@ -12,6 +12,9 @@ class Solver(_model.solver.Base):
 
     _sparse = False
 
+    def __init__(self, model):
+        super().__init__(model)
+
     def _I(self):
         '''Build the identity matrix.'''
         n = len(self.model.states)

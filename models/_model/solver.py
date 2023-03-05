@@ -10,6 +10,12 @@ from .. import _utility
 class Base(metaclass=abc.ABCMeta):
     '''Base class for Crank–Nicolson solvers.'''
 
+    @property
+    @abc.abstractmethod
+    def _sparse(self):
+        '''Whether the solver uses sparse matrices and sparse linear
+        algebra.'''
+
     def __init__(self, model):
         self.model = model
         self.t_step = model.t_step
@@ -21,12 +27,6 @@ class Base(metaclass=abc.ABCMeta):
             )
         else:
             self._root_kwds = dict()
-
-    @property
-    @abc.abstractmethod
-    def _sparse(self):
-        '''Whether the solver uses sparse matrices and sparse linear
-        algebra.'''
 
     @abc.abstractmethod
     def _I(self):
