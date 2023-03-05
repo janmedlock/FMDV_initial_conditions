@@ -82,7 +82,7 @@ class Base(metaclass=abc.ABCMeta):
         assert _utility.linalg.is_nonnegative(HFB_cur)
 
     def _preconditioner(self):
-        '''For sparse solvers, Build the Krylov preconditioner.'''
+        '''For sparse solvers, build the Krylov preconditioner.'''
         M = (self.H['new']
              + self.t_step / 2 * self.F['new'])
         return M
