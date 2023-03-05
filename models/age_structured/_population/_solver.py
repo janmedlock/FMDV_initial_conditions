@@ -143,31 +143,28 @@ class Solver:
                                    display=display)
         return Phi_new
 
-    def multiplier_from_growth_rate(self, growth_rate):
-        '''Convert a growth rate into a multiplier.'''
-        multiplier = numpy.exp(growth_rate * self.period)
+    def multiplier_from_exponent(self, exponent):
+        '''Convert a Floquet exponent into a Floquet multiplier.'''
+        multiplier = numpy.exp(exponent * self.period)
         return multiplier
 
-    def growth_rate_from_multiplier(self, multiplier):
-        '''Convert a growth rate into a multiplier.'''
-        growth_rate = numpy.log(multiplier) / self.period
-        return growth_rate
+    def exponent_from_multiplier(self, multiplier):
+        '''Convert a Floquet exponent into a Floquet multiplier.'''
+        exponent = numpy.log(multiplier) / self.period
+        return exponent
 
     # TODO: Consider caching this method.
     def population_growth_rate(self, birth_scaling, _guess=None, **kwds):
         '''Get the population growth rate.'''
         Psi = self.monodromy(birth_scaling, **kwds)
         # Get the dominant Floquet multiplier.
-        sigma = (self.multiplier_from_growth_rate(_guess)
+        sigma = (self.multiplier_from_exponent(_guess)
                  if _guess is not None
                  else None)
         rho_dom = _utility.linalg.get_dominant_eigen(Psi, which='LM',
                                                      sigma=sigma,
                                                      return_eigenvector=False)
-        # Convert the dominant Floquet multiplier to
-        # the dominant Floquet exponent.
-        mu_dom = self.growth_rate_from_multiplier(rho_dom)
-        print(f'{birth_scaling=}: {mu_dom=}')
+        mu_dom = self.exponent_from_multiplier(rho_dom)
         return mu_dom
 
     # TODO: Cache this method.
@@ -194,13 +191,15 @@ class Solver:
     # TODO: Cache this method.
     def stable_age_density(self, **kwds):
         '''Get the stable age density.'''
+        # This method assumes it is being called after birth has been
+        # scaled so that the population growth rate is 0.
+        growth_rate = 0
         Psi = self.monodromy(**kwds)
-        # The growth rate is 0.
-        sigma = self.multiplier_from_growth_rate(0)
+        sigma = self.multiplier_from_exponent(growth_rate)
         (rho_dom, v_dom) = _utility.linalg.get_dominant_eigen(
             Psi, which='LM', sigma=sigma, return_eigenvector=True
         )
-        assert numpy.isclose(self.growth_rate_from_multiplier(rho_dom), 0)
+        assert numpy.isclose(rho_dom, sigma)
         # Normalize `v_dom` in place so that its integral over a is 1.
         v_dom /= _integral.over_a(v_dom, self.a_step)
         return (self.a, v_dom)
