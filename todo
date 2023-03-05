@@ -1,6 +1,6 @@
-* Can I simplify parameters/processes (birth, death, etc.) by making a
-  class to hold them? That class could hold _population.Model and link
-  birth and death together.
+* Add assertions on step sizes > 0
+
+* Make assertions before assignment, where possible
 
 * Make Solvers inherit from each other
   * Move '_Hq()', '_Fq()', '_Tq()', '_B', etc into _model.solver.Solver()

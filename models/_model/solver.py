@@ -71,13 +71,14 @@ class Base(metaclass=abc.ABCMeta):
         assert _utility.linalg.is_Metzler_matrix(self.T['new'])
         assert _utility.linalg.is_Metzler_matrix(self.B)
         assert _utility.linalg.is_nonnegative(self.B)
+        birth = self.model.parameters.birth
         HFB_new = (self.H['new']
                    - self.t_step / 2 * (self.F['new']
-                                        + self.model.birth.rate_max * self.B))
+                                        + birth.rate_max * self.B))
         assert _utility.linalg.is_M_matrix(HFB_new)
         HFB_cur = (self.H['cur']
                    + self.t_step / 2 * (self.F['cur']
-                                        + self.model.birth.rate_min * self.B))
+                                        + birth.rate_min * self.B))
         assert _utility.linalg.is_nonnegative(HFB_cur)
 
     def _preconditioner(self):
@@ -98,7 +99,7 @@ class Base(metaclass=abc.ABCMeta):
             t_new = t_cur + self.t_step
             print(f'{t_new=}')
         t_mid = t_cur + 0.5 * self.t_step
-        b_mid = self.model.birth.rate(t_mid)
+        b_mid = self.model.parameters.birth.rate(t_mid)
         HFB_new = (self.H['new']
                    - self.t_step / 2 * (self.F['new']
                                         + b_mid * self.B))
@@ -163,7 +164,7 @@ class Base(metaclass=abc.ABCMeta):
         y_cur = self._make_column_vector(y_cur)
         y_new = self._make_column_vector(y_new)
         t_mid = t_cur + 0.5 * self.t_step
-        b_mid = self.model.birth.rate(t_mid)
+        b_mid = self.model.parameters.birth.rate(t_mid)
         M_new = (
             self.H['new']
             - self.t_step / 2 * (self.F['new']

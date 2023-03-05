@@ -14,7 +14,7 @@ class Checker(_check_solver.Base):
         J = len(self.model.a)
         zeros = scipy.sparse.csr_array((1, J))
         ones = numpy.ones((1, J))
-        return (self.model.transmission.rate
+        return (self.model.parameters.transmission.rate
                 * self.model.a_step
                 * scipy.sparse.hstack(
                     [zeros, zeros, zeros, ones, zeros]
@@ -47,10 +47,10 @@ class Checker(_check_solver.Base):
             else:
                 raise ValueError
 
-        mu = self.model.death.rate(self.model.a)
-        omega = 1 / self.model.waning.mean
-        rho = 1 / self.model.progression.mean
-        gamma = 1 / self.model.recovery.mean
+        mu = self.model.parameters.death.rate(self.model.a)
+        omega = 1 / self.model.parameters.waning.mean
+        rho = 1 / self.model.parameters.progression.mean
+        gamma = 1 / self.model.parameters.recovery.mean
         return scipy.sparse.bmat([
             [FXW(- omega - mu), None, None, None, None],
             [FXW(omega), FXW(- mu), None, None, None],
@@ -80,7 +80,7 @@ class Checker(_check_solver.Base):
 
     def B(self):
         J = len(self.model.a)
-        nu = self.model.birth.maternity(self.model.a)
+        nu = self.model.parameters.birth.maternity(self.model.a)
         BXW = scipy.sparse.dok_array((J, J))
         BXW[0] = nu
         Zeros = scipy.sparse.csr_array((J, J))

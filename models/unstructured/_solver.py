@@ -24,7 +24,7 @@ class Solver(_model.solver.Base):
     def _beta(self):
         '''Build the transmission rate vector beta.'''
         beta = (
-            self.model.transmission.rate
+            self.model.parameters.transmission.rate
             * numpy.array([
                 [0, 0, 0, 1, 0]
             ])
@@ -40,10 +40,10 @@ class Solver(_model.solver.Base):
     def _F_(self):
         '''F is independent of q. `_F_` is built on first use and then
         reused.'''
-        mu = self.model.death_rate_mean
-        omega = 1 / self.model.waning.mean
-        rho = 1 / self.model.progression.mean
-        gamma = 1 / self.model.recovery.mean
+        mu = self.model.parameters.death_rate_mean
+        omega = 1 / self.model.parameters.waning.mean
+        rho = 1 / self.model.parameters.progression.mean
+        gamma = 1 / self.model.parameters.recovery.mean
         F = numpy.array([
             [- omega - mu, 0, 0, 0, 0],
             [omega, - mu, 0, 0, 0],

@@ -14,16 +14,17 @@ class Model(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
+    def _Parameters(self):
+        '''The parameters class.'''
+
+    @property
+    @abc.abstractmethod
     def _Solver(self):
         '''The solver class.'''
 
-    @abc.abstractmethod
-    def _init_parameters(self, **kwds):
-        '''Initialize model parameters.'''
-
     def __init__(self, t_step, **kwds):
         self.t_step = t_step
-        self._init_parameters(**kwds)
+        self.parameters = self._Parameters(**kwds)
         self._init_post()
 
     def _init_post(self):

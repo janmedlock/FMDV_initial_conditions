@@ -15,7 +15,7 @@ class Checker(_check_solver.Base):
         K = len(self.model.z)
         zeros = scipy.sparse.csr_array((1, K))
         ones = numpy.ones((1, K))
-        return (self.model.transmission.rate
+        return (self.model.parameters.transmission.rate
                 * self.model.z_step
                 * scipy.sparse.hstack(
                     [zeros, [[0]], zeros, ones, [[0]]]
@@ -63,11 +63,11 @@ class Checker(_check_solver.Base):
             return fXy_
 
         def get_rate(which):
-            param = getattr(self.model, which)
+            param = getattr(self.model.parameters, which)
             rate = param.rate(self.model.z)
             return models._utility.numerical.rate_make_finite(rate)
 
-        mu = self.model.death_rate_mean
+        mu = self.model.parameters.death_rate_mean
         omega = get_rate('waning')
         rho = get_rate('progression')
         gamma = get_rate('recovery')

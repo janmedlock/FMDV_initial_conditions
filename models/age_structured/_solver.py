@@ -65,7 +65,7 @@ class Solver(_model.solver.Base):
         ones1J = numpy.ones((1, J))
         zeros1J = self.Zeros['1J']
         beta = (
-            self.model.transmission.rate
+            self.model.parameters.transmission.rate
             * self.a_step
             * _utility.sparse.hstack(
                 [zeros1J, zeros1J, zeros1J, ones1J, zeros1J]
@@ -106,10 +106,10 @@ class Solver(_model.solver.Base):
 
     def _F(self, q):
         '''Build the transition matrix F(q).'''
-        mu = self.model.death.rate(self.a)
-        omega = 1 / self.model.waning.mean
-        rho = 1 / self.model.progression.mean
-        gamma = 1 / self.model.recovery.mean
+        mu = self.model.parameters.death.rate(self.a)
+        omega = 1 / self.model.parameters.waning.mean
+        rho = 1 / self.model.parameters.progression.mean
+        gamma = 1 / self.model.parameters.recovery.mean
         FXW = functools.partial(self._FXW, q)
         F = _utility.sparse.bmat([
             [FXW(- omega - mu), None, None, None, None],
@@ -142,7 +142,7 @@ class Solver(_model.solver.Base):
         '''Build a block of B.'''
         J = len(self.a)
         shape = (J, J)
-        nu = self.model.birth.maternity(self.a)
+        nu = self.model.parameters.birth.maternity(self.a)
         # The first row is `nu`.
         data = {
             (0, (None, )): nu

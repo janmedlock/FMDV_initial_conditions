@@ -5,6 +5,7 @@ import dataclasses
 import numpy
 
 from . import birth, death, progression, recovery, transmission, waning
+from .age_structured import _population
 
 
 @dataclasses.dataclass
@@ -64,35 +65,60 @@ def Parameters(SAT=1, **kwds):
     return klass(**kwds)
 
 
-class _MixinBase:
-    '''Mixin to initialize parameters for models.'''
+class _ModelParameters:
+    '''Model parameters.'''
 
-    def _init_parameters(self, **kwds):
-        '''Initialize model parameters.'''
+    def __init__(self, **kwds):
         parameters = Parameters(**kwds)
         self.death = death.Death(parameters)
-        self.birth = birth.Birth(parameters, self.death)
+        self.birth = birth.Birth(parameters)
         self.progression = progression.Progression(parameters)
         self.recovery = recovery.Recovery(parameters)
         self.transmission = transmission.Transmission(parameters)
         self.waning = waning.Waning(parameters)
+        self._init_post()
+
+    def _init_post(self, *args, **kwds):
+        '''Final initialization.'''
+        self._population = _population.Model(self.birth, self.death,
+                                             *args, **kwds)
+        self.birth._init_post(self._population)
+
+    def _stable_age_density(self, **kwds):
+        '''Get the stable age density.'''
+        return self._population.stable_age_density(**kwds)
 
 
-class AgeIndependent(_MixinBase):
-    '''Mixin to initialize parameters for age-independent models.'''
+class ModelParametersAgeIndependent(_ModelParameters):
+    '''Model parameters for age-independent models.'''
 
-    def _init_parameters(self, **kwds):
-        '''Initialize model parameters.'''
-        super()._init_parameters(**kwds)
-        # Use `self.birth` with age-dependent `.mean` to find
-        # `self.death_rate_mean`.
-        self.death_rate_mean = self.death.rate_population_mean(self.birth)
-        # Set `self.birth.mean` so this age-independent model has
-        # zero population growth rate. For this model, the mean
-        # population growth rate is
-        # `self.birth.mean - self.death_rate_mean`.
-        self.birth.mean = self.death_rate_mean
+    def _death_rate_mean(self):
+        '''Find the mean death rate.'''
+        # Find the mean of the death rate over age using the stable
+        # age density of the age-dependent population model with the
+        # age-dependent birth and death rates. The result is the
+        # death_rate for an age-independent model.
+        death_rate_mean = self.death.rate_population_mean(self._population)
+        return death_rate_mean
+
+    def _birth_rate_mean_for_zero_population_growth(self):
+        '''Get the birth rate mean that gives zero population growth.'''
+        # For the age-independent population model, the mean over time
+        # of the population growth rate is `self.birth.mean -
+        # self.death_rate_mean`. Setting the mean of the birth rate to
+        # `self.death_rate_mean()` ensures the age-independent
+        # population model has zero mean population growth rate, just
+        # like the mean population growth rate for the age-dependent
+        # population model.
+        birth_mean = self.death_rate_mean
+        return birth_mean
+
+    def _init_post(self):
+        '''Final initialization.'''
+        super()._init_post()
+        self.death_rate_mean = self._death_rate_mean()
+        self.birth.mean = self._birth_rate_mean_for_zero_population_growth()
 
 
-class AgeDependent(_MixinBase):
-    '''Mixin to initialize parameters for age-dependent models.'''
+class ModelParametersAgeDependent(_ModelParameters):
+    '''Model parametets for age-dependent models.'''

@@ -10,8 +10,7 @@
 max_default = 12
 
 
-def check_max(model):
+def check_max(a_max, parameters):
     '''Check that 'a_max' is large enough.'''
-    a_max = model.a[-1]
-    assert a_max >= model.death._age_max()
-    assert a_max >= model.birth._age_max()
+    assert a_max >= parameters.death._age_max()
+    assert a_max >= parameters.birth._age_max()

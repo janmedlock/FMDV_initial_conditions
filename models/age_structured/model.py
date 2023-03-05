@@ -3,13 +3,14 @@
 import numpy
 import pandas
 
-from . import _age, _population, _solver
+from . import _age, _solver
 from .. import parameters, unstructured, _model, _utility
 
 
-class Model(parameters.AgeDependent,
-            unstructured.Model):
+class Model(unstructured.Model):
     '''Age-structured model.'''
+
+    _Parameters = parameters.ModelParametersAgeDependent
 
     _Solver = _solver.Solver
 
@@ -20,8 +21,8 @@ class Model(parameters.AgeDependent,
     def _init_post(self):
         '''Final initialization.'''
         self.a_step = self._Solver._get_a_step(self.t_step)
+        _age.check_max(self.a_max, self.parameters)
         self.a = _utility.numerical.build_t(0, self.a_max, self.a_step)
-        _age.check_max(self)
         super()._init_post()
 
     def _build_index(self):
@@ -59,7 +60,7 @@ class Model(parameters.AgeDependent,
 
     def stable_age_density(self, **kwds):
         '''Get the stable age density.'''
-        (a, v_dom) = self.birth._stable_age_density(**kwds)
+        (a, v_dom) = self.parameters._stable_age_density(**kwds)
         # Interpolate the logarithm of `v_dom` to `self.a`.
         assert numpy.all(v_dom > 0)
         logn = numpy.interp(self.a, a, numpy.log(v_dom))

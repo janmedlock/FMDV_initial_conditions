@@ -67,7 +67,7 @@ class Solver(_model.solver.Base):
         ones1K = numpy.ones((1, K))
         zeros = self.Zeros
         beta = (
-            self.model.transmission.rate
+            self.model.parameters.transmission.rate
             * self.z_step
             * _utility.sparse.hstack(
                 [zeros['1K'], zeros['11'], zeros['1K'], ones1K, zeros['11']]
@@ -152,13 +152,13 @@ class Solver(_model.solver.Base):
 
     def _get_rate(self, which):
         '''Get the rate `which` and make finite any infinite entries.'''
-        param = getattr(self.model, which)
+        param = getattr(self.model.parameters, which)
         rate = param.rate(self.z)
         return _utility.numerical.rate_make_finite(rate)
 
     def _F(self, q):
         '''Build the transition matrix F(q).'''
-        mu = self.model.death_rate_mean
+        mu = self.model.parameters.death_rate_mean
         omega = self._get_rate('waning')
         rho = self._get_rate('progression')
         gamma = self._get_rate('recovery')

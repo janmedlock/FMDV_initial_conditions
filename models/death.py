@@ -3,7 +3,6 @@
 import numpy
 
 from . import _utility
-from .age_structured import _population
 
 
 class Death:
@@ -31,7 +30,7 @@ class Death:
     _rate = - numpy.log(list(_annual_survival.values()))
 
     def __init__(self, parameters):
-        # Death does not depend on `parameters`.
+        # This class does not depend on `parameters`.
         pass
 
     def rate(self, age):
@@ -54,13 +53,12 @@ class Death:
         '''Survival.'''
         return numpy.exp(self.logsurvival(age))
 
-    def rate_population_mean(self, birth, **kwds):
+    def rate_population_mean(self, population, **kwds):
         '''Get the mean death rate when the population is at the stable
         age density.'''
-        assert birth._death is self
-        (ages, density) = birth._stable_age_density(**kwds)
-        rate_total = birth._integral_over_a(self.rate(ages) * density)
-        density_total = birth._integral_over_a(density)
+        (ages, density) = population.stable_age_density(**kwds)
+        rate_total = population.integral_over_a(self.rate(ages) * density)
+        density_total = population.integral_over_a(density)
         return rate_total / density_total
 
     def _age_max(self):

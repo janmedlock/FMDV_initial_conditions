@@ -24,4 +24,4 @@ if __name__ == '__main__':
     print(death_rate_mean)
 
     model = models.unstructured.Model(birth_variation=0)
-    print(model.death_rate_mean)
+    print(model.parameters.death_rate_mean)

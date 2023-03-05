@@ -3,11 +3,10 @@
 import pandas
 
 from . import _solver
-from .. import parameters, _model, _utility
+from .. import parameters, _model
 
 
-class Model(parameters.AgeIndependent,
-            _model.model.Model):
+class Model(_model.model.Model):
     '''Unstructured model.'''
 
     states = ['maternal_immunity', 'susceptible', 'exposed',
@@ -17,14 +16,16 @@ class Model(parameters.AgeIndependent,
     # immunity.
     states_with_antibodies = ['recovered']
 
+    _Parameters = parameters.ModelParametersAgeIndependent
+
+    _Solver = _solver.Solver
+
     # The default time step `t_step`. A necessary condition for
     # nonnegative solutions is is that `t_step` must be less than 1 /
     # rate for all of the model transition rates. In particular,
     # `transmission_rate` and 1 / `progression_mean`, especially for
     # SAT1, are just a bit less than 1000.
     _t_step_default = 1e-3
-
-    _Solver = _solver.Solver
 
     def __init__(self, t_step=_t_step_default, **kwds):
         super().__init__(t_step, **kwds)
