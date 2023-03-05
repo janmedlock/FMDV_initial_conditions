@@ -17,15 +17,12 @@ class Solver:
         self.death = model.death
         self.t_step = model.t_step
         self.a_step = model.a_step
+        self.a_max = model.a_max
         self.period = self.birth.period
         if self.period == 0:
             self.period = self.t_step
         assert self.period > 0
-        self.t = _utility.numerical.build_t(0, self.period, self.t_step)
-        assert numpy.isclose(self.t[-1], self.period)
-        self.a = _utility.numerical.build_t(0, model.a_max, self.a_step)
-        self._build_matrices()
-        self._check_matrices()
+        self._monodromy_initialized = False
 
     @staticmethod
     def _get_a_step(t_step):
@@ -118,9 +115,20 @@ class Solver:
                                         + b_mid * self.B))
         return _utility.linalg.solve(HFB_new, HFB_cur @ Phi_cur)
 
+    def _monodromy_init(self):
+        '''Initialize matrices etc needed by `monodromy`.'''
+        self.t = _utility.numerical.build_t(0, self.period, self.t_step)
+        assert numpy.isclose(self.t[-1], self.period)
+        self.a = _utility.numerical.build_t(0, self.a_max, self.a_step)
+        self._build_matrices()
+        self._check_matrices()
+        self._monodromy_initialized = True
+
     def monodromy(self, birth_scaling=1, display=False):
         '''Get the monodromy matrix Psi = Phi(T), where Phi is the
         fundmental solution and T is the period.'''
+        if not self._monodromy_initialized:
+            self._monodromy_init()
         if len(self.t) == 0:
             return None
         # The initial condition is the identity matrix.
@@ -135,6 +143,7 @@ class Solver:
                                    display=display)
         return Phi_new
 
+    # TODO: Consider caching this method.
     def population_growth_rate(self, birth_scaling, **kwds):
         '''Get the population growth rate.'''
         Psi = self.monodromy(birth_scaling, **kwds)
@@ -146,6 +155,7 @@ class Solver:
         mu_dom = numpy.log(rho_dom) / self.period
         return mu_dom
 
+    # TODO: Cache this method.
     def birth_scaling_for_zero_population_growth(self, **kwds):
         '''Find the birth scaling that gives zero population growth rate.'''
         # Set `kwds`, if any.
@@ -164,6 +174,7 @@ class Solver:
         scaling = scipy.optimize.brentq(fcn, lower, upper)
         return scaling
 
+    # TODO: Cache this method.
     def stable_age_density(self, **kwds):
         '''Get the stable age density.'''
         Psi = self.monodromy(**kwds)

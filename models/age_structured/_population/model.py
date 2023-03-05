@@ -1,7 +1,5 @@
 '''Age-structured population model.'''
 
-import functools
-
 from . import _integral, _solver
 from .. import _age
 
@@ -28,24 +26,17 @@ class Model:
         self.a_max = a_max
         self.a_step = _solver.Solver._get_a_step(self.t_step)
         assert self.a_step > 0
-
-    @functools.cached_property
-    def _solver(self):
-        '''`._solver` is built on first use and then reused.'''
-        _solver_ = _solver.Solver(self)
-        return _solver_
+        self._solver = _solver.Solver(self)
 
     def integral_over_a(self, arr, *args, **kwds):
         '''Integrate `arr` over age. `args` and `kwds` are passed on
          to `.sum()`.'''
         return _integral.over_a(arr, self.a_step, *args, **kwds)
 
-    # TODO: Cache this method.
     def birth_scaling_for_zero_population_growth(self, **kwds):
         '''Find the birth scaling that gives zero population growth rate.'''
         return self._solver.birth_scaling_for_zero_population_growth(**kwds)
 
-    # TODO: Cache this method.
     def stable_age_density(self, **kwds):
         '''Get the stable age density.'''
         return self._solver.stable_age_density(**kwds)
