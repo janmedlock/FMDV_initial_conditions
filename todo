@@ -1,3 +1,7 @@
+* Can I simplify parameters/processes (birth, death, etc.) by making a
+  class to hold them? That class could hold _population.Model and link
+  birth and death together.
+
 * Make Solvers inherit from each other
   * Move '_Hq()', '_Fq()', '_Tq()', '_B', etc into _model.solver.Solver()
 

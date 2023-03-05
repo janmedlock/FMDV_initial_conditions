@@ -24,6 +24,11 @@ class Model(metaclass=abc.ABCMeta):
     def __init__(self, t_step, **kwds):
         self.t_step = t_step
         self._init_parameters(**kwds)
+        self._init_post()
+
+    def _init_post(self):
+        '''Final initialization.'''
+        self._index = self._build_index()
 
     @functools.cached_property
     def _solver(self):
@@ -42,12 +47,6 @@ class Model(metaclass=abc.ABCMeta):
 
     def _build_index(self):
         '''Build a `pandas.Index()` for solutions.'''
-
-    @functools.cached_property
-    def _index(self):
-        '''`._index` is built on first use and then reused.'''
-        _index = self._build_index()
-        return _index
 
     def _build_weights(self):
         '''Build weights for the state vector.'''

@@ -26,9 +26,14 @@ class Model(unstructured.Model):
     _z_max_default = 3
 
     def __init__(self, *args, z_max=_z_max_default, **kwds):
+        self.z_max = z_max
         super().__init__(*args, **kwds)
+
+    def _init_post(self):
+        '''Final initialization.'''
         self.z_step = self._Solver._get_z_step(self.t_step)
-        self.z = _utility.numerical.build_t(0, z_max, self.z_step)
+        self.z = _utility.numerical.build_t(0, self.z_max, self.z_step)
+        super()._init_post()
 
     def _extend_index(self, idx_other):
         '''Extend `idx_other` with the 'time-since-entry' level.'''
