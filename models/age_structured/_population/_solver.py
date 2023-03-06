@@ -1,5 +1,6 @@
 '''Solver.'''
 
+import dataclasses
 import functools
 
 import numpy
@@ -7,57 +8,56 @@ import scipy.optimize
 
 from . import _integral
 from ... import _utility
+from ...birth import Birth
+from ...death import Death
 
 
+@dataclasses.dataclass
 class Solver:
     '''Crank–Nicolson solver.'''
 
-    # These methods are slow, so we will cache their results to disk
-    # using `_utility.cache`.
+    # The dataclass fields. These are the input variables for
+    # initializing instances.
+    birth: Birth
+    death: Death
+    t_step: float
+    a_max: float
+
+    # These methods are slow, so cache their results to disk using
+    # `_utility.cache`.
     _methods_cached = ('population_growth_rate',
                        'birth_scaling_for_zero_population_growth',
                        'stable_age_density')
 
-    # For caching, we limit the hash of instances of this class so
-    # that it only depends on the primary attributes that change the
-    # output of the methods in `_methods_cached` by restricting the
-    # state produced by `.__getstate__()` to only include those
-    # primary attributes. These are the attributes that correspond to
-    # the arguments of `__init__()`.
-    _state_attrs = ('birth', 'death', 't_step', 'a_max')
-
-    def __init__(self, birth, death, t_step, a_max):
-        self.birth = birth
-        self.death = death
-        self.t_step = t_step
-        self.a_max = a_max
-        self._init_secondary()
-
-    def _init_secondary(self):
-        '''Initialization of secondary attributes.'''
-        self.a_step = self._get_a_step(self.t_step)
-        self._monodromy_initialized = False
-        self._init_cached()
-
-    def __getstate__(self):
-        '''Restrict the state to only the attributes that change the
-        output of the methods in `self._methods_cached`.'''
-        state = {attr: self.__dict__[attr]
-                 for attr in self._state_attrs}
-        return state
-
-    def __setstate__(self, state):
-        '''Build an instance from the limited `state` produced by
-        `self.__getstate__()`.'''
-        self.__dict__.update(state)
-        self._init_secondary()
+    # For caching, the hash of class instances is restricted to only
+    # depend on the input variables used in initializating instances
+    # by restricting the state produced by `.__getstate__()`.
 
     def _init_cached(self):
         '''Cache the methods in `self._methods_cached`.'''
         for name in self._methods_cached:
             method = getattr(self, name)
-            cached = _utility.cache.cache.cache(method)
+            cached = _utility.cache.cache(method)
             setattr(self, name, cached)
+
+    def __post_init__(self):
+        '''Secondary initialization.'''
+        self.a_step = self._get_a_step(self.t_step)
+        self._monodromy_initialized = False
+        self._init_cached()
+
+    def __getstate__(self):
+        '''Restrict the state to only the input variables used in
+        initializing instances.'''
+        attrs = (field.name for field in dataclasses.fields(self))
+        state = {attr: self.__dict__[attr] for attr in attrs}
+        return state
+
+    def __setstate__(self, state):
+        '''Build an instance from the restricted `state` produced by
+        `self.__getstate__()`.'''
+        self.__dict__.update(state)
+        self.__post_init__()
 
     @staticmethod
     def _get_a_step(t_step):

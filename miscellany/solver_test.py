@@ -1,9 +1,9 @@
-'''Utilities for checking the model solver matrices.'''
+'''Utilities for testing the model solver matrices.'''
 
 import abc
 
 from context import models
-from models import _utility
+import models._utility
 
 
 class Base:
@@ -25,14 +25,16 @@ class Base:
     @abc.abstractmethod
     def B(self): pass
 
-    def check_matrices(self):
+    def test(self):
         solver = self.model._solver
         names = ('beta', 'H', 'F', 'T', 'B')
         for name in names:
             matrix = getattr(solver, name)
-            checker = getattr(self, name)
+            test_fcn = getattr(self, name)
             if isinstance(matrix, dict):
                 for q in ('new', 'cur'):
-                    assert _utility.sparse.equals(matrix[q], checker(q))
+                    assert models._utility.sparse.equals(matrix[q],
+                                                         test_fcn(q))
             else:
-                assert _utility.sparse.equals(matrix, checker())
+                assert models._utility.sparse.equals(matrix,
+                                                     test_fcn())

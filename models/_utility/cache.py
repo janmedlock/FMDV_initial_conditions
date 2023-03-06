@@ -11,4 +11,6 @@ assert _depth > 0
 _root = pathlib.Path(__file__).parents[_depth - 1]
 _path = _root / '_cache'
 
-cache = joblib.Memory(_path, compress=True, verbose=1)
+_cache = joblib.Memory(_path, compress=True, verbose=1)
+
+cache = _cache.cache

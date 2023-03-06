@@ -4,12 +4,12 @@ import numpy
 import scipy.sparse
 
 from context import models
-import models._utility.sparse
+import models._utility
 
-import _check_solver
+import solver_test
 
 
-class Checker(_check_solver.Base):
+class Tester(solver_test.Base):
     def beta(self):
         J = len(self.model.a)
         zeros = scipy.sparse.csr_array((1, J))
@@ -95,5 +95,5 @@ class Checker(_check_solver.Base):
 
 if __name__ == '__main__':
     model = models.age_structured.Model()
-    checker = Checker(model)
-    checker.check_matrices()
+    tester = Tester(model)
+    tester.test()

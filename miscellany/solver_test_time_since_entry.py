@@ -4,13 +4,12 @@ import numpy
 import scipy.sparse
 
 from context import models
-import models._utility.numerical
-import models._utility.sparse
+import models._utility
 
-import _check_solver
+import solver_test
 
 
-class Checker(_check_solver.Base):
+class Tester(solver_test.Base):
     def beta(self):
         K = len(self.model.z)
         zeros = scipy.sparse.csr_array((1, K))
@@ -115,5 +114,5 @@ class Checker(_check_solver.Base):
 
 if __name__ == '__main__':
     model = models.time_since_entry_structured.Model()
-    checker = Checker(model)
-    checker.check_matrices()
+    tester = Tester(model)
+    tester.test()
