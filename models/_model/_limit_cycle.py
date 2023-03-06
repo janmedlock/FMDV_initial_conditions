@@ -57,15 +57,15 @@ def find_subharmonic(model, period_0, t_0, y_0_guess,
     raise RuntimeError(msg)
 
 
-def monodromy_matrix(model, limit_cycle):
+def monodromy(model, limit_cycle):
     '''Get the monodromy matrix.'''
-    Phi = _fundamental.solution(model, limit_cycle)
-    return Phi[-1]
+    Psi = _fundamental.monodromy(model, limit_cycle)
+    return Psi
 
 
 def characteristic_multipliers(model, limit_cycle, k=5):
     '''Get the characteristic multipliers of `limit_cycle`.'''
-    Psi = monodromy_matrix(model, limit_cycle)
+    Psi = monodromy(model, limit_cycle)
     # One of the multipliers should be 1 and it is the multiplier with
     # largest magnitude for a stable limit cycle.
     sigma = 1

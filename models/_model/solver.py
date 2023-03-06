@@ -131,7 +131,7 @@ class Base(metaclass=abc.ABCMeta):
         return (t, y)
 
     def solution_at_t_end(self, t_span, y_0,
-                          t=None, y_temp=None):
+                          t=None, y_temp=None, display=False):
         '''Find the value of the solution at `t_span[1]`.'''
         if t is None:
             t = _utility.numerical.build_t(*t_span, self.t_step)
@@ -144,7 +144,7 @@ class Base(metaclass=abc.ABCMeta):
             # now the current value and what was the current value of
             # the solution will be storage space for the new value.
             (y_cur, y_new) = (y_new, y_cur)
-            y_new[:] = self.step(t_cur, y_cur)
+            y_new[:] = self.step(t_cur, y_cur, display=display)
         return y_new
 
     def _make_column_vector(self, y):

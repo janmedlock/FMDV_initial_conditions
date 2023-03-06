@@ -47,17 +47,41 @@ class _Solver:
                                      overwrite_a=True,
                                      overwrite_b=True)
 
+    def I_dense(self):
+        '''Return a dense identity matrix.'''
+        if self._sparse:
+            return self.I.toarray()
+        else:
+            return self.I
+
+    def monodromy(self, display=False):
+        '''Solve for the monodromy matrix.'''
+        t = self.y.index
+        Phi_temp = numpy.empty((2, ) + self.I.shape)
+        (Phi_cur, Phi_new) = Phi_temp
+        Phi_new[:] = self.I_dense()
+        for k in range(1, len(t)):
+            # Update so that what was the new value of the solution is
+            # now the current value and what was the current value of
+            # the solution will be storage space for the new value.
+            (Phi_cur, Phi_new) = (Phi_new, Phi_cur)
+            Phi_new[:] = self.step(t[k - 1], Phi_cur, t[k], display=display)
+        return Phi_new
+
     def solve(self, display=False):
         '''Solve.'''
         t = self.y.index
         Phi = numpy.empty((len(t), ) + self.I.shape)
-        if self._sparse:
-            Phi[0] = self.I.toarray()
-        else:
-            Phi[0] = self.I
+        Phi[0] = self.I_dense()
         for k in range(1, len(t)):
             Phi[k] = self.step(t[k - 1], Phi[k - 1], t[k], display=display)
         return Phi
+
+
+def monodromy(model, y, display=False):
+    '''Solve for the monodromy matrix.'''
+    solver = _Solver(model, y)
+    return solver.monodromy(display=display)
 
 
 def solution(model, y, display=False):
