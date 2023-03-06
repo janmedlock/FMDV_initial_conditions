@@ -1,6 +1,6 @@
 '''Age-structured population model.'''
 
-from . import _integral, _solver
+from . import _solver
 from .. import _age
 
 
@@ -32,7 +32,7 @@ class Model:
     def integral_over_a(self, arr, *args, **kwds):
         '''Integrate `arr` over age. `args` and `kwds` are passed on
          to `.sum()`.'''
-        return _integral.over_a(arr, self.a_step, *args, **kwds)
+        return _solver.integral_over_a(arr, self.a_step, *args, **kwds)
 
     def birth_scaling_for_zero_population_growth(self, **kwds):
         '''Find the birth scaling that gives zero population growth rate.'''

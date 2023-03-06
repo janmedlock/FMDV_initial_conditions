@@ -6,10 +6,15 @@ import functools
 import numpy
 import scipy.optimize
 
-from . import _integral
 from ... import _utility
 from ...birth import Birth
 from ...death import Death
+
+
+def integral_over_a(arr, a_step, *args, **kwds):
+    '''Integrate `arr` over age using `a_step` as the step
+     size. `args` and `kwds` are passed on to `.sum()`.'''
+    return arr.sum(*args, **kwds) * a_step
 
 
 @dataclasses.dataclass
@@ -243,5 +248,5 @@ class Solver:
         )
         assert numpy.isclose(rho_dom, sigma)
         # Normalize `v_dom` in place so that its integral over a is 1.
-        v_dom /= _integral.over_a(v_dom, self.a_step)
+        v_dom /= integral_over_a(v_dom, self.a_step)
         return (self.a, v_dom)
