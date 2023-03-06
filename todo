@@ -1,5 +1,3 @@
-* Use joblib.cache in models.age_structured._population._solver
-
 * Time-since-entry model
   * Find limit cycle
     * Find exponents

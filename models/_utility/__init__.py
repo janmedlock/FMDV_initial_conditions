@@ -1,3 +1,3 @@
 '''Utilities.'''
 
-from . import linalg, numerical, optimize, sparse, waiting_time
+from . import cache, linalg, numerical, optimize, sparse, waiting_time

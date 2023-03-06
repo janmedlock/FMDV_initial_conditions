@@ -26,7 +26,8 @@ class Model:
         self.a_max = a_max
         self.a_step = _solver.Solver._get_a_step(self.t_step)
         assert self.a_step > 0
-        self._solver = _solver.Solver(self)
+        self._solver = _solver.Solver(self.birth, self.death,
+                                      self.t_step, self.a_max)
 
     def integral_over_a(self, arr, *args, **kwds):
         '''Integrate `arr` over age. `args` and `kwds` are passed on
