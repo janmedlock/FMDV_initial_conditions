@@ -3,6 +3,8 @@
 import numpy
 import pandas
 
+from . import sparse as sparse_
+
 
 def arange(start, stop, step, endpoint=True, dtype=None):
     '''Like `numpy.arange()` but, if `endpoint` is True, ensure that
@@ -65,6 +67,6 @@ def weighted_sum(y, weights):
 
 def identity(*args, sparse=False, **kwds):
     if sparse:
-        return sparse.identity(*args, **kwds)
+        return sparse_.identity(*args, **kwds)
     else:
         return numpy.identity(*args, **kwds)
