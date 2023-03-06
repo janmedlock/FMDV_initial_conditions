@@ -12,31 +12,51 @@ from ... import _utility
 class Solver:
     '''Crank–Nicolson solver.'''
 
-    _methods_to_cache = ('_population_growth_rate',
-                         '_birth_scaling_for_zero_population_growth',
-                         '_stable_age_density')
+    # These methods are slow, so we will cache their results to disk
+    # using `_utility.cache`.
+    _methods_cached = ('population_growth_rate',
+                       'birth_scaling_for_zero_population_growth',
+                       'stable_age_density')
+
+    # For caching, we limit the hash of instances of this class so
+    # that it only depends on the primary attributes that change the
+    # output of the methods in `_methods_cached` by restricting the
+    # state produced by `.__getstate__()` to only include those
+    # primary attributes. These are the attributes that correspond to
+    # the arguments of `__init__()`.
+    _state_attrs = ('birth', 'death', 't_step', 'a_max')
 
     def __init__(self, birth, death, t_step, a_max):
         self.birth = birth
         self.death = death
         self.t_step = t_step
         self.a_max = a_max
+        self._init_secondary()
+
+    def _init_secondary(self):
+        '''Initialization of secondary attributes.'''
         self.a_step = self._get_a_step(self.t_step)
         self._monodromy_initialized = False
         self._init_cached()
 
+    def __getstate__(self):
+        '''Restrict the state to only the attributes that change the
+        output of the methods in `self._methods_cached`.'''
+        state = {attr: self.__dict__[attr]
+                 for attr in self._state_attrs}
+        return state
+
+    def __setstate__(self, state):
+        '''Build an instance from the limited `state` produced by
+        `self.__getstate__()`.'''
+        self.__dict__.update(state)
+        self._init_secondary()
+
     def _init_cached(self):
-        # Instance attributes that would change the output of the
-        # cached methods.
-        args_cache = (self.birth, self.death, self.t_step, self.a_max)
-        for name in self._methods_to_cache:
+        '''Cache the methods in `self._methods_cached`.'''
+        for name in self._methods_cached:
             method = getattr(self, name)
-            # Cache the method and fix the instance attributes they
-            # depend on.
-            cached = functools.partial(
-                _utility.cache.cache.cache(method, ignore=['self']),
-                *args_cache
-            )
+            cached = _utility.cache.cache.cache(method)
             setattr(self, name, cached)
 
     @staticmethod
@@ -177,10 +197,8 @@ class Solver:
         exponent = numpy.log(multiplier) / self.period
         return exponent
 
-    def _population_growth_rate(self,
-                                birth, death, t_step, a_max,
-                                birth_scaling, _guess=None, **kwds):
-        '''Get the population growth rate, cached version.'''
+    def population_growth_rate(self, birth_scaling, _guess=None, **kwds):
+        '''Get the population growth rate.'''
         Psi = self.monodromy(birth_scaling, **kwds)
         # Get the dominant Floquet multiplier.
         sigma = (self.multiplier_from_exponent(_guess)
@@ -192,18 +210,12 @@ class Solver:
         mu_dom = self.exponent_from_multiplier(rho_dom)
         return mu_dom
 
-    def population_growth_rate(self, birth_scaling, **kwds):
-        '''Get the population growth rate.'''
-        return self._population_growth_rate(birth_scaling, **kwds)
-
-    def _birth_scaling_for_zero_population_growth(self,
-                                                  birth, death, t_step, a_max,
-                                                  **kwds):
+    def birth_scaling_for_zero_population_growth(self, **kwds):
         '''Find the birth scaling that gives zero population growth
-        rate, cached version.'''
+        rate.'''
         # Set arguments that do not vary. In particular, we are
         # looking for growth rate of 0.
-        growth_rate = functools.partial(self._population_growth_rate,
+        growth_rate = functools.partial(self.population_growth_rate,
                                         _guess=0, **kwds)
         # `.population_growth_rate()` is increasing in
         # `birth_scaling`. Find a starting bracket `(lower, upper)` with
@@ -219,14 +231,8 @@ class Solver:
         scaling = scipy.optimize.brentq(growth_rate, lower, upper)
         return scaling
 
-    def birth_scaling_for_zero_population_growth(self, **kwds):
-        '''Find the birth scaling that gives zero population growth rate.'''
-        return self._birth_scaling_for_zero_population_growth(**kwds)
-
-    def _stable_age_density(self,
-                            birth, death, t_step, a_max,
-                            **kwds):
-        '''Get the stable age density, cached version.'''
+    def stable_age_density(self, **kwds):
+        '''Get the stable age density.'''
         # This method assumes it is being called after birth has been
         # scaled so that the population growth rate is 0.
         growth_rate = 0
@@ -239,7 +245,3 @@ class Solver:
         # Normalize `v_dom` in place so that its integral over a is 1.
         v_dom /= _integral.over_a(v_dom, self.a_step)
         return (self.a, v_dom)
-
-    def stable_age_density(self, **kwds):
-        '''Get the stable age density.'''
-        return self._stable_age_density(**kwds)
