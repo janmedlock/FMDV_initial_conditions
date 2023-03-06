@@ -80,10 +80,12 @@ class Model(metaclass=abc.ABCMeta):
         _utility.numerical.assert_nonnegative(soln)
         return self.Solution(soln, t_)
 
-    def find_equilibrium(self, eql_guess, t=0, **root_kwds):
+    def find_equilibrium(self, eql_guess, t=0, t_solve=0,
+                         display=False, **root_kwds):
         '''Find an equilibrium of the model.'''
         eql = _equilibrium.find(self, eql_guess, t,
-                                weights=self._weights, **root_kwds)
+                                t_solve=t_solve, weights=self._weights,
+                                display=display, **root_kwds)
         _utility.numerical.assert_nonnegative(eql)
         return self.Solution(eql)
 
@@ -92,12 +94,13 @@ class Model(metaclass=abc.ABCMeta):
         return _equilibrium.eigenvalues(self, eql, t, k=k)
 
     def find_limit_cycle(self, period_0, t_0, lcy_0_guess,
-                         solution=True, **root_kwds):
+                         solution=True, display=False, **root_kwds):
         '''Find a limit cycle of the model.'''
         result = _limit_cycle.find_subharmonic(self, period_0, t_0,
                                                lcy_0_guess,
                                                weights=self._weights,
                                                solution=solution,
+                                               display=display,
                                                **root_kwds)
         if solution:
             (t, lcy) = result
@@ -108,10 +111,12 @@ class Model(metaclass=abc.ABCMeta):
             _utility.numerical.assert_nonnegative(lcy_0)
             return self.Solution(lcy_0)
 
-    def get_characteristic_multipliers(self, lcy, k=5):
+    def get_characteristic_multipliers(self, lcy, k=5, display=False):
         '''Get the characteristic multipliers.'''
-        return _limit_cycle.characteristic_multipliers(self, lcy, k=k)
+        return _limit_cycle.characteristic_multipliers(self, lcy, k=k,
+                                                       display=display)
 
-    def get_characteristic_exponents(self, lcy, k=5):
+    def get_characteristic_exponents(self, lcy, k=5, display=False):
         '''Get the characteristic exponents.'''
-        return _limit_cycle.characteristic_exponents(self, lcy, k=k)
+        return _limit_cycle.characteristic_exponents(self, lcy, k=k,
+                                                     display=display)

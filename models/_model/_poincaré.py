@@ -17,13 +17,15 @@ class Map:
         y_start = model.build_initial_conditions()
         self.y_temp = numpy.empty((2, *numpy.shape(y_start)))
 
-    def solve(self, y_0):
+    def solve(self, y_0, display=False):
         '''Get the solution y(t) over one period, not just at the end
         time.'''
-        return self._solver.solve(self.t_span, y_0, t=self.t)
+        return self._solver.solve(self.t_span, y_0,
+                                  t=self.t, display=display)
 
-    def __call__(self, y_0):
+    def __call__(self, y_0, display=False):
         '''Get the solution at the end of one period.'''
         return self._solver.solution_at_t_end(self.t_span, y_0,
                                               t=self.t,
-                                              y_temp=self.y_temp)
+                                              y_temp=self.y_temp,
+                                              display=display)
