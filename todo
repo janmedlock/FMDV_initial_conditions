@@ -1,3 +1,7 @@
+* Run model_age_structured
+
+* Run equilibria
+
 * Age-structured model
   * Find equiblibrium eigenvalues
   * Find limit cycle
@@ -8,6 +12,8 @@
   * Write numerical method as linear algebra
     * Kronecker product: `\otimes`, `numpy.kron()`
   * Write models.combination._solver.Solver
+
+* Can I bootstrap up equilibria & limit cycles from simpler models?
 
 * Profile initializing solvers, solving, finding equilibria, etc.
 

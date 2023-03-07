@@ -12,7 +12,7 @@ import solver_test
 class Tester(solver_test.Base):
     def beta(self):
         J = len(self.model.a)
-        zeros = scipy.sparse.csr_array((1, J))
+        zeros = solver_test.sparse_array((1, J))
         ones = numpy.ones((1, J))
         return (self.model.parameters.transmission.rate
                 * self.model.a_step
@@ -69,7 +69,7 @@ class Tester(solver_test.Base):
                  0: numpy.hstack([numpy.zeros(J - 1), 1])})
         else:
             raise ValueError
-        Zeros = scipy.sparse.csr_array((J, J))
+        Zeros = solver_test.sparse_array((J, J))
         return scipy.sparse.bmat([
             [Zeros, Zeros, Zeros, Zeros, Zeros],
             [Zeros, - TXW, Zeros, Zeros, Zeros],
@@ -83,7 +83,7 @@ class Tester(solver_test.Base):
         nu = self.model.parameters.birth.maternity(self.model.a)
         BXW = scipy.sparse.dok_array((J, J))
         BXW[0] = nu
-        Zeros = scipy.sparse.csr_array((J, J))
+        Zeros = solver_test.sparse_array((J, J))
         return scipy.sparse.bmat([
             [Zeros, Zeros, Zeros, Zeros, BXW],
             [BXW, BXW, BXW, BXW, Zeros],

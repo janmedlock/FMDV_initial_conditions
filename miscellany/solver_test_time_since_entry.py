@@ -12,7 +12,7 @@ import solver_test
 class Tester(solver_test.Base):
     def beta(self):
         K = len(self.model.z)
-        zeros = scipy.sparse.csr_array((1, K))
+        zeros = solver_test.sparse_array((1, K))
         ones = numpy.ones((1, K))
         return (self.model.parameters.transmission.rate
                 * self.model.z_step
@@ -83,9 +83,9 @@ class Tester(solver_test.Base):
         K = len(self.model.z)
         tyX = scipy.sparse.dok_array((K, 1))
         tyX[0, 0] = 1 / self.model.z_step
-        ZerosKK = scipy.sparse.csr_array((K, K))
-        zerosK1 = scipy.sparse.csr_array((K, 1))
-        zeros1K = scipy.sparse.csr_array((1, K))
+        ZerosKK = solver_test.sparse_array((K, K))
+        zerosK1 = solver_test.sparse_array((K, 1))
+        zeros1K = solver_test.sparse_array((1, K))
         return scipy.sparse.bmat([
             [ZerosKK, zerosK1, ZerosKK, ZerosKK, zerosK1],
             [zeros1K, [[- 1]], zeros1K, zeros1K, [[0]]],
@@ -100,9 +100,9 @@ class Tester(solver_test.Base):
         byX[0, 0] = 1 / self.model.z_step
         bXy = scipy.sparse.dok_array((1, K))
         bXy[0] = self.model.z_step
-        ZerosKK = scipy.sparse.csr_array((K, K))
-        zerosK1 = scipy.sparse.csr_array((K, 1))
-        zeros1K = scipy.sparse.csr_array((1, K))
+        ZerosKK = solver_test.sparse_array((K, K))
+        zerosK1 = solver_test.sparse_array((K, 1))
+        zeros1K = solver_test.sparse_array((1, K))
         return scipy.sparse.bmat([
             [ZerosKK, zerosK1, ZerosKK, ZerosKK, byX],
             [bXy, [[1]], bXy, bXy, [[0]]],

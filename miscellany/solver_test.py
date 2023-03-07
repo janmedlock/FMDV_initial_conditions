@@ -2,8 +2,13 @@
 
 import abc
 
+import scipy.sparse
+
 from context import models
 import models._utility
+
+
+sparse_array = scipy.sparse.csc_array
 
 
 class Base:

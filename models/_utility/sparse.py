@@ -4,7 +4,7 @@ import scipy.sparse
 
 
 # Common sparse array format.
-array = scipy.sparse.csr_array
+array = scipy.sparse.csc_array
 
 
 def identity(n, *args, **kwds):
