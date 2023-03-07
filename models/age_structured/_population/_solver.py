@@ -202,20 +202,34 @@ class Solver:
         exponent = numpy.log(multiplier) / self.period
         return exponent
 
-    def population_growth_rate(self, birth_scaling, **kwds):
+    def population_growth_rate(self, birth_scaling,
+                               _guess=None, **kwds):
         '''Get the population growth rate.'''
         Psi = self.monodromy(birth_scaling, **kwds)
         # Get the dominant Floquet multiplier.
-        rho_dom = _utility.linalg.get_dominant_eigen(Psi, which='LM',
-                                                     return_eigenvector=False)
+        # If `_guess` is not `None`, find the multiplier closest to
+        # `rho_guess`, i.e. the exponent closest to `_guess`.
+        # Otherwise, find the multiplier with largest magnitude.
+        rho_guess = (self.multiplier_from_exponent(_guess)
+                     if _guess is not None
+                     else None)
+        rho_dom = _utility.linalg.get_dominant_eigen(
+            Psi,
+            which='LM', sigma=rho_guess,
+            return_eigenvector=False
+        )
         mu_dom = self.exponent_from_multiplier(rho_dom)
         return mu_dom
 
     def birth_scaling_for_zero_population_growth(self, **kwds):
         '''Find the birth scaling that gives zero population growth
         rate.'''
-        # Set the keyword arguments.
-        growth_rate = functools.partial(self.population_growth_rate, **kwds)
+        # Set the arguments to `.population_growth_rate()` except for
+        # `birth_scaling`, which will be found by optimization. In
+        # particular, set the growth rate to be near 0.
+        growth_rate = functools.partial(self.population_growth_rate,
+                                        _guess=0,
+                                        **kwds)
         # `.population_growth_rate()` is increasing in
         # `birth_scaling`. Find a starting bracket `(lower, upper)` with
         # `.population_growth_rate(upper) > 0` and
@@ -233,9 +247,16 @@ class Solver:
     def stable_age_density(self, **kwds):
         '''Get the stable age density.'''
         Psi = self.monodromy(**kwds)
-        (_, v_dom) = _utility.linalg.get_dominant_eigen(
-            Psi, which='LM', return_eigenvector=True
+        # This method assumes it is being called after birth has been
+        # scaled so that the population growth rate is 0.
+        growth_rate = 0
+        growth_mult = self.multiplier_from_exponent(growth_rate)
+        # Find the eigenvector for the multiplier closest to
+        # `growth_mult`, i.e. the exponent closest to `growth_rate`.
+        (rho_dom, v_dom) = _utility.linalg.get_dominant_eigen(
+            Psi, which='LM', sigma=growth_mult, return_eigenvector=True
         )
+        assert numpy.isclose(rho_dom, growth_mult)
         # Normalize `v_dom` in place so that its integral over a is 1.
         v_dom /= integral_over_a(v_dom, self.a_step)
         return (self.a, v_dom)
