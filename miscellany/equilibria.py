@@ -26,7 +26,7 @@ if __name__ == '__main__':
     models.plotting.solution(model_tses.integral_over_z(solution_tses),
                              ax=ax_solution, legend=False)
     equilibrium_tses = model_tses.find_equilibrium(solution_tses.loc[t_end],
-                                                   options=dict(disp=True))
+                                                   display=True)
     models.plotting.state(model_tses.integral_over_z(equilibrium_tses),
                           label='time-since-entry structured',
                           states=plot_states,
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     models.plotting.solution(model_as.integral_over_a(solution_as),
                              ax=ax_solution, legend=False)
     equilibrium_as = model_as.find_equilibrium(solution_as.loc[t_end],
-                                               options=dict(disp=True))
+                                               display=True)
     models.plotting.state(model_as.integral_over_a(equilibrium_as),
                           label='age structured',
                           states=plot_states,
