@@ -202,15 +202,11 @@ class Solver:
         exponent = numpy.log(multiplier) / self.period
         return exponent
 
-    def population_growth_rate(self, birth_scaling, _guess=None, **kwds):
+    def population_growth_rate(self, birth_scaling, **kwds):
         '''Get the population growth rate.'''
         Psi = self.monodromy(birth_scaling, **kwds)
         # Get the dominant Floquet multiplier.
-        sigma = (self.multiplier_from_exponent(_guess)
-                 if _guess is not None
-                 else None)
         rho_dom = _utility.linalg.get_dominant_eigen(Psi, which='LM',
-                                                     sigma=sigma,
                                                      return_eigenvector=False)
         mu_dom = self.exponent_from_multiplier(rho_dom)
         return mu_dom
@@ -218,10 +214,8 @@ class Solver:
     def birth_scaling_for_zero_population_growth(self, **kwds):
         '''Find the birth scaling that gives zero population growth
         rate.'''
-        # Set arguments that do not vary. In particular, we are
-        # looking for growth rate of 0.
-        growth_rate = functools.partial(self.population_growth_rate,
-                                        _guess=0, **kwds)
+        # Set the keyword arguments.
+        growth_rate = functools.partial(self.population_growth_rate, **kwds)
         # `.population_growth_rate()` is increasing in
         # `birth_scaling`. Find a starting bracket `(lower, upper)` with
         # `.population_growth_rate(upper) > 0` and
@@ -239,14 +233,9 @@ class Solver:
     def stable_age_density(self, **kwds):
         '''Get the stable age density.'''
         Psi = self.monodromy(**kwds)
-        # This method assumes it is being called after birth has been
-        # scaled so that the population growth rate is 0.
-        growth_rate = 0
-        sigma = self.multiplier_from_exponent(growth_rate)
-        (rho_dom, v_dom) = _utility.linalg.get_dominant_eigen(
-            Psi, which='LM', sigma=sigma, return_eigenvector=True
+        (_, v_dom) = _utility.linalg.get_dominant_eigen(
+            Psi, which='LM', return_eigenvector=True
         )
-        assert numpy.isclose(rho_dom, sigma)
         # Normalize `v_dom` in place so that its integral over a is 1.
         v_dom /= integral_over_a(v_dom, self.a_step)
         return (self.a, v_dom)

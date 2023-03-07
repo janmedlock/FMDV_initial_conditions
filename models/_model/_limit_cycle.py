@@ -79,13 +79,10 @@ def monodromy(model, limit_cycle, display=False):
 def characteristic_multipliers(model, limit_cycle, k=5, display=False):
     '''Get the characteristic multipliers of `limit_cycle`.'''
     Psi = monodromy(model, limit_cycle, display=display)
-    # One of the multipliers should be 1 and it is the multiplier with
-    # largest magnitude for a stable limit cycle.
-    sigma = 1
     mlts = _utility.linalg.eigs(Psi, k=k, which='LM',
-                                sigma=sigma,
                                 return_eigenvectors=False)
-    # Drop the one closest to 1.
+    # One of the multipliers of a limit cycle is always 1, so drop
+    # that.
     drop = numpy.abs(mlts - 1).argmin()
     if numpy.isclose(mlts[drop], 1):
         mlts = numpy.delete(mlts, drop)
