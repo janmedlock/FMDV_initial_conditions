@@ -8,7 +8,7 @@ from context import models
 import models._utility
 
 
-sparse_array = scipy.sparse.csc_array
+sparse_array = models._utility.sparse.array
 
 
 class Base:
