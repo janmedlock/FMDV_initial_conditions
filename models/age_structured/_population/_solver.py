@@ -7,7 +7,7 @@ import numpy
 import scipy.optimize
 
 from ... import _utility
-from ...birth import Birth
+from ...birth import _Birth
 from ...death import Death
 
 
@@ -23,7 +23,7 @@ class Solver:
 
     # The dataclass fields. These are the input variables for
     # initializing instances.
-    birth: Birth
+    birth: _Birth
     death: Death
     t_step: float
     a_max: float
