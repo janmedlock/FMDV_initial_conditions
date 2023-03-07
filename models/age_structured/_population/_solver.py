@@ -238,10 +238,10 @@ class Solver:
 
     def stable_age_density(self, **kwds):
         '''Get the stable age density.'''
+        Psi = self.monodromy(**kwds)
         # This method assumes it is being called after birth has been
         # scaled so that the population growth rate is 0.
         growth_rate = 0
-        Psi = self.monodromy(**kwds)
         sigma = self.multiplier_from_exponent(growth_rate)
         (rho_dom, v_dom) = _utility.linalg.get_dominant_eigen(
             Psi, which='LM', sigma=sigma, return_eigenvector=True
