@@ -52,11 +52,12 @@ class Model(_model.model.Model):
     def build_initial_conditions(self):
         '''Build the initial conditions for the 'state' level.'''
         Y_other = super().build_initial_conditions()
-        assert Y_other is None
-        M = 0
-        E = 0
+        if Y_other is not None:
+            clsname = self.__class__.__qualname__
+            msg = f'{clsname} should be the last inherited class.'
+            raise NotImplementedError(msg)
+        M = E = R = 0
         I = 0.01
-        R = 0
         S = 1 - M - E - I - R
         idx_state = self._get_index_level('state')
         Y_state = pandas.Series([M, S, E, I, R], index=idx_state)
