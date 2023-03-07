@@ -5,32 +5,64 @@ import scipy.linalg
 import scipy.sparse
 
 
-def solve(A, b, overwrite_a=False, overwrite_b=False):
-    if scipy.sparse.issparse(A):
-        if scipy.sparse.issparse(b):
-            A = A.tocsc()
-            b = b.tocsc()
-        return scipy.sparse.linalg.spsolve(A, b)
+# Map the first letter of 'which' to whether to reverse the sort order.
+_reverse = dict(L=True,
+                S=False)
+
+# Map the second letter of 'which' to a sort key function.
+_key = dict(M=numpy.abs,
+            R=numpy.real,
+            I=numpy.imag)
+
+
+def _parse_which(which):
+    '''Parse `which` into a key function and whether to reverse the
+    sort.'''
+    try:
+        (direction, kind) = which
+        key = _key[kind]
+        reverse = _reverse[direction]
+    except Exception as err:
+        raise ValueError(f'{which=}') from err
+    if reverse:
+        key_ = key
+        key = lambda x: -1. * key_(x)
+    return key
+
+
+def _sort_eigs(result, k, which, return_eigenvectors):
+    '''Sort `result` by the eigenvalues using `which` and only return
+    the first `k`.'''
+    if return_eigenvectors:
+        (eigvals, eigvecs) = result
     else:
-        return scipy.linalg.solve(A, b,
-                                  overwrite_a=overwrite_a,
-                                  overwrite_b=overwrite_b)
+        eigvals = result
+    key = _parse_which(which)
+    # Only keep the first `k`.
+    order = numpy.argsort(key(eigvals))[:k]
+    eigvals_sorted = eigvals[order]
+    if return_eigenvectors:
+        eigvecs_sorted = eigvecs[:, order]
+        result_sorted = (eigvals_sorted, eigvecs_sorted)
+    else:
+        result_sorted = eigvals_sorted
+    return result_sorted
 
 
-def eigs(A, k=5, which='LR', maxiter=100000, return_eigenvectors=True,
+def eigs(A, k=5, which='LR', maxiter=10000, return_eigenvectors=True,
          *args, **kwds):
-    '''Get the first `k` eigenvalues of `A` using a sparse solver.'''
+    '''Get the first `k` eigenvalues of `A`.'''
     if k < A.shape[0] - 1:
-        return scipy.sparse.linalg.eigs(
+        result = scipy.sparse.linalg.eigs(
             A, k=k, which=which, maxiter=maxiter,
             return_eigenvectors=return_eigenvectors,
             *args, **kwds
         )
     else:
         # If A is smaller than (k+1) x (k+1), fall back to
-        # `scipy.linalg.eig()` without ensuring only `k` eigenvalues
-        # are returned.
-        return scipy.linalg.eig(A, right=return_eigenvectors)
+        # `scipy.linalg.eig()`.
+        result = scipy.linalg.eig(A, right=return_eigenvectors)
+    return _sort_eigs(result, k, which, return_eigenvectors)
 
 
 def get_dominant_eigen(A, which='LR', return_eigenvector=True,
@@ -64,6 +96,19 @@ def get_dominant_eigen(A, which='LR', return_eigenvector=True,
         return (l0, v0)
     else:
         return l0
+
+
+def solve(A, b, overwrite_a=False, overwrite_b=False):
+    '''Solve the matrix system A @ x = b.'''
+    if scipy.sparse.issparse(A):
+        if scipy.sparse.issparse(b):
+            A = A.tocsc()
+            b = b.tocsc()
+        return scipy.sparse.linalg.spsolve(A, b)
+    else:
+        return scipy.linalg.solve(A, b,
+                                  overwrite_a=overwrite_a,
+                                  overwrite_b=overwrite_b)
 
 
 def is_positive(arr):

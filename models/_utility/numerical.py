@@ -22,21 +22,6 @@ def build_t(start, stop, step):
     return arange(start, stop, step)
 
 
-def _sort_by(arr, fcn):
-    order = fcn(arr).argsort()
-    return arr[order]
-
-
-def sort_by_abs(arr):
-    '''Sort the elements of `arr` by absolute value.'''
-    return _sort_by(arr, numpy.abs)
-
-
-def sort_by_real_part(arr):
-    '''Sort the elements of `arr` by real part.'''
-    return _sort_by(arr, numpy.real)
-
-
 def is_increasing(arr):
     '''Check whether `arr` is increasing.'''
     return numpy.all(numpy.diff(arr) > 0)

@@ -77,7 +77,8 @@ def monodromy(model, limit_cycle, display=False):
 
 
 def characteristic_multipliers(model, limit_cycle, k=5, display=False):
-    '''Get the characteristic multipliers of `limit_cycle`.'''
+    '''Get the `k` characteristic multipliers of `limit_cycle` with
+    largest magnitude.'''
     Psi = monodromy(model, limit_cycle, display=display)
     mlts = _utility.linalg.eigs(Psi, k=k, which='LM',
                                 return_eigenvectors=False)
@@ -86,7 +87,7 @@ def characteristic_multipliers(model, limit_cycle, k=5, display=False):
     drop = numpy.abs(mlts - 1).argmin()
     if numpy.isclose(mlts[drop], 1):
         mlts = numpy.delete(mlts, drop)
-    return _utility.numerical.sort_by_abs(mlts)
+    return mlts
 
 
 def characteristic_exponents(model, limit_cycle, k=5, display=False):
