@@ -1,3 +1,9 @@
+* Why is scipy.sparse.linalg.spsolve() in _fundamental.solver.step()
+  MUCH slower for the time-since-entry-structured model with CSC
+  arrays than with CSR? I expect it to be faster because it is
+  skipping converting CSR to CSC, which seems to slow down the same
+  spsolve() for the age-structured model.
+
 * Age-structured model
   * Find equiblibrium eigenvalues
   * Find limit cycle
