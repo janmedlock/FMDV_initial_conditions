@@ -2,7 +2,7 @@
 
 import numpy
 
-from . import _fundamental, _poincaré
+from . import _equilibrium, _fundamental, _poincaré
 from .. import _utility
 
 
@@ -14,15 +14,19 @@ def _objective(y_0_cur, poincaré_map, weights, display):
 
 
 def find_with_period(model, period, t_0, y_0_guess,
-                     weights=1, solution=True, display=False,
-                     **root_kwds):
+                     t_solve=0, weights=1, solution=True,
+                     display=False, **root_kwds):
     '''Find a limit cycle with period `period` while keeping
     `weighted_sum(y_0, weights)` constant.'''
+    # Ensure `y_guess` is nonnegative.
+    y_0_guess = numpy.clip(y_0_guess, 0, None)
+    (t_0, y_0_guess) = _equilibrium.solution_after_t_solve(model,
+                                                           t_0, t_solve,
+                                                           y_0_guess,
+                                                           display=display)
     # Find a fixed point `y_0` of the Poincaré map, i.e. that gives
     # `y(t_0 + period) = y_0`.
     poincaré_map = _poincaré.Map(model, period, t_0)
-    # Ensure `y_guess` is nonnegative.
-    y_0_guess = numpy.clip(y_0_guess, 0, None)
     result = _utility.optimize.root(_objective, y_0_guess,
                                     args=(poincaré_map, weights, display),
                                     sparse=model._solver._sparse,
@@ -42,10 +46,16 @@ def find_with_period(model, period, t_0, y_0_guess,
 
 
 def find_subharmonic(model, period_0, t_0, y_0_guess,
-                     order_max=10, weights=1, solution=True,
+                     t_solve=0, order_max=10, weights=1, solution=True,
                      display=False, **root_kwds):
     '''Find a subharmonic limit cycle for a system with forcing period
     `period_0`.'''
+    # Ensure `y_guess` is nonnegative.
+    y_0_guess = numpy.clip(y_0_guess, 0, None)
+    (t_0, y_0_guess) = _equilibrium.solution_after_t_solve(model,
+                                                           t_0, t_solve,
+                                                           y_0_guess,
+                                                           display=display)
     for order in numpy.arange(1, order_max + 1):
         try:
             return find_with_period(model, order * period_0,

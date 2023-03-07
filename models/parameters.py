@@ -84,6 +84,11 @@ class _ModelParameters:
                                              *args, **kwds)
         self.birth._init_post(self._population)
 
+    @property
+    def period(self):
+        '''The only periodic parameter is birth.'''
+        return self.birth.period
+
     def _stable_age_density(self, **kwds):
         '''Get the stable age density.'''
         return self._population.stable_age_density(**kwds)

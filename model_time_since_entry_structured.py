@@ -32,8 +32,9 @@ if __name__ == '__main__':
     solution = model.solve((t_start, t_end))
     models.plotting.solution(model.integral_over_z(solution),
                              ax=ax_solution, legend=False)
-    limit_cycle = model.find_limit_cycle(model.parameters.birth.period,
-                                         t_end, solution.loc[t_end])
+    limit_cycle = model.find_limit_cycle(model.parameters.period,
+                                         t_end % model.parameters.period,
+                                         solution.loc[t_end])
     models.plotting.state(model.integral_over_z(limit_cycle),
                           states=plot_states, ax=ax_state)
     limit_cycle_eigvals = model.get_characteristic_exponents(limit_cycle,

@@ -80,6 +80,16 @@ class Model(metaclass=abc.ABCMeta):
         _utility.numerical.assert_nonnegative(soln)
         return self.Solution(soln, t_)
 
+    def solution_at_t_end(self, t_span,
+                          y_start=None, t=None, y=None, display=False):
+        '''Get the solution at the end time.'''
+        if y_start is None:
+            y_start = self.build_initial_conditions()
+        y_end = self._solver.solution_at_t_end(t_span, y_start,
+                                               t=t, y=y, display=display)
+        _utility.numerical.assert_nonnegative(y_end)
+        return self.Solution(y_end)
+
     def find_equilibrium(self, eql_guess, t=0, t_solve=0,
                          display=False, **root_kwds):
         '''Find an equilibrium of the model.'''

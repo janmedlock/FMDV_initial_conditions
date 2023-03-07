@@ -25,8 +25,9 @@ if __name__ == '__main__':
     model = models.unstructured.Model()
     solution = model.solve((t_start, t_end))
     models.plotting.solution(solution, ax=ax_solution, legend=False)
-    limit_cycle = model.find_limit_cycle(model.parameters.birth.period,
-                                         t_end, solution.loc[t_end])
+    limit_cycle = model.find_limit_cycle(model.parameters.period,
+                                         t_end % model.parameters.period,
+                                         solution.loc[t_end])
     models.plotting.state(limit_cycle, states=plot_states, ax=ax_state)
     limit_cycle_eigvals = model.get_characteristic_exponents(limit_cycle)
     models.plotting.eigvals(limit_cycle_eigvals, label='limit cycle',

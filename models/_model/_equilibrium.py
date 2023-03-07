@@ -5,11 +5,15 @@ import numpy
 from .. import _utility
 
 
-def _solve(model, y_0, t, t_solve, display=False):
-    '''Solve from `t` to `t + t_solve` to get close to an
-    equilibrium.'''
-    t_span = (t, t + t_solve)
-    return model._solver.solution_at_t_end(t_span, y_0, display=display)
+def solution_after_t_solve(model, t_0, t_solve, y_0, **kwds):
+    '''Solve from `t_0` to `t_0 + t_solve` to get closer to an
+    equilibrium or limit cycle.'''
+    assert t_solve >= 0
+    if t_solve == 0:
+        return (t_0, y_0)
+    t_1 = t_0 + t_solve
+    y_1 = model._solver.solution_at_t_end((t_0, t_1), y_0, **kwds)
+    return (t_1, y_1)
 
 
 def _objective(y_cur, solver, t, weights):
@@ -25,8 +29,8 @@ def find(model, y_guess, t=0, t_solve=0, weights=1,
     `weighted_sum(y, weights)` constant.'''
     # Ensure `y_guess` is nonnegative.
     y_guess = numpy.clip(y_guess, 0, None)
-    if t_solve > 0:
-        y_guess = _solve(model, y_guess, t, t_solve, display=display)
+    (t, y_guess) = solution_after_t_solve(model, t, t_solve, y_guess,
+                                          display=display)
     result = _utility.optimize.root(_objective, y_guess,
                                     args=(model._solver, t, weights),
                                     sparse=model._solver._sparse,
