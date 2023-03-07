@@ -3,7 +3,7 @@
 import scipy.sparse
 
 
-# Common sparse array format.
+# The sparse array format to use throughout.
 array = scipy.sparse.csr_array
 
 
