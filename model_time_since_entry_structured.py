@@ -5,7 +5,6 @@ with periodic birth rate.'''
 import matplotlib.pyplot
 
 import models
-import timer
 
 
 if __name__ == '__main__':
@@ -18,7 +17,9 @@ if __name__ == '__main__':
     ax_solution = models.plotting.solution(
         model_constant.integral_over_z(solution_constant)
     )
-    equilibrium = model_constant.find_equilibrium(solution_constant.loc[t_end])
+    equilibrium = model_constant.find_equilibrium(
+        solution_constant.loc[t_end]
+    )
     ax_state = models.plotting.state(
         model_constant.integral_over_z(equilibrium),
         states=plot_states
@@ -31,15 +32,13 @@ if __name__ == '__main__':
     solution = model.solve((t_start, t_end))
     models.plotting.solution(model.integral_over_z(solution),
                              ax=ax_solution, legend=False)
-    limit_cycle = model.find_limit_cycle(model.parameters.birth.period, t_end,
-                                         solution.loc[t_end])
+    limit_cycle = model.find_limit_cycle(model.parameters.birth.period,
+                                         t_end, solution.loc[t_end])
     models.plotting.state(model.integral_over_z(limit_cycle),
                           states=plot_states, ax=ax_state)
     limit_cycle_eigvals = model.get_characteristic_exponents(limit_cycle,
                                                              display=True)
-    models.plotting.eigvals(limit_cycle_eigvals,
-                            label='limit cycle',
-                            legend=True,
-                            ax=ax_eigvals)
+    models.plotting.eigvals(limit_cycle_eigvals, label='limit cycle',
+                            legend=True, ax=ax_eigvals)
 
     matplotlib.pyplot.show()

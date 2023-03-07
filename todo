@@ -1,11 +1,8 @@
-* Time-since-entry model
-  * Find limit cycle exponents
-
 * Age-structured model
-  * Find equiblibrium
-    * Find eigenvalues
+  * Find equiblibrium eigenvalues
   * Find limit cycle
-    * Find exponents
+    * Not quite a limit cycle: run solution for longer first?
+  * Find limit-cycle exponents
 
 * Combination model
   * Write numerical method as linear algebra

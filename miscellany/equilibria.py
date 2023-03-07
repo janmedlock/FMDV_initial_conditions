@@ -1,4 +1,6 @@
 #!/usr/bin/python3
+'''Find equilibria for complex models by using the equilibrium from
+the unstructured models.'''
 
 import matplotlib.pyplot
 import numpy
