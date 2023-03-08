@@ -4,8 +4,7 @@
   * Solving for the fundamental solution of the
     time-since-entry-structured model takes 2.6% less time with CSC.
   * Check timing with the age-structured model.
-    * get_eigenvalues() takes forever...
-      * Try converting each matrix to CSC
+    * get_eigenvalues() runs forever. Seems like memory pressure.
 
 * Age-structured model
   * Find equiblibrium eigenvalues
@@ -19,7 +18,7 @@
     * Kronecker product: `\otimes`, `numpy.kron()`
   * Write models.combination._solver.Solver
 
-* Shifting the eigenvalues does not find the right ones
+* Do I get the Jacobian or monodromy from root()?
 
 * Can I bootstrap up equilibria & limit cycles from simpler models?
 

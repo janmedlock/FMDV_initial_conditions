@@ -48,7 +48,6 @@ def find(model, y_guess, t=0, t_solve=0, weights=1,
 def eigenvalues(model, equilibrium, t=0, k=5):
     '''Get the `k` eigenvalues of `equilibrium` with largest real
     part.'''
-    n = len(equilibrium)
     J = model._solver.jacobian(t, equilibrium, equilibrium)
     evals = _utility.linalg.eigs(J, k=k, which='LR',
                                  return_eigenvectors=False)
