@@ -4,6 +4,8 @@
   * Solving for the fundamental solution of the
     time-since-entry-structured model takes 2.6% less time with CSC.
   * Check timing with the age-structured model.
+    * get_eigenvalues() takes forever...
+      * Try converting each matrix to CSC
 
 * Age-structured model
   * Find equiblibrium eigenvalues
