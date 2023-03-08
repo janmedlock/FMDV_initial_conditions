@@ -101,9 +101,6 @@ def get_dominant_eigen(A, which='LR', return_eigenvector=True,
 def solve(A, b, overwrite_a=False, overwrite_b=False):
     '''Solve the matrix system A @ x = b.'''
     if scipy.sparse.issparse(A):
-        if scipy.sparse.issparse(b):
-            A = A.tocsc()
-            b = b.tocsc()
         return scipy.sparse.linalg.spsolve(A, b)
     else:
         return scipy.linalg.solve(A, b,
