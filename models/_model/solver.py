@@ -200,6 +200,10 @@ class Base(metaclass=abc.ABCMeta):
         '''Calculate the Jacobian at `t_cur`, given `y_cur` and `y_new`.'''
         # Compute `D`, the derivative of `y_cur` with respect to `y_new`,
         # which is `M_new @ D = M_cur`.
+        # The `solve` step of computing `D` requires converting the
+        # sparse arrays to CSC format. For efficiency, this is done
+        # the first time the component arrays are used, via
+        # `beta_jac`, `H_jac`, `F_jac`, `T_jac`, and `B_jac`.
         # The linear algebra is easier if `y_cur` and `y_new` have
         # shape (n, 1) instead of just (n, ).
         y_cur = self._make_column_vector(y_cur)
