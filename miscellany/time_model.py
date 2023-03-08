@@ -2,7 +2,7 @@
 #
 # time-since-entry-structured model
 #                                        CSR             CSC
-# get_characteristic_multipliers()                    7800.1 sec
+# get_characteristic_multipliers()    8006.6 sec      7800.1 sec
 #
 
 from context import models

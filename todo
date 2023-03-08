@@ -5,7 +5,8 @@
   spsolve() for the age-structured model.
   * Solving the age-structured population model is about twice as slow
     with CSC as with CSR.
-  * The place we want CSC is models._model.solver.jacobian().
+  * Solving for the fundamental solution of the
+    time-since-entry-structured model takes 2.6% less time with CSC.
 
 * Age-structured model
   * Find equiblibrium eigenvalues
