@@ -1,7 +1,6 @@
 '''Solver base class.'''
 
 import abc
-import functools
 
 import numpy
 
@@ -156,54 +155,10 @@ class Base(metaclass=abc.ABCMeta):
             y = _utility.sparse.array(y)
         return y
 
-    @functools.cached_property
-    def beta_jac(self):
-        '''Convert to CSC on first use.'''
-        if self._sparse:
-            return self.beta.tocsc()
-        else:
-            return self.beta
-
-    @functools.cached_property
-    def H_jac(self):
-        '''Convert to CSC on first use.'''
-        if self._sparse:
-            return {q: H.tocsc() for (q, H) in self.H.items()}
-        else:
-            return self.H
-
-    @functools.cached_property
-    def F_jac(self):
-        '''Convert to CSC on first use.'''
-        if self._sparse:
-            return {q: F.tocsc() for (q, F) in self.F.items()}
-        else:
-            return self.F
-
-    @functools.cached_property
-    def T_jac(self):
-        '''Convert to CSC on first use.'''
-        if self._sparse:
-            return {q: T.tocsc() for (q, T) in self.T.items()}
-        else:
-            return self.T
-
-    @functools.cached_property
-    def B_jac(self):
-        '''Convert to CSC on first use.'''
-        if self._sparse:
-            return self.B.tocsc()
-        else:
-            return self.B
-
     def jacobian(self, t_cur, y_cur, y_new):
         '''Calculate the Jacobian at `t_cur`, given `y_cur` and `y_new`.'''
         # Compute `D`, the derivative of `y_cur` with respect to `y_new`,
         # which is `M_new @ D = M_cur`.
-        # The `solve` step of computing `D` requires converting the
-        # sparse arrays to CSC format. For efficiency, this is done
-        # the first time the component arrays are used, via
-        # `beta_jac`, `H_jac`, `F_jac`, `T_jac`, and `B_jac`.
         # The linear algebra is easier if `y_cur` and `y_new` have
         # shape (n, 1) instead of just (n, ).
         y_cur = self._make_column_vector(y_cur)
@@ -211,18 +166,18 @@ class Base(metaclass=abc.ABCMeta):
         t_mid = t_cur + 0.5 * self.t_step
         b_mid = self.model.parameters.birth.rate(t_mid)
         M_new = (
-            self.H_jac['new']
-            - self.t_step / 2 * (self.F_jac['new']
-                                 + self.beta_jac @ y_new * self.T_jac['new']
-                                 + self.T_jac['new'] @ y_new @ self.beta_jac
-                                 + b_mid * self.B_jac)
+            self.H['new']
+            - self.t_step / 2 * (self.F['new']
+                                 + self.beta @ y_new * self.T['new']
+                                 + self.T['new'] @ y_new @ self.beta
+                                 + b_mid * self.B)
         )
         M_cur = (
-            self.H_jac['cur']
-            + self.t_step / 2 * (self.F_jac['cur']
-                                 + self.beta_jac @ y_cur * self.T_jac['cur']
-                                 + self.T_jac['cur'] @ y_cur @ self.beta_jac
-                                 + b_mid * self.B_jac)
+            self.H['cur']
+            + self.t_step / 2 * (self.F['cur']
+                                 + self.beta @ y_cur * self.T['cur']
+                                 + self.T['cur'] @ y_cur @ self.beta
+                                 + b_mid * self.B)
         )
         D = _utility.linalg.solve(M_new, M_cur,
                                   overwrite_a=True,
