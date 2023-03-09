@@ -1,8 +1,14 @@
 #!/usr/bin/python3
 #
-# time-since-entry-structured model
 #                                        CSR             CSC
-# get_characteristic_multipliers()    8006.6 sec      7800.1 sec
+# time-since-entry-structured model
+#   get_characteristic_multipliers()    8006.6 sec      7800.1 sec
+# age-structured model
+#   solve() unstructured                 320.0 sec
+#   find_equilibrium()                     1.2 sec
+#   get_eigenvalues()
+#   find_limit_cycle()
+#   get_characteristic_multipliers()
 #
 
 from context import models
@@ -23,7 +29,7 @@ def time_model(Model):
 
 
 if __name__ == '__main__':
-    Model = models.time_since_entry_structured.Model
+    Model = models.age_structured.Model
     time_model(Model)
 
     (t_start, t_end) = (0, 10)
