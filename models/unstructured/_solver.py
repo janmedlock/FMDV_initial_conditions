@@ -12,8 +12,8 @@ class Solver(_model.solver.Base):
 
     _sparse = False
 
-    def __init__(self, model):
-        super().__init__(model)
+    def __init__(self, model, **kwds):
+        super().__init__(model, **kwds)
 
     def _I(self):
         '''Build the identity matrix.'''

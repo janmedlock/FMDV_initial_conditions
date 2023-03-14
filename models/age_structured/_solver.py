@@ -12,10 +12,10 @@ class Solver(_model.solver.Base):
 
     _sparse = True
 
-    def __init__(self, model):
+    def __init__(self, model, **kwds):
         self.a_step = model.a_step
         self.a = model.a
-        super().__init__(model)
+        super().__init__(model, **kwds)
 
     @staticmethod
     def _get_a_step(t_step):

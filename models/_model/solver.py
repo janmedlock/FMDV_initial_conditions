@@ -16,11 +16,12 @@ class Base(metaclass=abc.ABCMeta):
         '''Whether the solver uses sparse matrices and sparse linear
         algebra.'''
 
-    def __init__(self, model):
+    def __init__(self, model, _check_matrices=True):
         self.model = model
         self.t_step = model.t_step
         self._build_matrices()
-        self._check_matrices()
+        if _check_matrices:
+            self._check_matrices()
         if self._sparse:
             self._root_kwds = dict(
                 options=dict(jac_options=dict(inner_M=self._preconditioner()))

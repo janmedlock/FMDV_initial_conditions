@@ -22,9 +22,10 @@ class Model(metaclass=abc.ABCMeta):
     def _Solver(self):
         '''The solver class.'''
 
-    def __init__(self, t_step, **kwds):
+    def __init__(self, t_step, _check_matrices=True, **kwds):
         assert t_step > 0
         self.t_step = t_step
+        self._check_matrices = _check_matrices
         self.parameters = self._Parameters(**kwds)
         self._init_post()
 
@@ -35,7 +36,7 @@ class Model(metaclass=abc.ABCMeta):
     @functools.cached_property
     def _solver(self):
         '''`._solver` is built on first use and then reused.'''
-        _solver = self._Solver(self)
+        _solver = self._Solver(self, _check_matrices=self._check_matrices)
         return _solver
 
     def _get_index_level(self, level):
