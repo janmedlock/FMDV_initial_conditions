@@ -12,6 +12,8 @@ class Solver(_model.solver.Base):
 
     _sparse = True
 
+    _jacobian_method_default = 'sparse_csc'
+
     def __init__(self, model, **kwds):
         self.z_step = model.z_step
         self.z = model.z

@@ -8,6 +8,8 @@ class Solver(_model.solver.Base):
 
     _sparse = True
 
+    _jacobian_method_default = 'sparse_csc'
+
     def __init__(self, model, **kwds):
         self.a_step = model.a_step
         self.a = model.a

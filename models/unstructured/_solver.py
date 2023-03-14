@@ -12,6 +12,8 @@ class Solver(_model.solver.Base):
 
     _sparse = False
 
+    _jacobian_method_default = 'base'
+
     def __init__(self, model, **kwds):
         super().__init__(model, **kwds)
 

@@ -201,10 +201,8 @@ def _get_calculators():
     return calculators
 
 
-def Calculator(solver, method=None):
+def Calculator(solver, method):
     '''Factory function to build a Jacobian calculator.'''
-    if method is None:
-        method = 'sparse_csc' if solver._sparse else 'base'
     calculators = _get_calculators()
     try:
         Calculator = calculators[method]

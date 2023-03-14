@@ -7,6 +7,7 @@
 #      dense:  0.0 sec
 #
 # models.time_since_entry_structured.Model()
+#       base:  3.9 sec
 # sparse_csc:  3.8 sec
 # sparse_csr:  3.6 sec
 #      dense: 29.2 sec
@@ -29,8 +30,8 @@ if __name__ == '__main__':
     kwds = dict(
         t_step=0.01,
         transmission_rate=10,
-        _check_matrices=False,
-        _jacobian_method='dense',
+        _solver_options=dict(_check_matrices=False,
+                             _jacobian_method='base'),
     )
 
     (t_start, t_end) = (0, 10)

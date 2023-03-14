@@ -18,8 +18,15 @@ class Base(metaclass=abc.ABCMeta):
         '''Whether the solver uses sparse matrices and sparse linear
         algebra.'''
 
-    def __init__(self, model, _check_matrices=True, _jacobian_method=None):
+    @property
+    @abc.abstractmethod
+    def _jacobian_method_default(self):
+        '''The default Jacobian method.'''
+
+    def __init__(self, model, _jacobian_method=None, _check_matrices=True):
         self.model = model
+        if _jacobian_method is None:
+            _jacobian_method = self._jacobian_method_default
         self._jacobian_method = _jacobian_method
         self.t_step = model.t_step
         self._build_matrices()

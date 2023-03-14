@@ -1,6 +1,3 @@
-* Use dense arrays for computing the Jacobian of the age-structured
-  model (but not the time-since-entry-structured model)
-
 * Is mmap useful?
 
 * Understand eigenvalue shift
