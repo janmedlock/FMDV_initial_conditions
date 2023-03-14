@@ -1,8 +1,6 @@
 * Use dense arrays for computing the Jacobian of the age-structured
   model (but not the time-since-entry-structured model)
 
-* Replace `_utility.sparse.array()` with `scipy.sparse.csr_array()`
-
 * Is mmap useful?
 
 * Understand eigenvalue shift

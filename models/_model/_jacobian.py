@@ -147,6 +147,12 @@ class _Sparse(_Converter, metaclass=abc.ABCMeta):
         return cls._array(super()._make_column_vector(y))
 
 
+class Sparse(_Sparse):
+    '''Jacobian caclulator using the default sparse matrices.'''
+
+    _array = _utility.sparse.array
+
+
 class SparseCSR(_Sparse):
     '''Jacobian caclulator using `scipy.sparse.csr_array()` matrices.'''
 
@@ -165,11 +171,13 @@ def Calculator(solver, method=None):
         method = 'sparse_csc' if solver._sparse else 'base'
     if method == 'base':
         return Base(solver)
+    elif method == 'dense':
+        return Dense(solver)
+    elif method == 'sparse':
+        return Sparse(solver)
     elif method == 'sparse_csr':
         return SparseCSR(solver)
     elif method == 'sparse_csc':
         return SparseCSC(solver)
-    elif method == 'dense':
-        return Dense(solver)
     else:
         raise ValueError(f'{method=}')
