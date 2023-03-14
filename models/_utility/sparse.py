@@ -7,6 +7,13 @@ import scipy.sparse
 array = scipy.sparse.csr_array
 
 
+def sparsity(A):
+    '''Get the sparsity of `A`.'''
+    (nrow, ncol) = A.shape
+    sprst = A.nnz / nrow / ncol
+    return sprst
+
+
 def identity(n, *args, **kwds):
     '''Build a sparse `array()` identity matrix.'''
     I = scipy.sparse.identity(n, *args, **kwds)

@@ -98,6 +98,14 @@ def get_dominant_eigen(A, which='LR', return_eigenvector=True,
         return l0
 
 
+def condition_number(A):
+    '''Get the condition number of `A`.'''
+    l_max = get_dominant_eigen(A, which='LM', return_eigenvector=False)
+    l_min = get_dominant_eigen(A, which='SM', return_eigenvector=False)
+    cond_num = numpy.abs(l_max / l_min)
+    return cond_num
+
+
 def solve(A, b, overwrite_a=False, overwrite_b=False):
     '''Solve the matrix system A @ x = b.'''
     if scipy.sparse.issparse(A):
