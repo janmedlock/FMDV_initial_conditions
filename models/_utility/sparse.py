@@ -7,11 +7,11 @@ import scipy.sparse
 array = scipy.sparse.csr_array
 
 
-def sparsity(A):
-    '''Get the sparsity of `A`.'''
+def density(A):
+    '''Get the density of `A`.'''
     (nrow, ncol) = A.shape
-    sprst = A.nnz / nrow / ncol
-    return sprst
+    dnst = A.nnz / nrow / ncol
+    return dnst
 
 
 def identity(n, *args, **kwds):
