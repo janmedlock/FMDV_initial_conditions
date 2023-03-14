@@ -1,9 +1,11 @@
 '''Solver base class.'''
 
 import abc
+import functools
 
 import numpy
 
+from . import _jacobian
 from .. import _utility
 
 
@@ -16,8 +18,9 @@ class Base(metaclass=abc.ABCMeta):
         '''Whether the solver uses sparse matrices and sparse linear
         algebra.'''
 
-    def __init__(self, model, _check_matrices=True):
+    def __init__(self, model, _check_matrices=True, _jacobian_method=None):
         self.model = model
+        self._jacobian_method = _jacobian_method
         self.t_step = model.t_step
         self._build_matrices()
         if _check_matrices:
@@ -148,40 +151,13 @@ class Base(metaclass=abc.ABCMeta):
             y_new[:] = self.step(t_cur, y_cur, display=display)
         return y_new
 
-    def _make_column_vector(self, y):
-        '''Convert `y` with shape (n, ) to shape (n, 1).'''
-        assert numpy.ndim(y) == 1
-        y = numpy.asarray(y)[:, None]
-        if self._sparse:
-            y = _utility.sparse.array(y)
-        return y
+    @functools.cached_property
+    def _jacobian(self):
+        '''`._jacobian` is built on first use and then reused.'''
+        _jacobian_ = _jacobian.Calculator(self, method=self._jacobian_method)
+        return _jacobian_
 
     def jacobian(self, t_cur, y_cur, y_new):
         '''Calculate the Jacobian at `t_cur`, given `y_cur` and `y_new`.'''
-        # Compute `D`, the derivative of `y_cur` with respect to `y_new`,
-        # which is `M_new @ D = M_cur`.
-        # The linear algebra is easier if `y_cur` and `y_new` have
-        # shape (n, 1) instead of just (n, ).
-        y_cur = self._make_column_vector(y_cur)
-        y_new = self._make_column_vector(y_new)
-        t_mid = t_cur + 0.5 * self.t_step
-        b_mid = self.model.parameters.birth.rate(t_mid)
-        M_new = (
-            self.H['new']
-            - self.t_step / 2 * (self.F['new']
-                                 + self.beta @ y_new * self.T['new']
-                                 + self.T['new'] @ y_new @ self.beta
-                                 + b_mid * self.B)
-        )
-        M_cur = (
-            self.H['cur']
-            + self.t_step / 2 * (self.F['cur']
-                                 + self.beta @ y_cur * self.T['cur']
-                                 + self.T['cur'] @ y_cur @ self.beta
-                                 + b_mid * self.B)
-        )
-        D = _utility.linalg.solve(M_new, M_cur,
-                                  overwrite_a=True,
-                                  overwrite_b=True)
-        J = (D - self.I) / self.t_step
+        J = self._jacobian.calculate(t_cur, y_cur, y_new)
         return J

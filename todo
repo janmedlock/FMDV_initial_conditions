@@ -1,10 +1,11 @@
-* CSC arrays
-  * Solving the age-structured population model is about twice as slow
-    with CSC as with CSR.
-  * Solving for the fundamental solution of the
-    time-since-entry-structured model takes 2.6% less time with CSC.
-  * Check timing with the age-structured model.
-    * get_eigenvalues() runs forever. Seems like memory pressure.
+* Use dense arrays for computing the Jacobian of the age-structured
+  model (but not the time-since-entry-structured model)
+
+* Replace `_utility.sparse.array()` with `scipy.sparse.csr_array()`
+
+* Is mmap useful?
+
+* Understand eigenvalue shift
 
 * Age-structured model
   * Find equiblibrium eigenvalues
