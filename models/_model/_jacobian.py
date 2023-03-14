@@ -9,8 +9,13 @@ import scipy.sparse
 from .. import _utility
 
 
-class Base:
+class _Base:
     '''Base for Jacobian caclulators.'''
+
+    @property
+    @abc.abstractmethod
+    def _method(self):
+        '''The name of the Jacobian method.'''
 
     # Attributes that a subclass might convert to a different format.
     _matrix_attrs = ('I', 'beta', 'H', 'F', 'T', 'B')
@@ -62,6 +67,13 @@ class Base:
         return J
 
 
+class Base(_Base):
+    '''Calculate the Jacobian using the solver matrices without
+    conversion.'''
+
+    _method = 'base'
+
+
 class _MemoizeByID:
     '''Decorator to memoize a function `func(obj)` using the key
     `id(obj)`.'''
@@ -78,7 +90,7 @@ class _MemoizeByID:
         return self.cache[key]
 
 
-class _Converter(Base, metaclass=abc.ABCMeta):
+class _Converter(_Base, metaclass=abc.ABCMeta):
     '''A Jacobian calculator that converts the matrices to a specific
     format.'''
 
@@ -113,6 +125,8 @@ class _Converter(Base, metaclass=abc.ABCMeta):
 
 class Dense(_Converter):
     '''Jacobian caclulator using dense `numpy.ndarray` matrices.'''
+
+    _method = 'dense'
 
     @classmethod
     def _convert(cls, arr):
@@ -150,11 +164,15 @@ class _Sparse(_Converter, metaclass=abc.ABCMeta):
 class Sparse(_Sparse):
     '''Jacobian caclulator using the default sparse matrices.'''
 
+    _method = 'sparse'
+
     _array = _utility.sparse.array
 
 
 class SparseCSR(_Sparse):
     '''Jacobian caclulator using `scipy.sparse.csr_array()` matrices.'''
+
+    _method = 'sparse_csr'
 
     _array = scipy.sparse.csr_array
 
@@ -162,22 +180,35 @@ class SparseCSR(_Sparse):
 class SparseCSC(_Sparse):
     '''Jacobian caclulator using `scipy.sparse.csc_array()` matrices.'''
 
+    _method = 'sparse_csc'
+
     _array = scipy.sparse.csc_array
 
 
+def _get_subclasses(cls):
+    '''Recursively get all of subclasses of `cls`.'''
+    subs = (_get_subclasses(sub)
+            for sub in cls.__subclasses__())
+    return sum(subs, [cls])
+
+
+def _get_calculators():
+    '''Get the Jacobian calculators by name.'''
+    calculators = {}
+    for cls in _get_subclasses(_Base):
+        if isinstance(cls._method, str):
+            calculators[cls._method] = cls
+    return calculators
+
+
 def Calculator(solver, method=None):
-    '''Factory function for a Jacobian calculator.'''
+    '''Factory function to build a Jacobian calculator.'''
     if method is None:
         method = 'sparse_csc' if solver._sparse else 'base'
-    if method == 'base':
-        return Base(solver)
-    elif method == 'dense':
-        return Dense(solver)
-    elif method == 'sparse':
-        return Sparse(solver)
-    elif method == 'sparse_csr':
-        return SparseCSR(solver)
-    elif method == 'sparse_csc':
-        return SparseCSC(solver)
-    else:
+    calculators = _get_calculators()
+    try:
+        Calculator = calculators[method]
+    except KeyError:
         raise ValueError(f'{method=}')
+    else:
+        return Calculator(solver)
