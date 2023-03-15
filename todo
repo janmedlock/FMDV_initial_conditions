@@ -1,7 +1,5 @@
 * Is mmap useful?
 
-* Understand eigenvalue shift
-
 * Age-structured model
   * Find equiblibrium eigenvalues
   * Find limit cycle
