@@ -1,7 +1,6 @@
-* Is mmap useful?
-
 * Age-structured model
   * Find equiblibrium eigenvalues
+    * Test with and without memmap for larger problems
   * Find limit cycle
     * Not quite a limit cycle: run solution for longer first?
   * Find limit-cycle exponents
@@ -12,11 +11,7 @@
     * Kronecker product: `\otimes`, `numpy.kron()`
   * Write models.combination._solver.Solver
 
-* Do I get the Jacobian or monodromy from root()?
-
-* Can I bootstrap up equilibria & limit cycles from simpler models?
-
-* Profile initializing solvers, solving, finding equilibria, etc.
+* Bootstrap up equilibria & limit cycles from simpler models
 
 * Make Solvers inherit from each other
   * Move '_Hq()', '_Fq()', '_Tq()', '_B', etc into _model.solver.Solver()

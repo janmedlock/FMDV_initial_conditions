@@ -1,5 +1,7 @@
 '''Numerical utilities.'''
 
+import tempfile
+
 import numpy
 import pandas
 
@@ -55,3 +57,9 @@ def identity(*args, sparse=False, **kwds):
         return sparse_.identity(*args, **kwds)
     else:
         return numpy.identity(*args, **kwds)
+
+
+def memmaptemp(**kwds):
+    '''Create an array memory-mapped to a temporary file.'''
+    file_ = tempfile.TemporaryFile()
+    return numpy.memmap(file_, mode='w+', **kwds)

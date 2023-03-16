@@ -9,13 +9,11 @@ import scipy.sparse
 from .. import _utility
 
 
-class _Base:
-    '''Base for Jacobian caclulators.'''
+class Base:
+    '''Calculate the Jacobian using the matrices from `Solver()`.'''
 
-    @property
-    @abc.abstractmethod
-    def _method(self):
-        '''The name of the Jacobian method.'''
+    # The name of the Jacobian method.
+    _method = 'base'
 
     # Attributes that a subclass might convert to a different format.
     _matrix_attrs = ('I', 'beta', 'H', 'F', 'T', 'B')
@@ -67,13 +65,6 @@ class _Base:
         return J
 
 
-class Base(_Base):
-    '''Calculate the Jacobian using the solver matrices without
-    conversion.'''
-
-    _method = 'base'
-
-
 class _MemoizeByID:
     '''Decorator to memoize a function `func(obj)` using the key
     `id(obj)`.'''
@@ -90,9 +81,14 @@ class _MemoizeByID:
         return self.cache[key]
 
 
-class _Converter(_Base, metaclass=abc.ABCMeta):
+class _Converter(Base, metaclass=abc.ABCMeta):
     '''A Jacobian calculator that converts the matrices to a specific
     format.'''
+
+    @property
+    @abc.abstractmethod
+    def _method(self):
+        '''The name of the Jacobian method.'''
 
     def __init__(self, solver):
         super().__init__(solver)
@@ -126,17 +122,35 @@ class _Converter(_Base, metaclass=abc.ABCMeta):
 class Dense(_Converter):
     '''Jacobian caclulator using dense `numpy.ndarray` matrices.'''
 
+    # The name of the Jacobian method.
     _method = 'dense'
 
     @classmethod
-    def _convert(cls, arr):
+    def _convert(cls, arr, out=None):
         '''Convert `obj` to a dense `numpy.ndarray` matrix.'''
         if isinstance(arr, numpy.ndarray):
+            if out is not None:
+                out[:] = arr[:]
             return arr
         elif isinstance(arr, scipy.sparse.spmatrix):
-            return arr.toarray()
+            return arr.toarray(out=out)
         else:
             raise TypeError
+
+
+class DenseMemmap(Dense):
+    '''Jacobian caclulator using memmapped dense `numpy.ndarray`
+    matrices.'''
+
+    # The name of the Jacobian method.
+    _method = 'dense_memmap'
+
+    @classmethod
+    def _convert(cls, arr):
+        '''Convert `obj` to a memmapped dense `numpy.ndarray` matrix.'''
+        memmap = _utility.numerical.memmaptemp(shape=numpy.shape(arr),
+                                               dtype=numpy.dtype(arr))
+        return super()._convert(arr, out=memmap)
 
 
 class _Sparse(_Converter, metaclass=abc.ABCMeta):
@@ -164,6 +178,7 @@ class _Sparse(_Converter, metaclass=abc.ABCMeta):
 class Sparse(_Sparse):
     '''Jacobian caclulator using the default sparse matrices.'''
 
+    # The name of the Jacobian method.
     _method = 'sparse'
 
     _array = _utility.sparse.array
@@ -172,6 +187,7 @@ class Sparse(_Sparse):
 class SparseCSR(_Sparse):
     '''Jacobian caclulator using `scipy.sparse.csr_array()` matrices.'''
 
+    # The name of the Jacobian method.
     _method = 'sparse_csr'
 
     _array = scipy.sparse.csr_array
@@ -180,6 +196,7 @@ class SparseCSR(_Sparse):
 class SparseCSC(_Sparse):
     '''Jacobian caclulator using `scipy.sparse.csc_array()` matrices.'''
 
+    # The name of the Jacobian method.
     _method = 'sparse_csc'
 
     _array = scipy.sparse.csc_array
@@ -194,10 +211,11 @@ def _get_subclasses(cls):
 
 def _get_calculators():
     '''Get the Jacobian calculators by name.'''
-    calculators = {}
-    for cls in _get_subclasses(_Base):
-        if isinstance(cls._method, str):
-            calculators[cls._method] = cls
+    calculators = {
+        cls._method: cls
+        for cls in _get_subclasses(Base)
+        if isinstance(cls._method, str)
+    }
     return calculators
 
 
