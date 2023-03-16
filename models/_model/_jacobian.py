@@ -1,6 +1,5 @@
 '''Jacobian calculators.'''
 
-import abc
 import functools
 
 import numpy
@@ -9,27 +8,60 @@ import scipy.sparse
 from .. import _utility
 
 
+class _MemoizeByID:
+    '''Decorator to memoize a function `func(obj)` using the key
+    `id(obj)`.'''
+
+    def __init__(self, func):
+        self.func = func
+        self.cache = {}
+        functools.update_wrapper(self, func)
+
+    def __call__(self, obj):
+        key = id(obj)
+        if key not in self.cache:
+            self.cache[key] = self.func(obj)
+        return self.cache[key]
+
+
 class Base:
     '''Calculate the Jacobian using the matrices from `Solver()`.'''
 
-    # The name of the Jacobian method.
-    _method = 'base'
+    _name = 'base'
 
     # Attributes that a subclass might convert to a different format.
-    _matrix_attrs = ('I', 'beta', 'H', 'F', 'T', 'B')
+    _array_attrs = ('I', 'beta', 'H', 'F', 'T', 'B')
 
     def __init__(self, solver):
         self.model = solver.model
         self.t_step = solver.t_step
-        self.I = solver.I
-        self.beta = solver.beta
-        self.H = solver.H
-        self.F = solver.F
-        self.T = solver.T
-        self.B = solver.B
+        # Memoize so that identical matrices are only converted once.
+        self._convert_arr = _MemoizeByID(self._convert_arr)
+        for attr in self._array_attrs:
+            obj = getattr(solver, attr)
+            setattr(self, attr, self._convert_obj(obj))
 
-    @classmethod
-    def _make_column_vector(cls, y):
+    @staticmethod
+    def _convert_arr(arr):
+        '''No-op that subclasses can override to convert `arr` to the
+        desired format.'''
+        return arr
+
+    def _convert_obj(self, obj):
+        '''Convert `obj` to the desired format. `obj` can be a
+        `numpy.ndarray()` or a `scipy.sparse.spmatrix()`, or a
+        `dict()` whose values are either of those.'''
+        if isinstance(obj, (numpy.ndarray, scipy.sparse.spmatrix)):
+            return self._convert_arr(obj)
+        elif isinstance(obj, dict):
+            # Recursively convert dict values.
+            return {key: self._convert_obj(val)
+                    for (key, val) in obj.items()}
+        else:
+            raise TypeError
+
+    @staticmethod
+    def _make_column_vector(y):
         '''Convert `y` with shape (n, ) to shape (n, 1).'''
         assert numpy.ndim(y) == 1
         return numpy.asarray(y)[:, None]
@@ -65,69 +97,14 @@ class Base:
         return J
 
 
-class _MemoizeByID:
-    '''Decorator to memoize a function `func(obj)` using the key
-    `id(obj)`.'''
-
-    def __init__(self, func):
-        self.func = func
-        self.cache = {}
-        functools.update_wrapper(self, func)
-
-    def __call__(self, obj):
-        key = id(obj)
-        if key not in self.cache:
-            self.cache[key] = self.func(obj)
-        return self.cache[key]
-
-
-class _Converter(Base, metaclass=abc.ABCMeta):
-    '''A Jacobian calculator that converts the matrices to a specific
-    format.'''
-
-    @property
-    @abc.abstractmethod
-    def _method(self):
-        '''The name of the Jacobian method.'''
-
-    def __init__(self, solver):
-        super().__init__(solver)
-        # Memoize so that identical matrices are only converted once.
-        self._convert = _MemoizeByID(self._convert)
-        for attr in self._matrix_attrs:
-            self._convert_attr(attr)
-
-    @classmethod
-    @abc.abstractmethod
-    def _convert(cls, arr):
-        '''Convert `arr` to the desired format.'''
-
-    def _convert_obj(self, obj):
-        '''Convert `obj` to the desired format.'''
-        if isinstance(obj, (numpy.ndarray, scipy.sparse.spmatrix)):
-            return self._convert(obj)
-        elif isinstance(obj, dict):
-            # Recursively convert dict values.
-            return {key: self._convert_obj(val)
-                    for (key, val) in obj.items()}
-        else:
-            raise TypeError
-
-    def _convert_attr(self, attr):
-        '''Convert the attribute `attr` to the solver sparse-matrix format.'''
-        obj = getattr(self, attr)
-        setattr(self, attr, self._convert_obj(obj))
-
-
-class Dense(_Converter):
+class Dense(Base):
     '''Jacobian caclulator using dense `numpy.ndarray` matrices.'''
 
-    # The name of the Jacobian method.
-    _method = 'dense'
+    _name = 'dense'
 
-    @classmethod
-    def _convert(cls, arr, out=None):
-        '''Convert `obj` to a dense `numpy.ndarray` matrix.'''
+    @staticmethod
+    def _convert_arr(arr, out=None):
+        '''Convert `arr` to a dense `numpy.ndarray` matrix.'''
         if isinstance(arr, numpy.ndarray):
             if out is not None:
                 out[:] = arr[:]
@@ -142,30 +119,28 @@ class DenseMemmap(Dense):
     '''Jacobian caclulator using memmapped dense `numpy.ndarray`
     matrices.'''
 
-    # The name of the Jacobian method.
-    _method = 'dense_memmap'
+    _name = 'dense_memmap'
 
     @classmethod
-    def _convert(cls, arr):
-        '''Convert `obj` to a memmapped dense `numpy.ndarray` matrix.'''
+    def _convert_arr(cls, arr):
+        '''Convert `arr` to a memmapped dense `numpy.ndarray` matrix.'''
         memmap = _utility.numerical.memmaptemp(shape=numpy.shape(arr),
                                                dtype=numpy.dtype(arr))
-        return super()._convert(arr, out=memmap)
+        return super()._convert_arr(arr, out=memmap)
 
 
-class _Sparse(_Converter, metaclass=abc.ABCMeta):
-    '''Jacobian caclulator using `scipy.sparse` matrices.'''
+class Sparse(Base):
+    '''Jacobian caclulator using the default sparse matrices.'''
+
+    _name = 'sparse'
+
+    _array = _utility.sparse.array
 
     # In `calculate()`, for models with age structure, `T @ y @ beta`
     # makes the `M` *much* less sparse.
 
-    @property
-    @abc.abstractmethod
-    def _array(self):
-        '''The sparse-matrix type to use.'''
-
     @classmethod
-    def _convert(cls, arr):
+    def _convert_arr(cls, arr):
         '''Convert `arr` to the desired sparse format.'''
         return cls._array(arr)
 
@@ -175,29 +150,18 @@ class _Sparse(_Converter, metaclass=abc.ABCMeta):
         return cls._array(super()._make_column_vector(y))
 
 
-class Sparse(_Sparse):
-    '''Jacobian caclulator using the default sparse matrices.'''
-
-    # The name of the Jacobian method.
-    _method = 'sparse'
-
-    _array = _utility.sparse.array
-
-
-class SparseCSR(_Sparse):
+class SparseCSR(Sparse):
     '''Jacobian caclulator using `scipy.sparse.csr_array()` matrices.'''
 
-    # The name of the Jacobian method.
-    _method = 'sparse_csr'
+    _name = 'sparse_csr'
 
     _array = scipy.sparse.csr_array
 
 
-class SparseCSC(_Sparse):
+class SparseCSC(Sparse):
     '''Jacobian caclulator using `scipy.sparse.csc_array()` matrices.'''
 
-    # The name of the Jacobian method.
-    _method = 'sparse_csc'
+    _name = 'sparse_csc'
 
     _array = scipy.sparse.csc_array
 
@@ -211,11 +175,8 @@ def _get_subclasses(cls):
 
 def _get_calculators():
     '''Get the Jacobian calculators by name.'''
-    calculators = {
-        cls._method: cls
-        for cls in _get_subclasses(Base)
-        if isinstance(cls._method, str)
-    }
+    calculators = {cls._name: cls
+                   for cls in _get_subclasses(Base)}
     return calculators
 
 
