@@ -15,13 +15,25 @@
 # models.age_structured.Model(t_step=0.01, transmission_rate=10)
 #   sparse_csc: 42.8 sec
 #   sparse_csr: 44.5 sec
-#        dense:  12.1 sec
-# dense_memmap:  18.6 sec
+#        dense:  9.0 sec
+# dense_memmap: 18.6 sec
 #
+
+import time
 
 from context import models
 
-import timer
+
+def time_jac(Model, t_solve=10, **kwds):
+    model = Model(birth_variation=0, **kwds)
+    eql = model.find_equilibrium(model.build_initial_conditions(),
+                                 t_solve=t_solve)
+    model._solver._jacobian  # Build matrices outside timer.
+    t0 = time.perf_counter()
+    J = model._solver.jacobian(0, eql, eql)
+    t = time.perf_counter() - t0
+    print(f'{t} sec')
+    return J
 
 
 if __name__ == '__main__':
@@ -31,26 +43,10 @@ if __name__ == '__main__':
     kwds = dict(
         t_step=0.01,
         transmission_rate=10,
-        _solver_options=dict(_check_matrices=False,
-                             _jacobian_method='dense'),
+        _solver_options=dict(
+            _check_matrices=False,
+            _jacobian_method='dense',
+        ),
     )
 
-    (t_start, t_end) = (0, 10)
-
-    model_constant = Model(birth_variation=0, **kwds)
-    equilibrium = model_constant.find_equilibrium(
-        model_constant.build_initial_conditions(), t_solve=t_end
-    )
-    J = timer.timer(model_constant._solver.jacobian)(t_start,
-                                                     equilibrium,
-                                                     equilibrium)
-    # equilibrium_eigvals = model_constant.get_eigenvalues(equilibrium)
-    # print(equilibrium_eigvals)
-
-    # model = Model()
-    # solution = model.solve((t_start, t_end))
-    # limit_cycle = model.find_limit_cycle(model.parameters.period,
-    #                                      t_end % model.parameters.period,
-    #                                      solution.loc[t_end])
-    # limit_cycle_eigvals = model.get_characteristic_exponents(limit_cycle,
-    #                                                          display=True)
+    J = time_jac(Model, **kwds)
