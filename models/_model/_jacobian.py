@@ -66,30 +66,35 @@ class Base:
         assert numpy.ndim(y) == 1
         return numpy.asarray(y)[:, None]
 
+    def _M(self, q, y_q, b_mid):
+        '''Calculate the M_q matrices.'''
+        # The linear algebra is easier if `y_q` has shape (n, 1)
+        # instead of just (n, ).
+        y_q = self._make_column_vector(y_q)
+        # For models with age structure, `T @ y @ beta` is *much* less
+        # sparse.
+        F_T_B = self.t_step / 2 * (self.F[q]
+                                   + self.beta @ y_q * self.T[q]
+                                   + self.T[q] @ y_q @ self.beta
+                                   + b_mid * self.B)
+        H = self.H[q]
+        # M = H ± F_T_B
+        if q == 'cur':
+            M = H + F_T_B
+        elif q == 'new':
+            M = H - F_T_B
+        else:
+            raise ValueError(f'{q=}')
+        return M
+
     def calculate(self, t_cur, y_cur, y_new):
         '''Calculate the Jacobian at `t_cur`, given `y_cur` and `y_new`.'''
         # Compute `D`, the derivative of `y_cur` with respect to `y_new`,
         # which is `M_new @ D = M_cur`.
-        # The linear algebra is easier if `y_cur` and `y_new` have
-        # shape (n, 1) instead of just (n, ).
-        y_cur = self._make_column_vector(y_cur)
-        y_new = self._make_column_vector(y_new)
         t_mid = t_cur + 0.5 * self.t_step
         b_mid = self.model.parameters.birth.rate(t_mid)
-        M_new = (
-            self.H['new']
-            - self.t_step / 2 * (self.F['new']
-                                 + self.beta @ y_new * self.T['new']
-                                 + self.T['new'] @ y_new @ self.beta
-                                 + b_mid * self.B)
-        )
-        M_cur = (
-            self.H['cur']
-            + self.t_step / 2 * (self.F['cur']
-                                 + self.beta @ y_cur * self.T['cur']
-                                 + self.T['cur'] @ y_cur @ self.beta
-                                 + b_mid * self.B)
-        )
+        M_cur = self._M('cur', y_cur, b_mid)
+        M_new = self._M('new', y_new, b_mid)
         D = _utility.linalg.solve(M_new, M_cur,
                                   overwrite_a=True,
                                   overwrite_b=True)
@@ -103,6 +108,12 @@ class Dense(Base):
     _name = 'dense'
 
     @staticmethod
+    def _empty(shape, dtype=float):
+        '''Get an empty array.'''
+        arr = numpy.empty(shape, dtype=dtype)
+        return arr
+
+    @staticmethod
     def _convert_arr(arr, out=None):
         '''Convert `arr` to a dense `numpy.ndarray` matrix.'''
         if isinstance(arr, numpy.ndarray):
@@ -114,6 +125,56 @@ class Dense(Base):
         else:
             raise TypeError
 
+    def _init_temp(self):
+        '''Initialize temporary storage.'''
+        shape = self.I.shape
+        self.temp = [self._empty(shape)
+                     for _ in range(2)]
+
+    def __init__(self, solver):
+        super().__init__(solver)
+        self._init_temp()
+
+    def _M(self, q, y_q, b_mid):
+        '''Calculate the M_q matrices.'''
+        # Use temporary storage to calculate
+        # F_T_B = self.t_step / 2 * (self.F[q]
+        #                            + self.beta @ y_q * self.T[q]
+        #                            + self.T[q] @ y_q @ self.beta
+        #                            + b_mid * self.B)
+        #
+        # T_y_beta = (T @ y) @ beta
+        T_y = numpy.dot(self.T[q], y_q,
+                        out=self.temp[0][0])
+        # For models with age structure, `T_y @ beta` is *much* less
+        # sparse.
+        T_y_beta = numpy.outer(T_y, self.beta,
+                               out=self.temp[1])
+        # F_T_B = F + T_y_beta
+        F_T_B = numpy.add(self.F[q], T_y_beta,
+                          out=self.temp[0])
+        # beta_y_T = (beta @ y) * T
+        beta_y = numpy.inner(self.beta[0], y_q)
+        beta_y_T = numpy.multiply(beta_y, self.T[q],
+                                  out=self.temp[1])
+        F_T_B += beta_y_T
+        # b_B = b_mid * B
+        b_B = numpy.multiply(b_mid, self.B,
+                             out=self.temp[1])
+        F_T_B += b_B
+        F_T_B *= self.t_step / 2
+        H = self.H[q]
+        # M = H ± F_T_B
+        if q == 'cur':
+            opp = numpy.add
+        elif q == 'new':
+            opp = numpy.subtract
+        else:
+            raise ValueError(f'{q=}')
+        M = opp(self.H[q], F_T_B,
+                out=self.temp[1])
+        return M
+
 
 class DenseMemmap(Dense):
     '''Jacobian caclulator using memmapped dense `numpy.ndarray`
@@ -121,11 +182,17 @@ class DenseMemmap(Dense):
 
     _name = 'dense_memmap'
 
+    @staticmethod
+    def _empty(shape, dtype=float):
+        '''Get an empty array.'''
+        memmap = _utility.numerical.memmaptemp(shape=shape,
+                                               dtype=dtype)
+        return memmap
+
     @classmethod
     def _convert_arr(cls, arr):
         '''Convert `arr` to a memmapped dense `numpy.ndarray` matrix.'''
-        memmap = _utility.numerical.memmaptemp(shape=numpy.shape(arr),
-                                               dtype=numpy.dtype(arr))
+        memmap = cls._empty(numpy.shape(arr), dtype=numpy.dtype(arr))
         return super()._convert_arr(arr, out=memmap)
 
 
@@ -135,9 +202,6 @@ class Sparse(Base):
     _name = 'sparse'
 
     _array = _utility.sparse.array
-
-    # In `calculate()`, for models with age structure, `T @ y @ beta`
-    # makes the `M` *much* less sparse.
 
     @classmethod
     def _convert_arr(cls, arr):
