@@ -1096,7 +1096,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \beta \Delta t
     \begin{bmatrix}
       \vec{0} & \vec{0} & \vec{0} & \vec{1} & \vec{0}
-    \end{bmatrix}
+    \end{bmatrix},
     \\
     \lambda^{\ell} &=
     \vec{\beta} \vec{x}^{\ell},
@@ -1618,7 +1618,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \beta \Delta t
     \begin{bmatrix}
       \vec{0} & 0 & \vec{0} & \vec{1} & 0
-    \end{bmatrix}
+    \end{bmatrix},
     \\
     \lambda^{\ell} &=
     \vec{\beta} \vec{x}^{\ell},
@@ -1650,35 +1650,35 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \vec{0} & 0 & \vec{0} & \vec{0} & 1
     \end{bmatrix},
     \\
-    \mat{F}_{\mathrm{new}, \mathrm{yy}}(\vec{\xi}) &=
+    \mat{F}_{\mathrm{new}, \mathrm{yy}}(\vec{\zeta}) &=
     \begin{bmatrix}
-      \xi_0 & 0 & \cdots & 0 \\
-      0 & \xi_1 & \ddots & \vdots \\
+      \zeta_0 & 0 & \cdots & 0 \\
+      0 & \zeta_1 & \ddots & \vdots \\
       \vdots & \ddots & \ddots & 0 \\
-      0 & \cdots & 0 & \xi_{K - 1}
+      0 & \cdots & 0 & \zeta_{K - 1}
     \end{bmatrix},
     \\
-    \mat{F}_{\mathrm{cur}, \mathrm{yy}}(\vec{\xi}) &=
+    \mat{F}_{\mathrm{cur}, \mathrm{yy}}(\vec{\zeta}) &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0 \\
-      \xi_0 & \ddots & & \vdots & \vdots \\
+      \zeta_0 & \ddots & & \vdots & \vdots \\
       0 & \ddots & \ddots & \vdots & \vdots \\
       \vdots & \ddots & \ddots & 0 & 0 \\
-      0 & \cdots & 0 & \xi_{K - 2} & \xi_{K - 1}
+      0 & \cdots & 0 & \zeta_{K - 2} & \zeta_{K - 1}
     \end{bmatrix},
     \\
-    \mat{F}_{\mathrm{yz}}(\vec{\xi}) &=
+    \vec{f}_{\mathrm{Xy}}(\vec{\zeta}) &=
+    \Delta t
     \begin{bmatrix}
-      \xi_0 & \cdots & \xi_{K - 1} \\
+      \zeta_0 & \cdots & \zeta_{K - 1}
+    \end{bmatrix},
+    \\
+    \mat{F}_{\mathrm{yz}}(\vec{\rho}) &=
+    \begin{bmatrix}
+      \rho_0 & \cdots & \rho_{K - 1} \\
       0 & \cdots & 0 \\
       \vdots & & \vdots \\
       0 & \cdots & 0
-    \end{bmatrix},
-    \\
-    \vec{f}_{\mathrm{Xy}}(\vec{\xi}) &=
-    \Delta t
-    \begin{bmatrix}
-      \xi_0 & \cdots & \xi_{K - 1}
     \end{bmatrix},
     \\
     \mat{F}_q &=
@@ -1718,6 +1718,12 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \end{bmatrix},
     \\
     \vec{b}_{\mathrm{yX}} &= \vec{t}_{\mathrm{yX}},
+    \\
+    \vec{b}_{\mathrm{Xy}} &=
+    \Delta t
+    \begin{bmatrix}
+      1 & \cdots 1
+    \end{bmatrix},
     \\
     \mat{B} &=
     \begin{bmatrix}
@@ -2090,7 +2096,7 @@ $\ell \in \{0, 1, \ldots, L - 1\}$;
 $X_j^{\ell} \approx X(t^{\ell}, a_j)$
 for $X \in \{M, S, R\}$;
 $y_{j, k}^{\ell} \approx y(t^{\ell}, a_j, z_k)$
-for $y \in \{E, I\}$;
+for $y \in \{e, i\}$;
 $\pi_j = \pi(a_j)$ for $\pi \in \{\mu, \nu, \omega\}$; and
 $\zeta_k = \zeta(z_k)$ for $\zeta \in \{\rho, \gamma\}$.
 For each $1 \leq j \leq J - 2$, each $1 \leq k \leq K - 2$, and each
@@ -2179,28 +2185,10 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
       + \lambda^{\ell - 1} S_{j - 1}^{\ell - 1}}
     {2},
     \\
-    \left[1 + \frac{\Delta t}{2} (\rho_0 + \mu_{J - 1})\right] e_{J - 1, 0}^{\ell}
-    &=
-    \frac{\lambda^{\ell} S_{J - 1}^{\ell}
-      + \lambda^{\ell - 1} S_{J - 2}^{\ell - 1}}
-    {2}
-    + \frac{\lambda^{\ell - 1} S_{J - 1}^{\ell - 1}}{2},
-    \\
     \frac{e_{j, k}^{\ell} - e_{j - 1, k - 1}^{\ell - 1}}{\Delta t}
     &= - \frac{(\rho_k + \mu_j) e_{j, k}^{\ell}
       + (\rho_{k - 1} + \mu_{j - 1}) e_{j - 1, k - 1}^{\ell - 1}}
     {2},
-    \\
-    \begin{split}
-      \frac{e_{J - 1, k}^{\ell} - e_{J - 2, k - 1}^{\ell - 1}}{\Delta t}
-      &= - \frac{(\rho_k + \mu_{J - 1}) e_{J - 1, k}^{\ell}
-        + (\rho_{k - 1} + \mu_{J - 2}) e_{J - 2, k - 1}^{\ell - 1}}
-      {2}
-      \\ & \quad {}
-      + \left[
-        \frac{1}{\Delta t} - \frac{1}{2} (\rho_{k - 1} + \mu_{J - 1})
-      \right] e_{J - 1, k - 1}^{\ell - 1},
-    \end{split}
     \\
     \begin{split}
       \frac{e_{j, K - 1}^{\ell} - e_{j - 1, K - 2}^{\ell - 1}}{\Delta t}
@@ -2211,6 +2199,24 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
       + \left[
         \frac{1}{\Delta t} - \frac{1}{2} (\rho_{K - 1} + \mu_{j - 1})
       \right] e_{j - 1, K - 1}^{\ell - 1},
+    \end{split}
+    \\
+    \left[1 + \frac{\Delta t}{2} (\rho_0 + \mu_{J - 1})\right] e_{J - 1, 0}^{\ell}
+    &=
+    \frac{\lambda^{\ell} S_{J - 1}^{\ell}
+      + \lambda^{\ell - 1} S_{J - 2}^{\ell - 1}}
+    {2}
+    + \frac{\lambda^{\ell - 1} S_{J - 1}^{\ell - 1}}{2},
+    \\
+    \begin{split}
+      \frac{e_{J - 1, k}^{\ell} - e_{J - 2, k - 1}^{\ell - 1}}{\Delta t}
+      &= - \frac{(\rho_k + \mu_{J - 1}) e_{J - 1, k}^{\ell}
+        + (\rho_{k - 1} + \mu_{J - 2}) e_{J - 2, k - 1}^{\ell - 1}}
+      {2}
+      \\ & \quad {}
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\rho_{k - 1} + \mu_{J - 1})
+      \right] e_{J - 1, k - 1}^{\ell - 1},
     \end{split}
     \\
     \begin{split}
@@ -2248,6 +2254,22 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
     \frac{e_{j, k}^{\ell} + e_{j - 1, k}^{\ell - 1}} {2}
     \Delta t,
     \\
+    \frac{i_{j, k}^{\ell} - i_{j - 1, k - 1}^{\ell - 1}}{\Delta t}
+    &= - \frac{(\gamma_k + \mu_j) i_{j, k}^{\ell}
+      + (\gamma_{k - 1} + \mu_{j - 1}) i_{j - 1, k - 1}^{\ell - 1}}
+    {2},
+    \\
+    \begin{split}
+      \frac{i_{j, K - 1}^{\ell} - i_{j - 1, K - 2}^{\ell - 1}}{\Delta t}
+      &= - \frac{(\gamma_{K - 1} + \mu_j) i_{j, K - 1}^{\ell}
+        + (\gamma_{K - 2} + \mu_{j - 1}) i_{j - 1, K - 2}^{\ell - 1}}
+      {2}
+      \\ & \quad {}
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\gamma_{K - 1} + \mu_{j - 1})
+      \right] i_{j - 1, K - 1}^{\ell - 1},
+    \end{split}
+    \\
     \begin{split}
       \left[1 + \frac{\Delta t}{2} (\gamma_0 + \mu_{J - 1})\right]
       i_{J - 1, 0}^{\ell}
@@ -2260,11 +2282,6 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
       \Delta t,
     \end{split}
     \\
-    \frac{i_{j, k}^{\ell} - i_{j - 1, k - 1}^{\ell - 1}}{\Delta t}
-    &= - \frac{(\gamma_k + \mu_j) i_{j, k}^{\ell}
-      + (\gamma_{k - 1} + \mu_{j - 1}) i_{j - 1, k - 1}^{\ell - 1}}
-    {2},
-    \\
     \begin{split}
       \frac{i_{J - 1, k}^{\ell} - i_{J - 2, k - 1}^{\ell - 1}}{\Delta t}
       &= - \frac{(\gamma_k + \mu_{J - 1}) i_{J - 1, k}^{\ell}
@@ -2274,17 +2291,6 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
       + \left[
         \frac{1}{\Delta t} - \frac{1}{2} (\gamma_{k - 1} + \mu_{J - 1})
       \right] i_{J - 1, k - 1}^{\ell - 1},
-    \end{split}
-    \\
-    \begin{split}
-      \frac{i_{j, K - 1}^{\ell} - i_{j - 1, K - 2}^{\ell - 1}}{\Delta t}
-      &= - \frac{(\gamma_{K - 1} + \mu_j) i_{j, K - 1}^{\ell}
-        + (\gamma_{K - 2} + \mu_{j - 1}) i_{j - 1, K - 2}^{\ell - 1}}
-      {2}
-      \\ & \quad {}
-      + \left[
-        \frac{1}{\Delta t} - \frac{1}{2} (\gamma_{K - 1} + \mu_{j - 1})
-      \right] i_{j - 1, K - 1}^{\ell - 1},
     \end{split}
     \\
     \begin{split}
@@ -2731,6 +2737,253 @@ immune state gives
 \end{equation}
 which is identical to our Crank--Nicolson scheme applied to model
 \eqref{model_age_and_time_since_entry_structured_agg_tse_age_state}.
+
+
+\subsubsection{Linear algebra}
+
+For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
+\begin{subequations}
+  \begin{align}
+    \vec{x}^{\ell} &=
+    \begin{bmatrix}
+      M_0^{\ell} \\ \vdots \\ M_{J - 1}^{\ell} \\
+      S_0^{\ell} \\ \vdots \\ S_{J - 1}^{\ell} \\
+      e_{0, 0}^{\ell} \\ \vdots \\ e_{0, K - 1}^{\ell} \\ \vdots
+      \\ e_{J - 1, 0}^{\ell} \\ \vdots \\ e_{J - 1, K - 1}^{\ell} \\
+      i_{0, 0}^{\ell} \\ \vdots \\ i_{0, K - 1}^{\ell} \\ \vdots
+      \\ i_{J - 1, 0}^{\ell} \\ \vdots \\ i_{J - 1, K - 1}^{\ell} \\
+      R_0^{\ell} \\ \vdots \\ R_{J - 1}^{\ell}
+    \end{bmatrix},
+    \\
+    \vec{\beta} &=
+    \beta (\Delta t)^2
+    \begin{bmatrix}
+      \vec{0}_J & \vec{0}_J & \vec{0}_{JK} & \vec{1}_{JK} & \vec{0}_J
+    \end{bmatrix},
+    \\
+    \lambda^{\ell} &=
+    \vec{\beta} \vec{x}^{\ell},
+    \\
+    \mat{H}_{\mathrm{new}, a} &=
+    \begin{bmatrix}
+      1 & 0 & \cdots & 0 \\
+      0 & 1 & \ddots & \vdots \\
+      \vdots & \ddots & \ddots & 0 \\
+      0 & \cdots & 0 & 1
+    \end{bmatrix}_{J \times J},
+    \\
+    \mat{H}_{\mathrm{cur}, a} &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & 0 & 0 \\
+      1 & \ddots & & \vdots & \vdots \\
+      0 & \ddots & \ddots & \vdots & \vdots \\
+      \vdots & \ddots & \ddots & 0 & 0 \\
+      0 & \cdots & 0 & 1 & 1
+    \end{bmatrix}_{J \times J},
+    \\
+    \mat{H}_{\mathrm{new}, z} &=
+    \begin{bmatrix}
+      1 & 0 & \cdots & 0 \\
+      0 & 1 & \ddots & \vdots \\
+      \vdots & \ddots & \ddots & 0 \\
+      0 & \cdots & 0 & 1
+    \end{bmatrix}_{K \times K},
+    \\
+    \mat{H}_{\mathrm{cur}, z} &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & 0 & 0 \\
+      1 & \ddots & & \vdots & \vdots \\
+      0 & \ddots & \ddots & \vdots & \vdots \\
+      \vdots & \ddots & \ddots & 0 & 0 \\
+      0 & \cdots & 0 & 1 & 1
+    \end{bmatrix}_{K \times K},
+    \\
+    \mat{H}_{q, \mathrm{XX}} &=
+    \mat{H}_{q, a},
+    \\
+    \mat{H}_{q, \mathrm{yy}} &=
+    \mat{H}_{q, a} \otimes \mat{H}_{q, z},
+    \\
+    \mat{H}_q &=
+    \begin{bmatrix}
+      \mat{H}_{q, \mathrm{XX}} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{H}_{q, \mathrm{XX}} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{H}_{q, \mathrm{yy}} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{q, \mathrm{yy}} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{q, \mathrm{XX}}
+    \end{bmatrix},
+    \\
+    \mat{F}_{\mathrm{new}, a}(\vec{\pi}) &=
+    \begin{bmatrix}
+      \pi_0 & 0 & \cdots & 0 \\
+      0 & \pi_1 & \ddots & \vdots \\
+      \vdots & \ddots & \ddots & 0 \\
+      0 & \cdots & 0 & \pi_{J - 1}
+    \end{bmatrix},
+    \\
+    \mat{F}_{\mathrm{cur}, a}(\vec{\pi}) &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & 0 & 0 \\
+      \pi_0 & \ddots & & \vdots & \vdots \\
+      0 & \ddots & \ddots & \vdots & \vdots \\
+      \vdots & \ddots & \ddots & 0 & 0 \\
+      0 & \cdots & 0 & \pi_{J - 2} & \pi_{J - 1}
+    \end{bmatrix},
+    \\
+    \mat{F}_{\mathrm{new}, z}(\vec{\zeta}) &=
+    \begin{bmatrix}
+      \zeta_0 & 0 & \cdots & 0 \\
+      0 & \zeta_1 & \ddots & \vdots \\
+      \vdots & \ddots & \ddots & 0 \\
+      0 & \cdots & 0 & \zeta_{K - 1}
+    \end{bmatrix},
+    \\
+    \mat{F}_{\mathrm{cur}, z}(\vec{\zeta}) &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & 0 & 0 \\
+      \zeta_0 & \ddots & & \vdots & \vdots \\
+      0 & \ddots & \ddots & \vdots & \vdots \\
+      \vdots & \ddots & \ddots & 0 & 0 \\
+      0 & \cdots & 0 & \zeta_{K - 2} & \zeta_{K - 1}
+    \end{bmatrix},
+    \\
+    \vec{f}_z(\vec{\gamma}) &=
+    \Delta t
+    \begin{bmatrix}
+      \gamma_0 & \cdots & \gamma_{K - 1}
+    \end{bmatrix},
+    \\
+    \mat{F}_z(\vec{\rho}) &=
+    \begin{bmatrix}
+      \rho_0 & \cdots & \rho_{K - 1} \\
+      0 & \cdots & 0 \\
+      \vdots & & \vdots \\
+      0 & \cdots & 0
+    \end{bmatrix},
+    \\
+    \mat{F}_{q, \mathrm{XW}}(\vec{\pi}) &=
+    \mat{F}_{q, a}(\vec{\pi}),
+    \\
+    \mat{F}_{q, \mathrm{yy}}(\vec{\pi}, \vec{\zeta}) &=
+    \mat{F}_{q, a} (\vec{\pi}) \otimes \mat{H}_{q, z}
+    + \mat{H}_{q, a} \otimes \mat{F}_{q, z}(\vec{\zeta}),
+    \\
+    \mat{F}_{q, \mathrm{yz}}(\vec{\rho}) &=
+    \mat{H}_{q, a} \otimes \mat{F}_z(\vec{\rho}),
+    \\
+    \mat{F}_{q, \mathrm{Xy}}(\vec{\gamma}) &=
+    \mat{H}_{q, a} \otimes \vec{f}_z(\vec{\gamma}),
+    \\
+    \mat{F}_q &=
+    \begin{bmatrix}
+      \mat{F}_{q, \mathrm{XW}}(- \vec{\omega} - \vec{\mu}) & \mat{0} & \mat{0}
+      & \mat{0} & \mat{0}
+      \\
+      \mat{F}_{q, \mathrm{XW}}(\vec{\omega}) & \mat{F}_{q, \mathrm{XW}}(- \vec{\mu})
+      & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{F}_{q, \mathrm{yy}}(- \vec{\mu}, - \vec{\rho})
+      & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{F}_{q, \mathrm{yz}}(\vec{\rho})
+      & \mat{F}_{q, \mathrm{yy}}(- \vec{\mu}, - \vec{\gamma}) & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0}
+      & \mat{F}_{q, \mathrm{Xy}}(\vec{\gamma}) & \mat{F}_{q, XW}(- \vec{\mu})
+    \end{bmatrix},
+    \\
+    \mat{T}_{q, a} &= \mat{H}_{q, a},
+    \\
+    \vec{t}_z &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}_{K \times 1},
+    \\
+    \mat{T}_{q, XX} &= \mat{T}_{q, a},
+    \\
+    \mat{T}_{q, yX} &=
+    \mat{T}_{q, a} \otimes \vec{t}_z,
+    \\
+    \mat{T}_q &=
+    \begin{bmatrix}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & - \mat{T}_{q, \mathrm{XX}} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{T}_{q, \mathrm{yX}} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+    \end{bmatrix},
+    \\
+    \mat{B}_a &=
+    \begin{bmatrix}
+      \nu_0 & \cdots & \nu_{J - 1} \\
+      0 & \cdots & 0 \\
+      \vdots & & \vdots \\
+      0 & \cdots & 0
+    \end{bmatrix},
+    \\
+    \vec{b}_z &=
+    \Delta t
+    \begin{bmatrix}
+      1 & \cdots & 1
+    \end{bmatrix}_{1 \times K},
+    \\
+    \mat{B}_{\mathrm{XW}} &=
+    \mat{B}_a,
+    \\
+    \mat{B}_{\mathrm{Xy}} &=
+    \mat{B}_a \otimes \vec{b}_z,
+    \\
+    \mat{B} &=
+    \begin{bmatrix}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{\mathrm{XW}}
+      \\
+      \mat{B}_{\mathrm{XW}} & \mat{B}_{\mathrm{XW}} & \mat{B}_{\mathrm{Xy}}
+      & \mat{B}_{\mathrm{Xy}} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+    \end{bmatrix},
+  \end{align}
+  where $\otimes$ is the Kronecker product.
+  Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
+  we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
+  \begin{multline}
+    \label{step_age_and_time_since_entry_structured}
+    \left[
+      \mat{H}_{\mathrm{new}}
+      - \frac{\Delta t}{2}
+      \left(
+        \mat{F}_{\mathrm{new}}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right] \vec{x}^{\ell}
+    \\
+    = \left[
+      \mat{H}_{\mathrm{cur}}
+      + \frac{\Delta t}{2}
+      \left(
+        \mat{F}_{\mathrm{cur}}
+        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right] \vec{x}^{\ell - 1}.
+  \end{multline}
+\end{subequations}
+
+
+\paragraph{Jacobian}
+
+The Jacobian is calculated using \eqref{jacobian}.
 
 
 \printbibliography

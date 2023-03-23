@@ -1,15 +1,13 @@
 * Age-structured model
-  * Find equiblibrium eigenvalues
-    * Test with and without memmap for larger problems
   * Find limit cycle
     * Not quite a limit cycle: run solution for longer first?
+  * Find equiblibrium eigenvalues
   * Find limit-cycle exponents
   * Try bsr_array(blocksize=(J, J))?
 
 * Combination model
-  * Write numerical method as linear algebra
-    * Kronecker product: `\otimes`, `numpy.kron()`
   * Write models.combination._solver.Solver
+    * `scipy.sparse.kron(A, B, format=None)`
 
 * Bootstrap up equilibria & limit cycles from simpler models
 
