@@ -1,11 +1,24 @@
-\documentclass{jpmarticle}
+\documentclass[USenglish]{article}
 
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[babel=true]{microtype}
+\usepackage{lmodern}
+\usepackage{datetime2}
+\usepackage[pdfborderstyle={/S/U/W 1}]{hyperref}
+\usepackage{amsmath}
 \usepackage{units}
 \usepackage{csquotes}
 \usepackage[style=vancouver]{biblatex}
+
 \addbibresource{notes.bib}
 
 \renewcommand{\vec}[1]{\boldsymbol{\mathrm{#1}}}
+\newcommand{\mat}[1]{\mathbf{#1}}
+\newcommand{\md}{\mathrm{d}}
+\newcommand{\me}{\mathrm{e}}
 
 % Use Arabic numbers for subequations.
 \let\subequationsorig\subequations%
