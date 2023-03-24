@@ -38,21 +38,49 @@ class Solver(_model.solver.Base):
         }
         return Zeros
 
+    @functools.cached_property
+    def Iyy(self):
+        '''Build an identity matrix block for a y state. `Iyy` is
+        built on first use and then reused.'''
+        K = len(self.z)
+        Iyy = _utility.sparse.identity(K)
+        return Iyy
+
+    @functools.cached_property
+    def Lyy(self):
+        '''Build the lag matrix for a y state. `Lyy` is built on first
+        use and then reused.'''
+        K = len(self.z)
+        diags = {
+            -1: numpy.ones(K - 1),
+            0: numpy.hstack([numpy.zeros(K - 1), 1])
+        }
+        Lyy = _utility.sparse.diags_from_dict(diags)
+        return Lyy
+
+    @functools.cached_property
+    def zeta(self):
+        '''Build the vector for entering a y state. `zeta` is
+        built on first use and then reused.'''
+        K = len(self.z)
+        zeta = _utility.sparse.array_from_dict(
+            {(0, 0): 1 / self.z_step},
+            shape=(K, 1)
+        )
+        return zeta
+
+    def _sigma(self, xi):
+        '''Build the vector to integrate a y state over `xi`.'''
+        if numpy.isscalar(xi):
+            K = len(self.z)
+            xi *= numpy.ones(K)
+        sigma = _utility.sparse.array(self.z_step * xi)
+        return sigma
+
     def _mXX(self):
         '''Build hXX, tXX, and bXX.'''
-        mXX = numpy.array([[1]])
+        mXX = _utility.sparse.identity(1)
         return mXX
-
-    def _myX(self):
-        '''Build tyX and byX.'''
-        K = len(self.z)
-        shape = (K, 1)
-        # The first entry is `1 / self.z_step`.
-        data = {
-            (0, 0): 1 / self.z_step
-        }
-        myX = _utility.sparse.array_from_dict(data, shape=shape)
-        return myX
 
     def _I(self):
         '''Build the identity matrix.'''
@@ -84,19 +112,12 @@ class Solver(_model.solver.Base):
 
     def _Hyy(self, q):
         '''Build a diagonal block for a y state of H(q).'''
-        K = len(self.z)
         if q == 'new':
-            diags = {
-                0: numpy.ones(K)
-            }
+            Hyy = self.Iyy
         elif q == 'cur':
-            diags = {
-                -1: numpy.ones(K - 1),
-                0: numpy.hstack([numpy.zeros(K - 1), 1])
-            }
+            Hyy = self.Lyy
         else:
             raise ValueError(f'{q=}!')
-        Hyy = _utility.sparse.diags_from_dict(diags)
         return Hyy
 
     def _H(self, q):
@@ -110,46 +131,29 @@ class Solver(_model.solver.Base):
 
     def _fXX(self, pi):
         '''Build a diagonal block for an X state of F(q).'''
-        fXX = numpy.array([[pi]])
+        fXX = _utility.sparse.array([[pi]])
         return fXX
 
-    def _fXy(self, psi):
-        '''Build a block to an X state from a y state of F(q).'''
-        K = len(self.z)
-        if numpy.isscalar(psi):
-            psi = psi * numpy.ones(K)
-        # `[None]` adds a dimension, going from shape (K, ) to shape (1, K).
-        fXy = (self.z_step * psi)[None]
-        return fXy
-
-    def _Fyy(self, q, psi):
+    def _Fyy(self, q, xi):
         '''Build a diagonal block for a y state of F(q).'''
-        K = len(self.z)
-        if numpy.isscalar(psi):
-            psi = psi * numpy.ones(K)
-        if q == 'new':
-            diags = {
-                0: psi
-            }
-        elif q == 'cur':
-            diags = {
-                -1: psi[:-1],
-                0: numpy.hstack([numpy.zeros(K - 1), psi[-1]])
-            }
-        else:
+        if q not in {'new', 'cur'}:
             raise ValueError(f'{q=}!')
-        Fyy = _utility.sparse.diags_from_dict(diags)
+        if numpy.isscalar(xi):
+            K = len(self.z)
+            xi *= numpy.ones(K)
+        Fyy = _utility.sparse.diags(xi)
+        if q == 'cur':
+            Fyy = self.Lyy @ Fyy
         return Fyy
 
-    def _Fyz(self, psi):
+    def _fXy(self, xi):
+        '''Build a block to an X state from a y state of F(q).'''
+        fXy = self._sigma(xi)
+        return fXy
+
+    def _Fyz(self, xi):
         '''Build an off-diagonal block between y states of F(q).'''
-        K = len(self.z)
-        shape = (K, K)
-        # The first row is `psi`.
-        data = {
-            (0, (None, )): psi
-        }
-        Fyz = _utility.sparse.array_from_dict(data, shape=shape)
+        Fyz = self.zeta @ self._sigma(xi)
         return Fyz
 
     def _get_rate(self, which):
@@ -184,7 +188,7 @@ class Solver(_model.solver.Base):
 
     def _tyX(self):
         '''Build a block to a y state from an X state of T(q).'''
-        tyX = self._myX()
+        tyX = self.zeta
         return tyX
 
     @functools.cached_property
@@ -216,13 +220,13 @@ class Solver(_model.solver.Base):
     def _bXy(self):
         '''Build a block to an X state from a y state of B.'''
         K = len(self.z)
-        shape = (1, K)
-        bXy = self.z_step * numpy.ones(shape)
+        tau = _utility.sparse.array(self.z_step * numpy.ones(shape=(1, K)))
+        bXy = tau
         return bXy
 
     def _byX(self):
         '''Build a block to a y state from an X state of B.'''
-        byX = self._myX()
+        byX = self.zeta
         return byX
 
     def _B(self):

@@ -79,56 +79,59 @@ class Solver:
         assert period > 0
         return period
 
+    def _I(self):
+        '''Build the identity matrix.'''
+        J = len(self.a)
+        I = _utility.sparse.identity(J)
+        return I
+
+    def _L(self):
+        '''Build the lag matrix.'''
+        J = len(self.a)
+        diags = {
+            -1: numpy.ones(J - 1),
+            0: numpy.hstack([numpy.zeros(J - 1), 1])
+        }
+        L = _utility.sparse.diags_from_dict(diags)
+        return L
+
     def _H(self, q):
         '''Build the time step matrix H(q).'''
-        J = len(self.a)
         if q == 'new':
-            diags = {
-                0: numpy.ones(J)
-            }
+            H = self.I
         elif q == 'cur':
-            diags = {
-                -1: numpy.ones(J - 1),
-                0: numpy.hstack([numpy.zeros(J - 1), 1])
-            }
+            H = self.L
         else:
             raise ValueError(f'{q=}!')
-        HXX = _utility.sparse.diags_from_dict(diags)
-        return HXX
+        return H
 
     def _F(self, q):
         '''Build the transition matrix F(q).'''
-        J = len(self.a)
-        mu = self.death.rate(self.a)
-        if q == 'new':
-            diags = {
-                0: - mu
-            }
-        elif q == 'cur':
-            diags = {
-                -1: - mu[:-1],
-                0: numpy.hstack([numpy.zeros(J - 1), - mu[-1]])
-            }
-        else:
+        if q not in {'new', 'cur'}:
             raise ValueError(f'{q=}!')
-        F = _utility.sparse.diags_from_dict(diags)
+        mu = self.death.rate(self.a)
+        F = _utility.sparse.diags(- mu)
+        if q == 'cur':
+            F = self.L @ F
         return F
 
     def _B(self):
         '''Build matrices needed by the solver.'''
         J = len(self.a)
-        shape = (J, J)
         nu = self.birth.maternity(self.a)
-        # The first row is `nu`.
-        data = {
-            (0, (None, )): nu
-        }
-        B = _utility.sparse.array_from_dict(data, shape=shape)
+        tau = _utility.sparse.array(self.a_step * nu)
+        b = _utility.sparse.array_from_dict(
+            {(0, 0): 1 / self.a_step},
+            shape=(J, 1)
+        )
+        B = b @ tau
         return B
 
     def _build_matrices(self):
         '''Build the matrices used for stepping forward in time.'''
         q_vals = ('new', 'cur')
+        self.I = self._I()
+        self.L = self._L()
         self.H = {q: self._H(q) for q in q_vals}
         self.F = {q: self._F(q) for q in q_vals}
         self.B = self._B()

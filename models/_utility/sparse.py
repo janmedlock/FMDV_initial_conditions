@@ -1,5 +1,6 @@
 '''Tools for sparse matrices.'''
 
+import numpy
 import scipy.sparse
 
 
@@ -107,4 +108,7 @@ def diags_from_dict(data, shape=None, *args, **kwds):
 
 def equals(a, b):
     '''Whether the sparse matrices `a` and `b` are equal.'''
-    return (a.shape == b.shape) & ((a != b).nnz == 0)
+    if a.shape != b.shape:
+        return False
+    err = a - b
+    return numpy.allclose(err.data, 0)

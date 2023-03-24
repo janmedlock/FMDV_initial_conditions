@@ -36,30 +36,42 @@ class Solver(_model.solver.Base):
         }
         return Zeros
 
-    def _MXW(self, q):
-        '''Build HXX(q) and TXW(q).'''
+    @functools.cached_property
+    def IXW(self):
+        '''Build an identity matrix block. `IXW` is built on first use
+        and then reused.'''
         J = len(self.a)
-        if q == 'new':
-            diags = {
-                0: numpy.ones(J)
-            }
-        elif q == 'cur':
-            diags = {
-                -1: numpy.ones(J - 1),
-                0: numpy.hstack([numpy.zeros(J - 1), 1])
-            }
-        else:
-            raise ValueError(f'{q=}!')
-        MXW = _utility.sparse.diags_from_dict(diags)
-        return MXW
+        IXW = _utility.sparse.identity(J)
+        return IXW
+
+    @functools.cached_property
+    def LXW(self):
+        '''Build the lag matrix. `LXW` is built on first use and then
+        reused.'''
+        J = len(self.a)
+        diags = {
+            -1: numpy.ones(J - 1),
+            0: numpy.hstack([numpy.zeros(J - 1), 1])
+        }
+        LXW = _utility.sparse.diags_from_dict(diags)
+        return LXW
 
     def _I(self):
         '''Build the identity matrix.'''
         n = len(self.model.states)
         J = len(self.a)
-        size = n * J
-        I = _utility.sparse.identity(size)
+        I = _utility.sparse.identity(n * J)
         return I
+
+    def _MXW(self, q):
+        '''Build HXX(q) and TXW(q).'''
+        if q == 'new':
+            MXW = self.IXW
+        elif q == 'cur':
+            MXW = self.LXW
+        else:
+            raise ValueError(f'{q=}!')
+        return MXW
 
     def _beta(self):
         '''Build the transmission rate vector beta.'''
@@ -89,21 +101,14 @@ class Solver(_model.solver.Base):
 
     def _FXW(self, q, pi):
         '''Build a block of F(q).'''
-        J = len(self.a)
-        if numpy.isscalar(pi):
-            pi = pi * numpy.ones(J)
-        if q == 'new':
-            diags = {
-                0: pi
-            }
-        elif q == 'cur':
-            diags = {
-                -1: pi[:-1],
-                0: numpy.hstack([numpy.zeros(J - 1), pi[-1]])
-            }
-        else:
+        if q not in {'new', 'cur'}:
             raise ValueError(f'{q=}!')
-        FXW = _utility.sparse.diags_from_dict(diags)
+        if numpy.isscalar(pi):
+            J = len(self.a)
+            pi *= numpy.ones(J)
+        FXW = _utility.sparse.diags(pi)
+        if q == 'cur':
+            FXW = self.LXW @ FXW
         return FXW
 
     def _F(self, q):
@@ -143,13 +148,13 @@ class Solver(_model.solver.Base):
     def _BXW(self):
         '''Build a block of B.'''
         J = len(self.a)
-        shape = (J, J)
         nu = self.model.parameters.birth.maternity(self.a)
-        # The first row is `nu`.
-        data = {
-            (0, (None, )): nu
-        }
-        BXW = _utility.sparse.array_from_dict(data, shape=shape)
+        tau = _utility.sparse.array(self.a_step * nu)
+        b = _utility.sparse.array_from_dict(
+            {(0, 0): 1 / self.a_step},
+            shape=(J, 1)
+        )
+        BXW = b @ tau
         return BXW
 
     def _B(self):
