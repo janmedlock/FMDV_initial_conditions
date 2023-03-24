@@ -32,10 +32,12 @@ class Model(unstructured.Model):
 
     def _init_post(self):
         '''Final initialization.'''
-        self.z_step = self._Solver._get_z_step(self.t_step)
         assert self.z_step > 0
-        self.z = _utility.numerical.build_t(0, self.z_max, self.z_step)
         super()._init_post()
+
+    @property
+    def z_step(self):
+        return self._Solver._get_z_step(self.t_step)
 
     def _extend_index(self, idx_other):
         '''Extend `idx_other` with the 'time-since-entry' level.'''
@@ -57,6 +59,7 @@ class Model(unstructured.Model):
     def _build_index(self):
         '''Extend the `pandas.Index()` for solutions with the
         'time-since-entry' level.'''
+        self.z = _utility.numerical.build_t(0, self.z_max, self.z_step)
         idx_other = super()._build_index()
         idx = self._extend_index(idx_other)
         return idx

@@ -15,7 +15,6 @@ class Solver(_model.solver.Base):
     _jacobian_method_default = 'dense'
 
     def __init__(self, model, **kwds):
-        self.a_step = model.a_step
         self.a = model.a
         super().__init__(model, **kwds)
 
@@ -23,6 +22,10 @@ class Solver(_model.solver.Base):
     def _get_a_step(t_step):
         a_step = t_step
         return a_step
+
+    @property
+    def a_step(self):
+        return self._get_a_step(self.t_step)
 
     @functools.cached_property
     def Zeros(self):

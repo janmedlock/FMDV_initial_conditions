@@ -1,13 +1,23 @@
 '''Age-structured population model.'''
 
 from . import _solver
-from .. import _age
+from .. import _base
 
 
-class Model:
+class _ModelParameters:
+    '''Simple class to hold parameters of `Model()`.'''
+
+    def __init__(self, birth, death):
+        self.birth = birth
+        self.death = death
+
+
+class Model(_base.Model):
     '''Solver for the monodromy matrix of a linear age-structured
     model for the population size with age-dependent death rate,
     age-dependent maternity, and periodic time-dependent birth rate.'''
+
+    _Solver = _solver.Solver
 
     # The default time step `t_step`.
     # `t_step` = 1e-2 gives a relative error in `.stable_age_density()`
@@ -16,23 +26,17 @@ class Model:
 
     def __init__(self, birth, death,
                  t_step=_t_step_default,
-                 a_max=_age.max_default):
-        self.birth = birth
-        self.death = death
+                 **kwds):
+        self.parameters = _ModelParameters(birth, death)
         assert t_step > 0
         self.t_step = t_step
-        assert a_max > 0
-        _age.check_max(self, a_max)
-        self.a_max = a_max
-        self.a_step = _solver.Solver._get_a_step(self.t_step)
-        assert self.a_step > 0
-        self._solver = _solver.Solver(self.birth, self.death,
-                                      self.t_step, self.a_max)
+        super().__init__(**kwds)
+        self._solver = self._Solver(self)
 
     def integral_over_a(self, arr, *args, **kwds):
         '''Integrate `arr` over age. `args` and `kwds` are passed on
          to `.sum()`.'''
-        return _solver.integral_over_a(arr, self.a_step, *args, **kwds)
+        return self._solver.integral_over_a(arr, *args, **kwds)
 
     def birth_scaling_for_zero_population_growth(self, **kwds):
         '''Find the birth scaling that gives zero population growth rate.'''

@@ -15,7 +15,6 @@ class Solver(_model.solver.Base):
     _jacobian_method_default = 'sparse_csc'
 
     def __init__(self, model, **kwds):
-        self.z_step = model.z_step
         self.z = model.z
         super().__init__(model, **kwds)
 
@@ -23,6 +22,10 @@ class Solver(_model.solver.Base):
     def _get_z_step(t_step):
         z_step = t_step
         return z_step
+
+    @property
+    def z_step(self):
+        return self._get_z_step(self.t_step)
 
     @functools.cached_property
     def Zeros(self):

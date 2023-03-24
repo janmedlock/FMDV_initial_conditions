@@ -1,32 +1,15 @@
 '''Solver.'''
 
-import dataclasses
 import functools
 
 import numpy
 import scipy.optimize
 
 from ... import _utility
-from ...birth import _Birth
-from ...death import Death
 
 
-def integral_over_a(arr, a_step, *args, **kwds):
-    '''Integrate `arr` over age using `a_step` as the step
-     size. `args` and `kwds` are passed on to `.sum()`.'''
-    return arr.sum(*args, **kwds) * a_step
-
-
-@dataclasses.dataclass
 class Solver:
     '''Crank–Nicolson solver.'''
-
-    # The dataclass fields. These are the input variables for
-    # initializing instances.
-    birth: _Birth
-    death: Death
-    t_step: float
-    a_max: float
 
     # These methods are slow, so cache their results to disk using
     # `_utility.cache`.
@@ -35,8 +18,16 @@ class Solver:
                        'stable_age_density')
 
     # For caching, the hash of class instances is restricted to only
-    # depend on the input variables used in initializating instances
-    # by restricting the state produced by `.__getstate__()`.
+    # depend on the value of these attributes by restricting the state
+    # produced by `.__getstate__()`.
+    _state_attrs = ('birth', 'death', 't_step', 'a_max')
+
+    def __init__(self, model):
+        self.birth = model.parameters.birth
+        self.death = model.parameters.death
+        self.t_step = model.t_step
+        self.a_max = model.a_max
+        self._init_post()
 
     def _init_cached(self):
         '''Cache the methods in `self._methods_cached`.'''
@@ -45,17 +36,17 @@ class Solver:
             cached = _utility.cache.cache(method)
             setattr(self, name, cached)
 
-    def __post_init__(self):
-        '''Secondary initialization.'''
-        self.a_step = self._get_a_step(self.t_step)
+    def _init_post(self):
+        '''Final initialization.'''
+        # This is called by both `__init__()` and `__setstate__()`.
         self._monodromy_initialized = False
         self._init_cached()
 
     def __getstate__(self):
         '''Restrict the state to only the input variables used in
         initializing instances.'''
-        attrs = (field.name for field in dataclasses.fields(self))
-        state = {attr: self.__dict__[attr] for attr in attrs}
+        state = {name: getattr(self, name)
+                 for name in self._state_attrs}
         return state
 
     def __setstate__(self, state):
@@ -69,6 +60,10 @@ class Solver:
         '''Get the age step.'''
         a_step = t_step
         return a_step
+
+    @property
+    def a_step(self):
+        return self._get_a_step(self.t_step)
 
     @property
     def period(self):
@@ -247,6 +242,11 @@ class Solver:
         scaling = scipy.optimize.brentq(growth_rate, lower, upper)
         return scaling
 
+    def integral_over_a(self, arr, *args, **kwds):
+        '''Integrate `arr` over age. `args` and `kwds` are passed on
+        to `.sum()`.'''
+        return arr.sum(*args, **kwds) * self.a_step
+
     def stable_age_density(self, **kwds):
         '''Get the stable age density.'''
         Psi = self.monodromy(**kwds)
@@ -261,5 +261,5 @@ class Solver:
         )
         assert numpy.isclose(rho_dom, growth_mult)
         # Normalize `v_dom` in place so that its integral over a is 1.
-        v_dom /= integral_over_a(v_dom, self.a_step)
+        v_dom /= self.integral_over_a(v_dom)
         return (self.a, v_dom)
