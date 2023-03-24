@@ -35,7 +35,6 @@ class Model(_model.model.Model):
         # Use `pandas.CategoricalIndex()` to preserve the order of the
         # states.
         idx_other = super()._build_index()
-        assert idx_other is None
         states = self.states
         idx = pandas.CategoricalIndex(states, states,
                                       ordered=True, name='state')
@@ -44,7 +43,6 @@ class Model(_model.model.Model):
     def _build_weights(self):
         '''Build weights for the 'state' level.'''
         weights_other = super()._build_weights()
-        assert weights_other is None
         # Each 'state' has weight 1.
         weights = pandas.Series(1, index=self._index)
         return weights

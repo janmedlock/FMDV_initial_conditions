@@ -29,11 +29,13 @@ class Model(metaclass=abc.ABCMeta):
             _solver_options = {}
         self._solver_options = _solver_options
         self.parameters = self._Parameters(**kwds)
+        super().__init__()
         self._init_post()
 
     def _init_post(self):
         '''Final initialization.'''
         self._index = self._build_index()
+        assert not hasattr(super(), '_init_post')
 
     @functools.cached_property
     def _solver(self):
@@ -52,9 +54,13 @@ class Model(metaclass=abc.ABCMeta):
 
     def _build_index(self):
         '''Build a `pandas.Index()` for solutions.'''
+        assert not hasattr(super(), '_build_index')
+        return None
 
     def _build_weights(self):
         '''Build weights for the state vector.'''
+        assert not hasattr(super(), '_build_weights')
+        return None
 
     @functools.cached_property
     def _weights(self):
@@ -64,6 +70,8 @@ class Model(metaclass=abc.ABCMeta):
 
     def build_initial_conditions(self):
         '''Build the initial conditions.'''
+        assert not hasattr(super(), 'build_initial_conditions')
+        return None
 
     def Solution(self, y, t=None):
         '''A solution.'''
