@@ -6,6 +6,11 @@ import abc
 class Model(metaclass=abc.ABCMeta):
     '''Base for age-structured models.'''
 
+    @property
+    @abc.abstractmethod
+    def _Solver(self):
+        '''The solver class.'''
+
     # The default maximum age `a_max` for `model.Model()` and
     # `_population.model.Model()`.
     # This was chosen as the last age where either of the age-dependent
@@ -13,15 +18,10 @@ class Model(metaclass=abc.ABCMeta):
     # `birth.maternity`.
     _a_max_default = 12
 
-    @property
-    @abc.abstractmethod
-    def _Solver(self):
-        '''The solver class.'''
-
-    def __init__(self, *args, a_max=_a_max_default, **kwds):
+    def __init__(self, a_max=_a_max_default, **kwds):
         assert a_max > 0
         self.a_max = a_max
-        super().__init__(*args, **kwds)
+        super().__init__(**kwds)
 
     def _check_a_max(self):
         '''Check that `a_max` is large enough.'''

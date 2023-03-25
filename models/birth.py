@@ -6,11 +6,9 @@ import numpy
 class _Birth:
     '''Base for births.'''
 
-    def __init__(self, parameters, *args, **kwds):
+    def __init__(self, parameters):
         self.variation = parameters.birth_variation
         assert self.variation >= 0
-        self.period = parameters.birth_period
-        assert self.period >= 0
         self.age_menarche = parameters.birth_age_menarche
         self.age_menopause = parameters.birth_age_menopause
         assert 0 <= self.age_menarche <= self.age_menopause
@@ -67,16 +65,7 @@ class BirthConstant(_Birth):
     def __init__(self, parameters):
         super().__init__(parameters)
         assert self.variation == 0
-
-    # `_population.Model.birth_scaling_for_zero_population_growth()`
-    # has a shortcut when `period = 0`, so always return that value.
-    @property
-    def period(self):
-        return 0
-
-    @period.setter
-    def period(self, val):
-        pass
+        self.period = None
 
     def rate(self, t):
         '''Constant birth rate.'''
@@ -89,6 +78,8 @@ class BirthPeriodic(_Birth):
     def __init__(self, parameters):
         super().__init__(parameters)
         assert self.variation > 0
+        self.period = parameters.birth_period
+        assert self.period > 0
 
     def rate(self, t):
         '''Periodic birth rate.'''

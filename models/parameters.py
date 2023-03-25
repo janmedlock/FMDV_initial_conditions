@@ -78,10 +78,11 @@ class _ModelParameters:
         self.waning = waning.Waning(parameters)
         self._init_post()
 
-    def _init_post(self, *args, **kwds):
+    def _init_post(self, **kwds):
         '''Final initialization.'''
-        self._population = _population.Model(self.birth, self.death,
-                                             *args, **kwds)
+        self._population = _population.Model(birth=self.birth,
+                                             death=self.death,
+                                             **kwds)
         self.birth._init_post(self._population)
 
     @property

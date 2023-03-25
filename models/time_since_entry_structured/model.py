@@ -10,9 +10,9 @@ from .. import unstructured, _model, _utility
 class Model(unstructured.Model):
     '''Time-since-entry-structured model.'''
 
-    _Solver = _solver.Solver
-
     states_with_z = ['maternal_immunity', 'exposed', 'infectious']
+
+    _Solver = _solver.Solver
 
     # The default maximum time since entry `z_max`.
     # This was chosen to ensure that the survival for all of the
@@ -25,10 +25,10 @@ class Model(unstructured.Model):
     # survivals for the other processes are less than 1e-270.
     _z_max_default = 3
 
-    def __init__(self, *args, z_max=_z_max_default, **kwds):
+    def __init__(self, z_max=_z_max_default, **kwds):
         assert z_max > 0
         self.z_max = z_max
-        super().__init__(*args, **kwds)
+        super().__init__(**kwds)
 
     def _init_post(self):
         '''Final initialization.'''
@@ -129,9 +129,9 @@ class Model(unstructured.Model):
             n_z[state] = n_with_z
         return n_z
 
-    def build_initial_conditions(self, how='survival', *args, **kwds):
+    def build_initial_conditions(self, how='survival', **kwds):
         '''Adjust the initial conditions for the 'time-since-entry' level.'''
-        Y_other = super().build_initial_conditions(*args, **kwds)
+        Y_other = super().build_initial_conditions(**kwds)
         idx_state = self._get_index_level('state')
         idx_state_z = self._extend_index(idx_state)
         n_z = pandas.Series(1, index=idx_state_z)
@@ -160,10 +160,10 @@ class Model(unstructured.Model):
         return y
 
     @classmethod
-    def _check_survivals_at_z_max(cls, *args, **kwds):
+    def _check_survivals_at_z_max(cls, **kwds):
         '''Get the survivals at `z_max` to check whether `z_max` is
         large enough.'''
-        self = cls(*args, **kwds)
+        self = cls(**kwds)
         survivals_scaled = self._survivals_scaled() \
                                .loc[self.states_with_z]
         z = self.z

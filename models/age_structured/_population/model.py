@@ -8,6 +8,8 @@ class _ModelParameters:
     '''Simple class to hold parameters of `Model()`.'''
 
     def __init__(self, birth, death):
+        if (birth is None) or (death is None):
+            raise ValueError
         self.birth = birth
         self.death = death
 
@@ -24,12 +26,14 @@ class Model(_base.Model):
     # of less than 1e-3. (See `../../miscellany/population_step_size.py`.)
     _t_step_default = 1e-2
 
-    def __init__(self, birth, death,
+    def __init__(self,
                  t_step=_t_step_default,
+                 birth=None,
+                 death=None,
                  **kwds):
-        self.parameters = _ModelParameters(birth, death)
         assert t_step > 0
         self.t_step = t_step
+        self.parameters = _ModelParameters(birth, death)
         super().__init__(**kwds)
         self._solver = self._Solver(self)
 

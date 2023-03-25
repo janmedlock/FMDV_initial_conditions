@@ -61,9 +61,9 @@ class Model(_base.Model, unstructured.Model):
         dens = pandas.Series(n, index=idx_age)
         return dens
 
-    def build_initial_conditions(self, *args, **kwds):
+    def build_initial_conditions(self, **kwds):
         '''Adjust the initial conditions for the 'age' level.'''
         Y_other = super().build_initial_conditions()
-        n_age = self.stable_age_density(*args, **kwds)
+        n_age = self.stable_age_density(**kwds)
         y = Y_other * n_age
         return y

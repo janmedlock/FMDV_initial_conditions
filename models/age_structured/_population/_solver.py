@@ -69,7 +69,7 @@ class Solver:
     def period(self):
         '''The period over which to solve.'''
         period = self.birth.period
-        if period == 0:
+        if period is None:
             period = self.t_step
         assert period > 0
         return period

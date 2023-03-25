@@ -22,7 +22,17 @@ class Model(metaclass=abc.ABCMeta):
     def _Solver(self):
         '''The solver class.'''
 
-    def __init__(self, t_step, _solver_options=None, **kwds):
+    # The default time step `t_step`. A necessary condition for
+    # nonnegative solutions is is that `t_step` must be less than 1 /
+    # rate for all of the model transition rates. In particular,
+    # `transmission_rate` and 1 / `progression_mean`, especially for
+    # SAT1, are just a bit less than 1000.
+    _t_step_default = 1e-3
+
+    def __init__(self,
+                 t_step=_t_step_default,
+                 _solver_options=None,
+                 **kwds):
         assert t_step > 0
         self.t_step = t_step
         if _solver_options is None:

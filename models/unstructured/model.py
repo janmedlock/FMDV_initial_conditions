@@ -20,21 +20,13 @@ class Model(_model.model.Model):
 
     _Solver = _solver.Solver
 
-    # The default time step `t_step`. A necessary condition for
-    # nonnegative solutions is is that `t_step` must be less than 1 /
-    # rate for all of the model transition rates. In particular,
-    # `transmission_rate` and 1 / `progression_mean`, especially for
-    # SAT1, are just a bit less than 1000.
-    _t_step_default = 1e-3
-
-    def __init__(self, t_step=_t_step_default, **kwds):
-        super().__init__(t_step, **kwds)
-
     def _build_index(self):
         '''Build the 'state' level `pandas.Index()` for solutions.'''
         # Use `pandas.CategoricalIndex()` to preserve the order of the
         # states.
         idx_other = super()._build_index()
+        if idx_other is not None:
+            raise NotImplementedError
         states = self.states
         idx = pandas.CategoricalIndex(states, states,
                                       ordered=True, name='state')
@@ -43,6 +35,8 @@ class Model(_model.model.Model):
     def _build_weights(self):
         '''Build weights for the 'state' level.'''
         weights_other = super()._build_weights()
+        if weights_other is not None:
+            raise NotImplementedError
         # Each 'state' has weight 1.
         weights = pandas.Series(1, index=self._index)
         return weights
@@ -51,9 +45,7 @@ class Model(_model.model.Model):
         '''Build the initial conditions for the 'state' level.'''
         Y_other = super().build_initial_conditions()
         if Y_other is not None:
-            clsname = self.__class__.__qualname__
-            msg = f'{clsname} should be the last inherited class.'
-            raise NotImplementedError(msg)
+            raise NotImplementedError
         M = E = R = 0
         I = 0.01
         S = 1 - M - E - I - R
