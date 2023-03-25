@@ -12,21 +12,11 @@ class _Birth:
         self.age_menarche = parameters.birth_age_menarche
         self.age_menopause = parameters.birth_age_menopause
         assert 0 <= self.age_menarche <= self.age_menopause
-        # Set a starting guess for `self.mean`, which will be replaced
-        # in `_init_post()`.
-        self.mean = 0.5
-
-    def _mean_for_zero_population_growth(self, population, **kwds):
-        '''Get the value for `self.mean` that gives zero population
-        growth rate.'''
-        scale = population.birth_scaling_for_zero_population_growth(**kwds)
-        mean_for_zero_population_growth = scale * self.mean
-        return mean_for_zero_population_growth
-
-    def _init_post(self, population, **kwds):
-        '''Final initialization.'''
-        self.mean = self._mean_for_zero_population_growth(population, **kwds)
-        assert self.mean >= 0
+        # The mean will be set in
+        # `models.parameters.ModelAgeDependentParameters()` to give 0
+        # population growth rate but it is deferred until the
+        # population model is available that also includes death.
+        self.mean = None
 
     def maternity(self, age):
         '''Maternity.'''

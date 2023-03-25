@@ -65,66 +65,62 @@ def Parameters(SAT=1, **kwds):
     return klass(**kwds)
 
 
-class _ModelParameters:
-    '''Model parameters.'''
+class ModelParametersAgeDependent:
+    '''Model parameters for age-dependent models.'''
 
     def __init__(self, **kwds):
         parameters = Parameters(**kwds)
         self.death = death.Death(parameters)
         self.birth = birth.Birth(parameters)
+        self._population = _population.Model(birth=self.birth,
+                                             death=self.death)
+        self._set_for_zero_population_growth()
         self.progression = progression.Progression(parameters)
         self.recovery = recovery.Recovery(parameters)
         self.transmission = transmission.Transmission(parameters)
         self.waning = waning.Waning(parameters)
-        self._init_post()
-
-    def _init_post(self, **kwds):
-        '''Final initialization.'''
-        self._population = _population.Model(birth=self.birth,
-                                             death=self.death,
-                                             **kwds)
-        self.birth._init_post(self._population)
 
     @property
     def period(self):
         '''The only periodic parameter is birth.'''
         return self.birth.period
 
+    def _set_for_zero_population_growth(self, **kwds):
+        '''Set the mean birth and death rates so that the population
+        growth rate is zero.'''
+        # For the age-dependent parameters, set the mean birth rate
+        # for zero population growth and do not adjust death.
+        if self.birth.mean is None:
+            self.birth.mean = 0.5  # Starting guess.
+        scaling = self._population.birth_scaling_for_zero_population_growth(
+            **kwds
+        )
+        self.birth.mean *= scaling
+        assert self.birth.mean > 0
+
     def _stable_age_density(self, **kwds):
         '''Get the stable age density.'''
         return self._population.stable_age_density(**kwds)
 
 
-class ModelParametersAgeIndependent(_ModelParameters):
+class ModelParametersAgeIndependent(ModelParametersAgeDependent):
     '''Model parameters for age-independent models.'''
 
-    def _death_rate_mean(self):
-        '''Find the mean death rate.'''
-        # Find the mean of the death rate over age using the stable
-        # age density of the age-dependent population model with the
-        # age-dependent birth and death rates. The result is the
-        # death_rate for an age-independent model.
-        death_rate_mean = self.death.rate_population_mean(self._population)
-        return death_rate_mean
-
-    def _birth_rate_mean_for_zero_population_growth(self):
-        '''Get the birth rate mean that gives zero population growth.'''
-        # For the age-independent population model, the mean over time
-        # of the population growth rate is `self.birth.mean -
-        # self.death_rate_mean`. Setting the mean of the birth rate to
-        # `self.death_rate_mean()` ensures the age-independent
-        # population model has zero mean population growth rate, just
-        # like the mean population growth rate for the age-dependent
-        # population model.
-        birth_mean = self.death_rate_mean
-        return birth_mean
-
-    def _init_post(self):
-        '''Final initialization.'''
-        super()._init_post()
-        self.death_rate_mean = self._death_rate_mean()
-        self.birth.mean = self._birth_rate_mean_for_zero_population_growth()
-
-
-class ModelParametersAgeDependent(_ModelParameters):
-    '''Model parametets for age-dependent models.'''
+    def _set_for_zero_population_growth(self, **kwds):
+        '''Set the mean birth and death rates so that the population
+        growth rate is zero.'''
+        # Set the age-dependent mean birth and death rates.
+        super()._set_for_zero_population_growth(**kwds)
+        # Find the mean death rate over age using the stable age
+        # density of the age-dependent population model with the
+        # age-dependent birth and death rates.
+        self.death_rate_mean = self.death.rate_population_mean(
+            self._population
+        )
+        assert self.death_rate_mean > 0
+        # The population growth rate for the age-independent model is
+        # `self.birth.mean - self.death_rate_mean`, so set the mean birth
+        # rate to `self.death_rate_mean` so that the population growth
+        # rate is 0.
+        self.birth.mean = self.death_rate_mean
+        assert self.birth.mean > 0
