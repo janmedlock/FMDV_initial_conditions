@@ -233,7 +233,7 @@ class Solver:
         # `.population_growth_rate(upper) > 0` and
         # `.population_growth_rate(lower) < 0`.
         SCALE = 2
-        upper = 1  # Starting guess.
+        upper = 1.  # Starting guess.
         while growth_rate(upper) < 0:
             upper *= SCALE
         lower = upper / SCALE  # Starting guess.
