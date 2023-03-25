@@ -27,20 +27,20 @@ class Solver:
         self.death = model.parameters.death
         self.t_step = model.t_step
         self.a_max = model.a_max
-        self._init_post()
+        self._init_finalize()
 
-    def _init_cached(self):
+    def _cache_methods(self):
         '''Cache the methods in `self._methods_cached`.'''
         for name in self._methods_cached:
             method = getattr(self, name)
             cached = _utility.cache.cache(method)
             setattr(self, name, cached)
 
-    def _init_post(self):
+    def _init_finalize(self):
         '''Final initialization.'''
         # This is called by both `__init__()` and `__setstate__()`.
         self._monodromy_initialized = False
-        self._init_cached()
+        self._cache_methods()
 
     def __getstate__(self):
         '''Restrict the state to only the input variables used in
@@ -53,7 +53,7 @@ class Solver:
         '''Build an instance from the restricted `state` produced by
         `self.__getstate__()`.'''
         self.__dict__.update(state)
-        self.__post_init__()
+        self._init_finalize()
 
     @staticmethod
     def _get_a_step(t_step):
