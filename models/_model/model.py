@@ -32,26 +32,16 @@ class Model(metaclass=abc.ABCMeta):
     def __init__(self,
                  t_step=_t_step_default,
                  _solver_options=None,
-                 **kwds):
+                 **parameters_kwds):
         assert t_step > 0
         self.t_step = t_step
         if _solver_options is None:
             _solver_options = {}
         self._solver_options = _solver_options
-        self.parameters = self._Parameters(**kwds)
-        super().__init__()
-        self._init_post()
-
-    def _init_post(self):
-        '''Final initialization.'''
+        self.parameters = self._Parameters(**parameters_kwds)
         self._index = self._build_index()
-        assert not hasattr(super(), '_init_post')
-
-    @functools.cached_property
-    def _solver(self):
-        '''`._solver` is built on first use and then reused.'''
-        _solver = self._Solver(self, **self._solver_options)
-        return _solver
+        self._weights = self._build_weights()
+        super().__init__()
 
     def _get_index_level(self, level):
         '''Get the index for `level`.'''
@@ -72,16 +62,16 @@ class Model(metaclass=abc.ABCMeta):
         assert not hasattr(super(), '_build_weights')
         return None
 
-    @functools.cached_property
-    def _weights(self):
-        '''`._weights` is built on first use and then reused.'''
-        _weights = self._build_weights()
-        return _weights
-
     def build_initial_conditions(self):
         '''Build the initial conditions.'''
         assert not hasattr(super(), 'build_initial_conditions')
         return None
+
+    @functools.cached_property
+    def _solver(self):
+        '''`._solver` is built on first use and then reused.'''
+        _solver = self._Solver(self, **self._solver_options)
+        return _solver
 
     def Solution(self, y, t=None):
         '''A solution.'''

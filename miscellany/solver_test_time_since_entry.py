@@ -9,7 +9,9 @@ import models._utility
 import solver_test
 
 
-class Tester(solver_test.Base):
+class Tester(solver_test.Tester):
+    '''Test the time-since-entry-structured solver.'''
+
     def beta(self):
         K = len(self.model.z)
         zeros = solver_test.sparse_array((1, K))

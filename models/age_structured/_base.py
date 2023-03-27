@@ -2,6 +2,8 @@
 
 import abc
 
+from .. import _utility
+
 
 class Model(metaclass=abc.ABCMeta):
     '''Base for age-structured models.'''
@@ -22,18 +24,16 @@ class Model(metaclass=abc.ABCMeta):
         assert a_max > 0
         self.a_max = a_max
         super().__init__(**kwds)
+        # `_check_a_max()` needs `self.parameters` to be set first,
+        # which happens in `super().__init__()`.
+        self._check_a_max()
 
     def _check_a_max(self):
         '''Check that `a_max` is large enough.'''
         assert self.a_max >= self.parameters.birth._age_max()
         assert self.a_max >= self.parameters.death._age_max()
 
-    def _init_post(self):
-        '''Final initialization.'''
-        self._check_a_max()
-        assert self.a_step > 0
-        super()._init_post()
-
-    @property
-    def a_step(self):
-        return self._Solver._get_a_step(self.t_step)
+    def _build_a(self):
+        '''Build the age vector.'''
+        self.a_step = self._Solver._get_a_step(self.t_step)
+        self.a = _utility.numerical.build_t(0, self.a_max, self.a_step)

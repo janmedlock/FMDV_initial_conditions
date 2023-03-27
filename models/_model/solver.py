@@ -9,7 +9,7 @@ from . import _jacobian
 from .. import _utility
 
 
-class Base(metaclass=abc.ABCMeta):
+class Solver(metaclass=abc.ABCMeta):
     '''Base class for Crank–Nicolson solvers.'''
 
     @property

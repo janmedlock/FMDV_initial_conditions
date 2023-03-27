@@ -7,15 +7,12 @@ import numpy
 from .. import _model
 
 
-class Solver(_model.solver.Base):
+class Solver(_model.solver.Solver):
     '''Crank–Nicolson solver.'''
 
     _sparse = False
 
     _jacobian_method_default = 'base'
-
-    def __init__(self, model, **kwds):
-        super().__init__(model, **kwds)
 
     def _I(self):
         '''Build the identity matrix.'''

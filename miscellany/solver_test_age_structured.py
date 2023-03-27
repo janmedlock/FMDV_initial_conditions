@@ -9,7 +9,9 @@ import models._utility
 import solver_test
 
 
-class Tester(solver_test.Base):
+class Tester(solver_test.Tester):
+    '''Test the age-structured solver.'''
+
     def beta(self):
         J = len(self.model.a)
         zeros = solver_test.sparse_array((1, J))

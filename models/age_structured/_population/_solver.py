@@ -5,7 +5,8 @@ import functools
 import numpy
 import scipy.optimize
 
-from ... import _utility
+from .. import _base
+from ... import parameters, _utility
 
 
 class Solver:
@@ -20,14 +21,33 @@ class Solver:
     # For caching, the hash of class instances is restricted to only
     # depend on the value of these attributes by restricting the state
     # produced by `.__getstate__()`.
-    _state_attrs = ('birth', 'death', 't_step', 'a_max')
+    _state_attrs = ('parameters', 't_step', 'a_max')
 
     def __init__(self, model):
-        self.birth = model.parameters.birth
-        self.death = model.parameters.death
+        # For efficient caching,
+        # `parameters_._ModelParametersPopulation()` only keeps the
+        # `.birth` and `.death` attributes of `model.parameters`.
+        self.parameters = parameters._ModelParametersPopulation(
+            model.parameters
+        )
         self.t_step = model.t_step
         self.a_max = model.a_max
         self._init_finalize()
+
+    @staticmethod
+    def _get_a_step(t_step):
+        '''Get the age step.'''
+        a_step = t_step
+        assert a_step > 0
+        return a_step
+
+    def _get_period(self):
+        '''Get the period over which to solve.'''
+        period = self.parameters.period
+        if period is None:
+            period = self.t_step
+        assert period > 0
+        return period
 
     def _cache_methods(self):
         '''Cache the methods in `self._methods_cached`.'''
@@ -37,8 +57,12 @@ class Solver:
             setattr(self, name, cached)
 
     def _init_finalize(self):
-        '''Final initialization.'''
-        # This is called by both `__init__()` and `__setstate__()`.
+        '''Final initialization. This is called from both `__init__()`
+        and `__setstate__()`.'''
+        # `.a_step` is needed for integrals, even when the expensive
+        # computations come from the cache.
+        self.a_step = self._get_a_step(self.t_step)
+        self.period = self._get_period()
         self._monodromy_initialized = False
         self._cache_methods()
 
@@ -55,24 +79,15 @@ class Solver:
         self.__dict__.update(state)
         self._init_finalize()
 
-    @staticmethod
-    def _get_a_step(t_step):
-        '''Get the age step.'''
-        a_step = t_step
-        return a_step
-
-    @property
-    def a_step(self):
-        return self._get_a_step(self.t_step)
-
-    @property
-    def period(self):
-        '''The period over which to solve.'''
-        period = self.birth.period
-        if period is None:
-            period = self.t_step
-        assert period > 0
-        return period
+    def _build_a(self):
+        '''Build the age vector.'''
+        # Call `_base.Model._build_a()` to build the `a` vector.  This
+        # allows this class to have minimal state.
+        # Set `._Solver` so that `._get_a_step()` is where
+        # `_base.Model._build_a()` expects it to be.
+        self._Solver = self
+        _base.Model._build_a(self)
+        del self._Solver
 
     def _I(self):
         '''Build the identity matrix.'''
@@ -104,7 +119,7 @@ class Solver:
         '''Build the transition matrix F(q).'''
         if q not in {'new', 'cur'}:
             raise ValueError(f'{q=}!')
-        mu = self.death.rate(self.a)
+        mu = self.parameters.death.rate(self.a)
         F = _utility.sparse.diags(- mu)
         if q == 'cur':
             F = self.L @ F
@@ -113,7 +128,7 @@ class Solver:
     def _B(self):
         '''Build matrices needed by the solver.'''
         J = len(self.a)
-        nu = self.birth.maternity(self.a)
+        nu = self.parameters.birth.maternity(self.a)
         tau = _utility.sparse.array(self.a_step * nu)
         b = _utility.sparse.array_from_dict(
             {(0, 0): 1 / self.a_step},
@@ -138,13 +153,15 @@ class Solver:
         assert _utility.linalg.is_Metzler_matrix(self.F['new'])
         assert _utility.linalg.is_Metzler_matrix(self.B)
         assert _utility.linalg.is_nonnegative(self.B)
+        b_max = self.parameters.birth.rate_max
         HFB_new = (self.H['new']
                    - self.t_step / 2 * (self.F['new']
-                                        + self.birth.rate_max * self.B))
+                                        + b_max * self.B))
         assert _utility.linalg.is_M_matrix(HFB_new)
+        b_min = self.parameters.birth.rate_min
         HFB_cur = (self.H['cur']
                    + self.t_step / 2 * (self.F['cur']
-                                        + self.birth.rate_min * self.B))
+                                        + b_min * self.B))
         assert _utility.linalg.is_nonnegative(HFB_cur)
 
     def step(self, t_cur, Phi_cur, birth_scaling, display=False):
@@ -153,7 +170,7 @@ class Solver:
             t_new = t_cur + self.t_step
             print(f'{t_new=}')
         t_mid = t_cur + self.t_step / 2
-        b_mid = birth_scaling * self.birth.rate(t_mid)
+        b_mid = birth_scaling * self.parameters.birth.rate(t_mid)
         HFB_new = (self.H['new']
                    - self.t_step / 2 * (self.F['new']
                                         + b_mid * self.B))
@@ -166,7 +183,7 @@ class Solver:
         '''Initialize matrices etc needed by `monodromy`.'''
         self.t = _utility.numerical.build_t(0, self.period, self.t_step)
         assert numpy.isclose(self.t[-1], self.period)
-        self.a = _utility.numerical.build_t(0, self.a_max, self.a_step)
+        self._build_a()
         self._build_matrices()
         self._check_matrices()
         self._monodromy_initialized = True

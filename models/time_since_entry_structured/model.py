@@ -30,14 +30,10 @@ class Model(unstructured.Model):
         self.z_max = z_max
         super().__init__(**kwds)
 
-    def _init_post(self):
-        '''Final initialization.'''
-        assert self.z_step > 0
-        super()._init_post()
-
-    @property
-    def z_step(self):
-        return self._Solver._get_z_step(self.t_step)
+    def _build_z(self):
+        '''Build the time-since-entry vector.'''
+        self.z_step = self._Solver._get_z_step(self.t_step)
+        self.z = _utility.numerical.build_t(0, self.z_max, self.z_step)
 
     def _extend_index(self, idx_other):
         '''Extend `idx_other` with the 'time-since-entry' level.'''
@@ -59,8 +55,8 @@ class Model(unstructured.Model):
     def _build_index(self):
         '''Extend the `pandas.Index()` for solutions with the
         'time-since-entry' level.'''
-        self.z = _utility.numerical.build_t(0, self.z_max, self.z_step)
         idx_other = super()._build_index()
+        self._build_z()
         idx = self._extend_index(idx_other)
         return idx
 

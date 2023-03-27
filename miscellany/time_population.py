@@ -14,44 +14,66 @@
 import scipy.sparse
 
 from context import models
+from models.age_structured import _population
 import timer
 
 
 # Monkeypatch to set the array type.
 models._utility.sparse.array = scipy.sparse.csr_array
 
-Solver = models.age_structured._population._solver.Solver
 
-# Monkeypatch to remove caching.
-Solver._init_cached = lambda self: None
+class TestSolver(_population._solver.Solver):
+    '''Test the solver.'''
 
-methods = ('population_growth_rate',
-           'birth_scaling_for_zero_population_growth',
-           'stable_age_density')
-for name in methods:
-    method = getattr(Solver, name)
-    setattr(Solver, name + '_t', timer.timer(method))
+    _methods_timed = ('population_growth_rate',
+                      'birth_scaling_for_zero_population_growth',
+                      'stable_age_density')
 
+    def _time_methods(self):
+        '''Time the methods in `_methods_timed`.'''
+        for name in self._methods_timed:
+            method = getattr(self, name)
+            timed = timer.timer(method)
+            setattr(self, name, timed)
 
-def get_solver(**kwds):
-    parameters = models.parameters.Parameters(**kwds)
-    birth = models.birth.Birth(parameters)
-    death = models.death.Death(parameters)
-    t_step = models.age_structured._population.Model._t_step_default
-    a_max = models.age_structured._age.max_default
-    return Solver(birth, death, t_step, a_max)
+    def _cache_methods(self):
+        '''Monkeypatch to disable caching.'''
 
+    class Model:
+        '''Simplified model.'''
 
-def test_solver(solver):
-    solver._monodromy_init()
-    solver.population_growth_rate_t(1, _guess=0)
-    solver.birth.mean *= solver.birth_scaling_for_zero_population_growth_t()
-    solver.stable_age_density_t()
+        class ModelParameters:
+            '''Simplified model parameters.'''
+
+            def __init__(self, **kwds):
+                parameters = models.parameters.Parameters(**kwds)
+                self.birth = models.birth.Birth(parameters)
+                self.death = models.death.Death(parameters)
+                # Set birth mean without finding the value that gives
+                # zero population growth rate.
+                self.birth.mean = 1.
+
+        def __init__(self, **kwds):
+            self.parameters = self.ModelParameters(**kwds)
+            self.t_step = _population.Model._t_step_default
+            self.a_max = _population.Model._a_max_default
+
+    def __init__(self, **kwds):
+        model = self.Model(**kwds)
+        super().__init__(model)
+        self._monodromy_init()
+        self._time_methods()
+
+    def test(self):
+        self.population_growth_rate(1, _guess=0)
+        bscl = self.birth_scaling_for_zero_population_growth()
+        self.parameters.birth.mean *= bscl
+        self.stable_age_density()
 
 
 if __name__ == '__main__':
-    solver_constant = get_solver(birth_variation=0)
-    test_solver(solver_constant)
+    solver_constant = TestSolver(birth_variation=0)
+    solver_constant.test()
 
-    solver = get_solver()
-    test_solver(solver)
+    solver = TestSolver()
+    solver.test()

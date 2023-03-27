@@ -13,9 +13,9 @@ class _Birth:
         self.age_menopause = parameters.birth_age_menopause
         assert 0 <= self.age_menarche <= self.age_menopause
         # The mean will be set in
-        # `models.parameters.ModelAgeDependentParameters()` to give 0
-        # population growth rate but it is deferred until the
-        # population model is available that also includes death.
+        # `models.parameters._ModelParameters()` to give 0 population
+        # growth rate but it is deferred until the population model is
+        # available that also includes death.
         self.mean = None
 
     def maternity(self, age):

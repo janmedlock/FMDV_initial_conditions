@@ -9,9 +9,8 @@ import models.age_structured._population
 
 def stable_age_density(parameters, t_step):
     '''Get the stable age density.'''
-    model = models.age_structured._population.Model(parameters.birth,
-                                                    parameters.death,
-                                                    t_step=t_step)
+    model = models.age_structured._population.Model(t_step=t_step,
+                                                    parameters=parameters)
     return model.stable_age_density()
 
 

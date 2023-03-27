@@ -4,7 +4,7 @@ import numpy
 import pandas
 
 from . import _base, _solver
-from .. import parameters, unstructured, _model, _utility
+from .. import parameters, unstructured, _model
 
 
 class Model(_base.Model, unstructured.Model):
@@ -17,8 +17,8 @@ class Model(_base.Model, unstructured.Model):
     def _build_index(self):
         '''Extend the `pandas.Index()` for solutions with the 'age'
         level.'''
-        self.a = _utility.numerical.build_t(0, self.a_max, self.a_step)
         idx_other = super()._build_index()
+        self._build_a()
         idx_age = pandas.Index(self.a, name='age')
         idx = pandas.MultiIndex.from_product([idx_other, idx_age])
         return idx

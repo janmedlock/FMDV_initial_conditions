@@ -11,7 +11,9 @@ import models._utility
 sparse_array = models._utility.sparse.array
 
 
-class Base:
+class Tester:
+    '''Base tester for solver matrices.'''
+
     def __init__(self, model):
         self.model = model
 

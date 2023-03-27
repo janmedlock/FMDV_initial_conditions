@@ -4,16 +4,6 @@ from . import _solver
 from .. import _base
 
 
-class _ModelParameters:
-    '''Simple class to hold parameters of `Model()`.'''
-
-    def __init__(self, birth, death):
-        if (birth is None) or (death is None):
-            raise ValueError
-        self.birth = birth
-        self.death = death
-
-
 class Model(_base.Model):
     '''Solver for the monodromy matrix of a linear age-structured
     model for the population size with age-dependent death rate,
@@ -28,12 +18,12 @@ class Model(_base.Model):
 
     def __init__(self,
                  t_step=_t_step_default,
-                 birth=None,
-                 death=None,
+                 parameters=None,
                  **kwds):
         assert t_step > 0
         self.t_step = t_step
-        self.parameters = _ModelParameters(birth, death)
+        assert parameters is not None
+        self.parameters = parameters
         super().__init__(**kwds)
         self._solver = self._Solver(self)
 

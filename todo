@@ -1,4 +1,7 @@
-* Simplify Model.__init__() and remove Model._init_post()
+* Remove a_step and z_step properties in the respective solvers
+
+* Combine age_structured.model.Model() and
+  age_structured._population.model.Model()
 
 * Age-structured model
   * Find limit cycle

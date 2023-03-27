@@ -65,25 +65,39 @@ def Parameters(SAT=1, **kwds):
     return klass(**kwds)
 
 
-class ModelParametersAgeDependent:
-    '''Model parameters for age-dependent models.'''
-
-    def __init__(self, **kwds):
-        parameters = Parameters(**kwds)
-        self.death = death.Death(parameters)
-        self.birth = birth.Birth(parameters)
-        self._population = _population.Model(birth=self.birth,
-                                             death=self.death)
-        self._set_for_zero_population_growth()
-        self.progression = progression.Progression(parameters)
-        self.recovery = recovery.Recovery(parameters)
-        self.transmission = transmission.Transmission(parameters)
-        self.waning = waning.Waning(parameters)
+class _PeriodMixIn:
+    '''Mixin for the period of the parameters.'''
 
     @property
     def period(self):
         '''The only periodic parameter is birth.'''
         return self.birth.period
+
+
+class _ModelParametersPopulation(_PeriodMixIn):
+    '''Model parameters for population models. For efficient caching,
+    the infection parameters are dropped.'''
+
+    def __init__(self, model_parameters):
+        self.birth = model_parameters.birth
+        self.death = model_parameters.death
+
+
+class _ModelParameters(_PeriodMixIn):
+    '''Base model parameters.'''
+
+    def __init__(self, **kwds):
+        parameters = Parameters(**kwds)
+        # Setup the population parameters.
+        self.birth = birth.Birth(parameters)
+        self.death = death.Death(parameters)
+        self._population_model = _population.Model(parameters=self)
+        self._set_for_zero_population_growth()
+        # Setup the infection parameters.
+        self.progression = progression.Progression(parameters)
+        self.recovery = recovery.Recovery(parameters)
+        self.transmission = transmission.Transmission(parameters)
+        self.waning = waning.Waning(parameters)
 
     def _set_for_zero_population_growth(self, **kwds):
         '''Set the mean birth and death rates so that the population
@@ -92,18 +106,22 @@ class ModelParametersAgeDependent:
         # for zero population growth and do not adjust death.
         if self.birth.mean is None:
             self.birth.mean = 0.5  # Starting guess.
-        scaling = self._population.birth_scaling_for_zero_population_growth(
+        bscl = self._population_model.birth_scaling_for_zero_population_growth(
             **kwds
         )
-        self.birth.mean *= scaling
+        self.birth.mean *= bscl
         assert self.birth.mean > 0
+
+
+class ModelParametersAgeDependent(_ModelParameters):
+    '''Model parameters for age-dependent models.'''
 
     def _stable_age_density(self, **kwds):
         '''Get the stable age density.'''
-        return self._population.stable_age_density(**kwds)
+        return self._population_model.stable_age_density(**kwds)
 
 
-class ModelParametersAgeIndependent(ModelParametersAgeDependent):
+class ModelParametersAgeIndependent(_ModelParameters):
     '''Model parameters for age-independent models.'''
 
     def _set_for_zero_population_growth(self, **kwds):
@@ -115,7 +133,7 @@ class ModelParametersAgeIndependent(ModelParametersAgeDependent):
         # density of the age-dependent population model with the
         # age-dependent birth and death rates.
         self.death_rate_mean = self.death.rate_population_mean(
-            self._population
+            self._population_model
         )
         assert self.death_rate_mean > 0
         # The population growth rate for the age-independent model is

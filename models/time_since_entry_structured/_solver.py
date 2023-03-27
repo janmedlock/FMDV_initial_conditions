@@ -7,7 +7,7 @@ import numpy
 from .. import _model, _utility
 
 
-class Solver(_model.solver.Base):
+class Solver(_model.solver.Solver):
     '''Crank–Nicolson solver.'''
 
     _sparse = True
@@ -21,6 +21,7 @@ class Solver(_model.solver.Base):
     @staticmethod
     def _get_z_step(t_step):
         z_step = t_step
+        assert z_step > 0
         return z_step
 
     @property

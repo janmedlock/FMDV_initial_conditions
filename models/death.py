@@ -53,12 +53,14 @@ class Death:
         '''Survival.'''
         return numpy.exp(self.logsurvival(age))
 
-    def rate_population_mean(self, population, **kwds):
+    def rate_population_mean(self, population_model, **kwds):
         '''Get the mean death rate when the population is at the stable
         age density.'''
-        (ages, density) = population.stable_age_density(**kwds)
-        rate_total = population.integral_over_a(self.rate(ages) * density)
-        density_total = population.integral_over_a(density)
+        (ages, density) = population_model.stable_age_density(**kwds)
+        rate_total = population_model.integral_over_a(
+            self.rate(ages) * density
+        )
+        density_total = population_model.integral_over_a(density)
         return rate_total / density_total
 
     def _age_max(self):
