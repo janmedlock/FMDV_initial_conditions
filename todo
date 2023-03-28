@@ -1,6 +1,3 @@
-* Remove duplication from age_structured._solver.Solver() and
-  age_structured._population._solver.Solver()
-
 * Age-structured model
   * Find limit cycle
     * Not quite a limit cycle: run solution for longer first?

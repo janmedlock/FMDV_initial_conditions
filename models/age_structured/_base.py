@@ -4,13 +4,15 @@ import abc
 import functools
 
 
-class Solver(metaclass=abc.ABCMeta):
+class Solver:
     '''Base for age-structured solvers.'''
 
     @staticmethod
-    @abc.abstractmethod
     def _get_a_step(t_step):
         '''Get the step size in age.'''
+        a_step = t_step
+        assert a_step > 0
+        return a_step
 
     @functools.cached_property
     def a_step(self):

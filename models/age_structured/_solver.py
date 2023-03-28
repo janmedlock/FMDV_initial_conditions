@@ -19,13 +19,6 @@ class Solver(_base.Solver, _model.solver.Solver):
         self.a = model.a
         super().__init__(model, **kwds)
 
-    @staticmethod
-    def _get_a_step(t_step):
-        '''Get the step size in age.'''
-        a_step = t_step
-        assert a_step > 0
-        return a_step
-
     @functools.cached_property
     def Zeros(self):
         '''These are zero matrices of different sizes used in

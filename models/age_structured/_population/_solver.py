@@ -34,13 +34,6 @@ class Solver(_base.Solver):
         self.a_max = model.a_max
         self._init_finalize()
 
-    @staticmethod
-    def _get_a_step(t_step):
-        '''Get the step size in age.'''
-        a_step = t_step
-        assert a_step > 0
-        return a_step
-
     @functools.cached_property
     def period(self):
         '''Get the period over which to solve.'''
