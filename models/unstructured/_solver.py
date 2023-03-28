@@ -37,8 +37,7 @@ class Solver(_model.solver.Solver):
 
     @functools.cached_property
     def _F_(self):
-        '''F is independent of q. `_F_` is built on first use and then
-        reused.'''
+        '''F is independent of q, so build it once and reuse it.'''
         mu = self.model.parameters.death_rate_mean
         omega = 1 / self.model.parameters.waning.mean
         rho = 1 / self.model.parameters.progression.mean
@@ -57,14 +56,17 @@ class Solver(_model.solver.Solver):
         F = self._F_
         return F
 
-    '''T is independent of q. Build _T_ once and reuse.'''
-    _T_ = numpy.array([
-        [0, 0, 0, 0, 0],
-        [0, - 1, 0, 0, 0],
-        [0, 1, 0, 0, 0],
-        [0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0]
-    ])
+    @functools.cached_property
+    def _T_(self):
+        '''T is independent of q, so build it once and reuse.'''
+        T = numpy.array([
+            [0, 0, 0, 0, 0],
+            [0, - 1, 0, 0, 0],
+            [0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0]
+        ])
+        return T
 
     def _T(self, q):
         '''Build the transmission matrix T(q).'''

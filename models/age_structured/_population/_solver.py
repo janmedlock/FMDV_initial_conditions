@@ -9,7 +9,7 @@ from .. import _base
 from ... import parameters, _utility
 
 
-class Solver:
+class Solver(_base.Solver):
     '''Crank–Nicolson solver.'''
 
     # These methods are slow, so cache their results to disk using
@@ -36,12 +36,13 @@ class Solver:
 
     @staticmethod
     def _get_a_step(t_step):
-        '''Get the age step.'''
+        '''Get the step size in age.'''
         a_step = t_step
         assert a_step > 0
         return a_step
 
-    def _get_period(self):
+    @functools.cached_property
+    def period(self):
         '''Get the period over which to solve.'''
         period = self.parameters.period
         if period is None:
@@ -59,10 +60,6 @@ class Solver:
     def _init_finalize(self):
         '''Final initialization. This is called from both `__init__()`
         and `__setstate__()`.'''
-        # `.a_step` is needed for integrals, even when the expensive
-        # computations come from the cache.
-        self.a_step = self._get_a_step(self.t_step)
-        self.period = self._get_period()
         self._monodromy_initialized = False
         self._cache_methods()
 
@@ -78,16 +75,6 @@ class Solver:
         `self.__getstate__()`.'''
         self.__dict__.update(state)
         self._init_finalize()
-
-    def _build_a(self):
-        '''Build the age vector.'''
-        # Call `_base.Model._build_a()` to build the `a` vector.  This
-        # allows this class to have minimal state.
-        # Set `._Solver` so that `._get_a_step()` is where
-        # `_base.Model._build_a()` expects it to be.
-        self._Solver = self
-        _base.Model._build_a(self)
-        del self._Solver
 
     def _I(self):
         '''Build the identity matrix.'''
@@ -183,7 +170,7 @@ class Solver:
         '''Initialize matrices etc needed by `monodromy`.'''
         self.t = _utility.numerical.build_t(0, self.period, self.t_step)
         assert numpy.isclose(self.t[-1], self.period)
-        self._build_a()
+        self.a = _utility.numerical.build_t(0, self.a_max, self.a_step)
         self._build_matrices()
         self._check_matrices()
         self._monodromy_initialized = True

@@ -1,5 +1,7 @@
 '''Based on our FMDV work, this is an unstructured model.'''
 
+import functools
+
 import pandas
 
 from . import _solver
@@ -32,9 +34,10 @@ class Model(_model.model.Model):
                                       ordered=True, name='state')
         return idx
 
-    def _build_weights(self):
-        '''Build weights for the 'state' level.'''
-        weights_other = super()._build_weights()
+    @functools.cached_property
+    def _weights(self):
+        '''Weights for the 'state' level.'''
+        weights_other = super()._weights
         if weights_other is not None:
             raise NotImplementedError
         # Each 'state' has weight 1.

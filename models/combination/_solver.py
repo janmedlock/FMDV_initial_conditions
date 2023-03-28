@@ -1,5 +1,7 @@
 '''Solver.'''
 
+import functools
+
 from .. import _model, _utility
 
 
@@ -11,9 +13,7 @@ class Solver(_model.solver.Solver):
     _jacobian_method_default = 'sparse_csc'
 
     def __init__(self, model, **kwds):
-        self.a_step = model.a_step
         self.a = model.a
-        self.z_step = model.z_step
         self.z = model.z
         super().__init__(model, **kwds)
 
@@ -28,6 +28,14 @@ class Solver(_model.solver.Solver):
         z_step = t_step
         assert z_step > 0
         return z_step
+
+    @functools.cached_property
+    def a_step(self):
+        return self._get_a_step(self.t_step)
+
+    @functools.cached_property
+    def z_step(self):
+        return self._get_z_step(self.t_step)
 
     def _I(self):
         '''Build the identity matrix.'''

@@ -1,8 +1,21 @@
 '''Base for age-structured models.'''
 
 import abc
+import functools
 
-from .. import _utility
+
+class Solver(metaclass=abc.ABCMeta):
+    '''Base for age-structured solvers.'''
+
+    @staticmethod
+    @abc.abstractmethod
+    def _get_a_step(t_step):
+        '''Get the step size in age.'''
+
+    @functools.cached_property
+    def a_step(self):
+        '''The step size in age.'''
+        return self._get_a_step(self.t_step)
 
 
 class Model(metaclass=abc.ABCMeta):
@@ -33,7 +46,8 @@ class Model(metaclass=abc.ABCMeta):
         assert self.a_max >= self.parameters.birth._age_max()
         assert self.a_max >= self.parameters.death._age_max()
 
-    def _build_a(self):
-        '''Build the age vector.'''
-        self.a_step = self._Solver._get_a_step(self.t_step)
-        self.a = _utility.numerical.build_t(0, self.a_max, self.a_step)
+    @functools.cached_property
+    def a_step(self):
+        '''The step size in age.'''
+        a_step = self._Solver._get_a_step(self.t_step)
+        return a_step

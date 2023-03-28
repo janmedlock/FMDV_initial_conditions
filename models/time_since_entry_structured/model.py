@@ -1,5 +1,7 @@
 '''Based on our FMDV work, this is a time-since-entry-structured model.'''
 
+import functools
+
 import numpy
 import pandas
 
@@ -30,10 +32,17 @@ class Model(unstructured.Model):
         self.z_max = z_max
         super().__init__(**kwds)
 
-    def _build_z(self):
-        '''Build the time-since-entry vector.'''
-        self.z_step = self._Solver._get_z_step(self.t_step)
-        self.z = _utility.numerical.build_t(0, self.z_max, self.z_step)
+    @functools.cached_property
+    def z_step(self):
+        '''The step size in time since entry.'''
+        z_step = self._Solver._get_z_step(self.t_step)
+        return z_step
+
+    @functools.cached_property
+    def z(self):
+        '''The time-since-entry vector.'''
+        z = _utility.numerical.build_t(0, self.z_max, self.z_step)
+        return z
 
     def _extend_index(self, idx_other):
         '''Extend `idx_other` with the 'time-since-entry' level.'''
@@ -56,13 +65,13 @@ class Model(unstructured.Model):
         '''Extend the `pandas.Index()` for solutions with the
         'time-since-entry' level.'''
         idx_other = super()._build_index()
-        self._build_z()
         idx = self._extend_index(idx_other)
         return idx
 
-    def _build_weights(self):
+    @functools.cached_property
+    def _weights(self):
         '''Adjust the weights for the 'time-since-entry' level.'''
-        weights_other = super()._build_weights()
+        weights_other = super()._weights
         # For states with 'time_since_entry', each 'time_since_entry'
         # has weight `self.z_step`.  For states without
         # 'time_since_entry', each has weight 1.

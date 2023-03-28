@@ -40,7 +40,6 @@ class Model(metaclass=abc.ABCMeta):
         self._solver_options = _solver_options
         self.parameters = self._Parameters(**parameters_kwds)
         self._index = self._build_index()
-        self._weights = self._build_weights()
         super().__init__()
 
     def _get_index_level(self, level):
@@ -57,9 +56,10 @@ class Model(metaclass=abc.ABCMeta):
         assert not hasattr(super(), '_build_index')
         return None
 
-    def _build_weights(self):
-        '''Build weights for the state vector.'''
-        assert not hasattr(super(), '_build_weights')
+    @functools.cached_property
+    def _weights(self):
+        '''Weights for the state vector.'''
+        assert not hasattr(super(), '_weights')
         return None
 
     def build_initial_conditions(self):

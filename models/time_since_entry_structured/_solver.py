@@ -20,19 +20,21 @@ class Solver(_model.solver.Solver):
 
     @staticmethod
     def _get_z_step(t_step):
+        '''Get the step size in time since entry.'''
         z_step = t_step
         assert z_step > 0
         return z_step
 
-    @property
+    @functools.cached_property
     def z_step(self):
-        return self._get_z_step(self.t_step)
+        '''The step size in time since entry.'''
+        z_step = self._get_z_step(self.t_step)
+        return z_step
 
     @functools.cached_property
     def Zeros(self):
         '''These are zero matrices of different sizes used in
-        constructing the other matrices. `Zeros` is built on first use
-        and then reused.'''
+        constructing the other matrices.'''
         K = len(self.z)
         Zeros = {
             '11': _utility.sparse.array((1, 1)),
@@ -44,16 +46,14 @@ class Solver(_model.solver.Solver):
 
     @functools.cached_property
     def Iyy(self):
-        '''Build an identity matrix block for a y state. `Iyy` is
-        built on first use and then reused.'''
+        '''Build an identity matrix block for a y state.'''
         K = len(self.z)
         Iyy = _utility.sparse.identity(K)
         return Iyy
 
     @functools.cached_property
     def Lyy(self):
-        '''Build the lag matrix for a y state. `Lyy` is built on first
-        use and then reused.'''
+        '''Build the lag matrix for a y state.'''
         K = len(self.z)
         diags = {
             -1: numpy.ones(K - 1),
@@ -64,8 +64,7 @@ class Solver(_model.solver.Solver):
 
     @functools.cached_property
     def zeta(self):
-        '''Build the vector for entering a y state. `zeta` is
-        built on first use and then reused.'''
+        '''Build the vector for entering a y state.'''
         K = len(self.z)
         zeta = _utility.sparse.array_from_dict(
             {(0, 0): 1 / self.z_step},
@@ -197,8 +196,7 @@ class Solver(_model.solver.Solver):
 
     @functools.cached_property
     def _T_(self):
-        '''T is independent of q. `_T_` is built on first use and then
-        reused.'''
+        '''T is independent of q, so built once and reuse it.'''
         tXX = self._tXX()
         tyX = self._tyX()
         Zeros = self.Zeros

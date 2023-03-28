@@ -4,10 +4,11 @@ import functools
 
 import numpy
 
+from . import _base
 from .. import _model, _utility
 
 
-class Solver(_model.solver.Solver):
+class Solver(_base.Solver, _model.solver.Solver):
     '''Crank–Nicolson solver.'''
 
     _sparse = True
@@ -20,19 +21,15 @@ class Solver(_model.solver.Solver):
 
     @staticmethod
     def _get_a_step(t_step):
+        '''Get the step size in age.'''
         a_step = t_step
         assert a_step > 0
         return a_step
 
-    @property
-    def a_step(self):
-        return self._get_a_step(self.t_step)
-
     @functools.cached_property
     def Zeros(self):
         '''These are zero matrices of different sizes used in
-        constructing the other matrices. `Zeros` is built on first use
-        and then reused.'''
+        constructing the other matrices.'''
         J = len(self.a)
         Zeros = {
             '1J': _utility.sparse.array((1, J)),
@@ -42,16 +39,14 @@ class Solver(_model.solver.Solver):
 
     @functools.cached_property
     def IXW(self):
-        '''Build an identity matrix block. `IXW` is built on first use
-        and then reused.'''
+        '''Build an identity matrix block.'''
         J = len(self.a)
         IXW = _utility.sparse.identity(J)
         return IXW
 
     @functools.cached_property
     def LXW(self):
-        '''Build the lag matrix. `LXW` is built on first use and then
-        reused.'''
+        '''Build the lag matrix.'''
         J = len(self.a)
         diags = {
             -1: numpy.ones(J - 1),
