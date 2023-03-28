@@ -1,5 +1,5 @@
-* Combine age_structured.model.Model() and
-  age_structured._population.model.Model()
+* Remove duplication from age_structured._solver.Solver() and
+  age_structured._population._solver.Solver()
 
 * Age-structured model
   * Find limit cycle
