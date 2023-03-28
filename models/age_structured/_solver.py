@@ -58,8 +58,7 @@ class Solver(_base.Solver, _model.solver.Solver):
     def _I(self):
         '''Build the identity matrix.'''
         n = len(self.model.states)
-        J = len(self.a)
-        I = _utility.sparse.identity(n * J)
+        I = _utility.sparse.block_diag([self.IXW] * n)
         return I
 
     def _MXW(self, q):

@@ -45,6 +45,12 @@ class Solver(_model.solver.Solver):
         return Zeros
 
     @functools.cached_property
+    def IXX(self):
+        '''Build an identity matrix block for an X state.'''
+        IXX = _utility.sparse.identity(1)
+        return IXX
+
+    @functools.cached_property
     def Iyy(self):
         '''Build an identity matrix block for a y state.'''
         K = len(self.z)
@@ -80,18 +86,15 @@ class Solver(_model.solver.Solver):
         sigma = _utility.sparse.array(self.z_step * xi)
         return sigma
 
-    def _mXX(self):
-        '''Build hXX, tXX, and bXX.'''
-        mXX = _utility.sparse.identity(1)
-        return mXX
-
     def _I(self):
         '''Build the identity matrix.'''
-        n = len(self.model.states)
-        m = len(self.model.states_with_z)
-        K = len(self.z)
-        size = m * K + (n - m)
-        I = _utility.sparse.identity(size)
+        IXX = self.IXX
+        Iyy = self.Iyy
+        blocks = [
+            Iyy if state in self.model.states_with_z else IXX
+            for state in self.model.states
+        ]
+        I = _utility.sparse.block_diag(blocks)
         return I
 
     def _beta(self):
@@ -110,7 +113,7 @@ class Solver(_model.solver.Solver):
 
     def _hXX(self):
         '''Build a diagonal block for an X state of H(q).'''
-        hXX = self._mXX()
+        hXX = self.IXX
         return hXX
 
     def _Hyy(self, q):
@@ -127,9 +130,11 @@ class Solver(_model.solver.Solver):
         '''Build the time step matrix H(q).'''
         hXX = self._hXX()
         Hyy = self._Hyy(q)
-        H = _utility.sparse.block_diag(
-            [Hyy, hXX, Hyy, Hyy, hXX]
-        )
+        blocks = [
+            Hyy if state in self.model.states_with_z else hXX
+            for state in self.model.states
+        ]
+        H = _utility.sparse.block_diag(blocks)
         return H
 
     def _fXX(self, pi):
@@ -186,7 +191,7 @@ class Solver(_model.solver.Solver):
 
     def _tXX(self):
         '''Build a diagonal block for an X state of T(q).'''
-        tXX = self._mXX()
+        tXX = self.IXX
         return tXX
 
     def _tyX(self):
@@ -216,7 +221,7 @@ class Solver(_model.solver.Solver):
 
     def _bXX(self):
         '''Build a diagonal block for an X state of B.'''
-        bXX = self._mXX()
+        bXX = self.IXX
         return bXX
 
     def _bXy(self):
