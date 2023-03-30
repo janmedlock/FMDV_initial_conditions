@@ -171,7 +171,7 @@ class Solver(_model.solver.Solver):
         age-dependent maternity.'''
         tau_a = self.tau_a
         iota_z = self.iota_z
-        tau_y = numpy.kron(tau_a, iota_z)
+        tau_y = _utility.sparse.kron(tau_a, iota_z)
         return tau_y
 
     def _I(self):
