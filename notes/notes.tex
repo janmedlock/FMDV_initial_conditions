@@ -7,6 +7,8 @@
 \usepackage[babel=true]{microtype}
 \usepackage{lmodern}
 \usepackage{datetime2}
+% hyperref should be loaded last but I cannot get it to work without
+% errors with more than 26 subequations.
 \usepackage[pdfborderstyle={/S/U/W 1}]{hyperref}
 \usepackage{amsmath}
 \usepackage{units}
@@ -20,17 +22,11 @@
 \newcommand{\md}{\mathrm{d}}
 \newcommand{\me}{\mathrm{e}}
 
-% Use Arabic numbers for subequations.
-\let\subequationsorig\subequations%
-\let\endsubequationsorig\endsubequations%
-\renewenvironment{subequations}{
-  \subequationsorig
-  \renewcommand{\theequation}{\theparentequation.\arabic{equation}}
-}{
-  \endsubequationsorig
-}
-
 \allowdisplaybreaks[1]
+
+% Use Arabic numbers for subequation labels.
+\usepackage{etoolbox}
+\patchcmd{\subequations}{\alph{equation}}{.\arabic{equation}}{}{}
 
 
 \title{Crank--Nicolson for some SIR models}
