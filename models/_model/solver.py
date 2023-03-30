@@ -49,7 +49,7 @@ class Solver(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def _H(self, q):
-        '''Build the time step matrix H(q).'''
+        '''Build the time-step matrix H(q).'''
 
     @abc.abstractmethod
     def _F(self, q):

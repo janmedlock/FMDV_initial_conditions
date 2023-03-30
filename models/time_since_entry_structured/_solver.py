@@ -33,40 +33,38 @@ class Solver(_model.solver.Solver):
 
     @functools.cached_property
     def Zeros(self):
-        '''These are zero matrices of different sizes used in
-        constructing the other matrices.'''
+        '''Zero matrices used in constructing the other matrices.'''
         K = len(self.z)
         Zeros = {
-            '11': _utility.sparse.array((1, 1)),
-            '1K': _utility.sparse.array((1, K)),
-            'K1': _utility.sparse.array((K, 1)),
-            'KK': _utility.sparse.array((K, K))
+            'XW': _utility.sparse.array((1, 1)),
+            'Xy': _utility.sparse.array((1, K)),
+            'yw': _utility.sparse.array((K, K))
         }
         return Zeros
 
     @functools.cached_property
-    def IXX(self):
+    def I_XX(self):
         '''Build an identity matrix block for an X state.'''
-        IXX = _utility.sparse.identity(1)
-        return IXX
+        I_XX = _utility.sparse.identity(1)
+        return I_XX
 
     @functools.cached_property
-    def Iyy(self):
+    def I_yy(self):
         '''Build an identity matrix block for a y state.'''
         K = len(self.z)
-        Iyy = _utility.sparse.identity(K)
-        return Iyy
+        I_yy = _utility.sparse.identity(K)
+        return I_yy
 
     @functools.cached_property
-    def Lyy(self):
+    def L_yy(self):
         '''Build the lag matrix for a y state.'''
         K = len(self.z)
         diags = {
             -1: numpy.ones(K - 1),
             0: numpy.hstack([numpy.zeros(K - 1), 1])
         }
-        Lyy = _utility.sparse.diags_from_dict(diags)
-        return Lyy
+        L_yy = _utility.sparse.diags_from_dict(diags)
+        return L_yy
 
     @functools.cached_property
     def zeta(self):
@@ -78,6 +76,13 @@ class Solver(_model.solver.Solver):
         )
         return zeta
 
+    def _iota_y(self):
+        '''Build a block for integrating a y state over time since
+        infection.'''
+        K = len(self.z)
+        iota_y = self.z_step * numpy.ones((1, K))
+        return iota_y
+
     def _sigma(self, xi):
         '''Build the vector to integrate a y state over `xi`.'''
         if numpy.isscalar(xi):
@@ -88,10 +93,10 @@ class Solver(_model.solver.Solver):
 
     def _I(self):
         '''Build the identity matrix.'''
-        IXX = self.IXX
-        Iyy = self.Iyy
+        I_XX = self.I_XX
+        I_yy = self.I_yy
         blocks = [
-            Iyy if state in self.model.states_with_z else IXX
+            I_yy if state in self.model.states_with_z else I_XX
             for state in self.model.states
         ]
         I = _utility.sparse.block_diag(blocks)
@@ -99,70 +104,71 @@ class Solver(_model.solver.Solver):
 
     def _beta(self):
         '''Build the transmission rate vector beta.'''
-        K = len(self.z)
-        ones1K = numpy.ones((1, K))
-        zeros = self.Zeros
-        beta = (
-            self.model.parameters.transmission.rate
-            * self.z_step
-            * _utility.sparse.hstack(
-                [zeros['1K'], zeros['11'], zeros['1K'], ones1K, zeros['11']]
-            )
-        )
+        zeros_X = self.Zeros['XW']
+        zeros_y = self.Zeros['Xy']
+        blocks = [
+            zeros_y if state in self.model.states_with_z else zeros_X
+            for state in self.model.states
+        ]
+        infectious = self.model.states.index('infectious')
+        assert 'infectious' in self.model.states_with_z
+        blocks[infectious] = self._iota_y()
+        beta = (self.model.parameters.transmission.rate
+                * _utility.sparse.hstack(blocks))
         return beta
 
-    def _hXX(self):
+    def _h_XX(self):
         '''Build a diagonal block for an X state of H(q).'''
-        hXX = self.IXX
-        return hXX
+        h_XX = self.I_XX
+        return h_XX
 
-    def _Hyy(self, q):
+    def _H_yy(self, q):
         '''Build a diagonal block for a y state of H(q).'''
         if q == 'new':
-            Hyy = self.Iyy
+            H_yy = self.I_yy
         elif q == 'cur':
-            Hyy = self.Lyy
+            H_yy = self.L_yy
         else:
             raise ValueError(f'{q=}!')
-        return Hyy
+        return H_yy
 
     def _H(self, q):
-        '''Build the time step matrix H(q).'''
-        hXX = self._hXX()
-        Hyy = self._Hyy(q)
+        '''Build the time-step matrix H(q).'''
+        h_XX = self._h_XX()
+        H_yy = self._H_yy(q)
         blocks = [
-            Hyy if state in self.model.states_with_z else hXX
+            H_yy if state in self.model.states_with_z else h_XX
             for state in self.model.states
         ]
         H = _utility.sparse.block_diag(blocks)
         return H
 
-    def _fXX(self, pi):
+    def _f_XX(self, pi):
         '''Build a diagonal block for an X state of F(q).'''
-        fXX = _utility.sparse.array([[pi]])
-        return fXX
+        f_XX = _utility.sparse.array([[pi]])
+        return f_XX
 
-    def _Fyy(self, q, xi):
+    def _F_yy(self, q, xi):
         '''Build a diagonal block for a y state of F(q).'''
         if q not in {'new', 'cur'}:
             raise ValueError(f'{q=}!')
         if numpy.isscalar(xi):
             K = len(self.z)
             xi *= numpy.ones(K)
-        Fyy = _utility.sparse.diags(xi)
+        F_yy = _utility.sparse.diags(xi)
         if q == 'cur':
-            Fyy = self.Lyy @ Fyy
-        return Fyy
+            F_yy = self.L_yy @ F_yy
+        return F_yy
 
-    def _fXy(self, xi):
+    def _f_Xy(self, xi):
         '''Build a block to an X state from a y state of F(q).'''
-        fXy = self._sigma(xi)
-        return fXy
+        f_Xy = self._sigma(xi)
+        return f_Xy
 
-    def _Fyz(self, xi):
+    def _F_yw(self, xi):
         '''Build an off-diagonal block between y states of F(q).'''
-        Fyz = self.zeta @ self._sigma(xi)
-        return Fyz
+        F_yw = self.zeta @ self._sigma(xi)
+        return F_yw
 
     def _get_rate(self, which):
         '''Get the rate `which` and make finite any infinite entries.'''
@@ -176,41 +182,42 @@ class Solver(_model.solver.Solver):
         omega = self._get_rate('waning')
         rho = self._get_rate('progression')
         gamma = self._get_rate('recovery')
-        fXX = self._fXX
-        fXy = self._fXy
-        Fyy = functools.partial(self._Fyy, q)
-        Fyz = self._Fyz
+        f_XX = self._f_XX
+        f_Xy = self._f_Xy
+        F_yy = functools.partial(self._F_yy, q)
+        F_yw = self._F_yw
         F = _utility.sparse.bmat([
-            [Fyy(- omega - mu), None, None, None, None],
-            [fXy(omega), fXX(- mu), None, None, None],
-            [None, None, Fyy(- rho - mu), None, None],
-            [None, None, Fyz(rho), Fyy(- gamma - mu), None],
-            [None, None, None, fXy(gamma), fXX(- mu)]
+            [F_yy(- omega - mu), None, None, None, None],
+            [f_Xy(omega), f_XX(- mu), None, None, None],
+            [None, None, F_yy(- rho - mu), None, None],
+            [None, None, F_yw(rho), F_yy(- gamma - mu), None],
+            [None, None, None, f_Xy(gamma), f_XX(- mu)]
         ])
         return F
 
-    def _tXX(self):
+    def _t_XX(self):
         '''Build a diagonal block for an X state of T(q).'''
-        tXX = self.IXX
-        return tXX
+        t_XX = self.I_XX
+        return t_XX
 
-    def _tyX(self):
+    def _t_yX(self):
         '''Build a block to a y state from an X state of T(q).'''
-        tyX = self.zeta
-        return tyX
+        t_yX = self.zeta
+        return t_yX
 
     @functools.cached_property
     def _T_(self):
         '''T is independent of q, so built once and reuse it.'''
-        tXX = self._tXX()
-        tyX = self._tyX()
-        Zeros = self.Zeros
+        t_XX = self._t_XX()
+        t_yX = self._t_yX()
+        zeros_XW = self.Zeros['XW']
+        Zeros_yw = self.Zeros['yw']
         T = _utility.sparse.bmat([
-            [Zeros['KK'], Zeros['K1'], Zeros['KK'], Zeros['KK'], Zeros['K1']],
-            [Zeros['1K'],       - tXX, Zeros['1K'], Zeros['1K'], Zeros['11']],
-            [Zeros['KK'],         tyX, Zeros['KK'], Zeros['KK'], Zeros['K1']],
-            [Zeros['KK'], Zeros['K1'], Zeros['KK'], Zeros['KK'], Zeros['K1']],
-            [Zeros['1K'], Zeros['11'], Zeros['1K'], Zeros['1K'], Zeros['11']]
+            [Zeros_yw,   None, Zeros_yw,     None,     None],
+            [     None, - t_XX,    None,     None,     None],
+            [     None,   t_yX,    None,     None,     None],
+            [     None,   None,    None, Zeros_yw,     None],
+            [     None,   None,    None,     None, zeros_XW]
         ])
         return T
 
@@ -219,34 +226,35 @@ class Solver(_model.solver.Solver):
         T = self._T_
         return T
 
-    def _bXX(self):
+    def _b_XX(self):
         '''Build a diagonal block for an X state of B.'''
-        bXX = self.IXX
-        return bXX
+        b_XX = self.I_XX
+        return b_XX
 
-    def _bXy(self):
+    def _b_Xy(self):
         '''Build a block to an X state from a y state of B.'''
         K = len(self.z)
         tau = _utility.sparse.array(self.z_step * numpy.ones(shape=(1, K)))
-        bXy = tau
-        return bXy
+        b_Xy = tau
+        return b_Xy
 
-    def _byX(self):
+    def _b_yX(self):
         '''Build a block to a y state from an X state of B.'''
-        byX = self.zeta
-        return byX
+        b_yX = self.zeta
+        return b_yX
 
     def _B(self):
         '''Build the birth matrix B.'''
-        bXX = self._bXX()
-        byX = self._byX()
-        bXy = self._bXy()
-        Zeros = self.Zeros
+        b_XX = self._b_XX()
+        b_yX = self._b_yX()
+        b_Xy = self._b_Xy()
+        zeros_Xy = self.Zeros['Xy']
+        Zeros_yw = self.Zeros['yw']
         B = _utility.sparse.bmat([
-            [Zeros['KK'], Zeros['K1'], Zeros['KK'], Zeros['KK'],         byX],
-            [        bXy,         bXX,         bXy,         bXy, Zeros['11']],
-            [Zeros['KK'], Zeros['K1'], Zeros['KK'], Zeros['KK'], Zeros['K1']],
-            [Zeros['KK'], Zeros['K1'], Zeros['KK'], Zeros['KK'], Zeros['K1']],
-            [Zeros['1K'], Zeros['11'], Zeros['1K'], Zeros['1K'], Zeros['11']]
+            [    None, None, None, None, b_yX],
+            [    b_Xy, b_XX, b_Xy, b_Xy, None],
+            [Zeros_yw, None, None, None, None],
+            [Zeros_yw, None, None, None, None],
+            [zeros_Xy, None, None, None, None]
         ])
         return B

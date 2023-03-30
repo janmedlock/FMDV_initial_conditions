@@ -86,7 +86,7 @@ class Solver(_base.Solver):
         return L
 
     def _H(self, q):
-        '''Build the time step matrix H(q).'''
+        '''Build the time-step matrix H(q).'''
         if q == 'new':
             H = self.I
         elif q == 'cur':

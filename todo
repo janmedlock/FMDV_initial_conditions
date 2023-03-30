@@ -6,8 +6,9 @@
   * Try bsr_array(blocksize=(J, J))?
 
 * Combination model
-  * Write models.combination._solver.Solver
-    * `scipy.sparse.kron(A, B, format=None)`
+  * Test solver matrices
+    * Write miscellany/solver_test_combination.py
+  * Test solver
 
 * Bootstrap up equilibria & limit cycles from simpler models
 

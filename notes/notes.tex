@@ -661,6 +661,18 @@ Let
     \mat{\Phi}^{\ell}
     &= \left[\Phi_{j, k}^{\ell}\right],
     \\
+    \vec{b} &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}_{J \times 1},
+    \\
+    \vec{\tau} &=
+    \Delta t
+    \begin{bmatrix}
+      \nu_0 & \cdots & \nu_{J - 1}
+    \end{bmatrix},
+    \\
     \mat{L} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0
@@ -674,13 +686,11 @@ Let
       0 & \cdots & 0 & 1 & 1
     \end{bmatrix}_{J \times J},
     \\
-    \mat{H} &= \mat{I}_{J \times J},
+    \mat{H}_{\mathrm{new}} &= \mat{I}_{J \times J},
     \\
-    \mat{H}_{\mathrm{new}} &= \mat{H},
+    \mat{H}_{\mathrm{cur}} &= \mat{L},
     \\
-    \mat{H}_{\mathrm{cur}} &= \mat{L} \mat{H},
-    \\
-    \mat{F} &=
+    \mat{F}_{\mathrm{new}} &=
     \begin{bmatrix}
       - \mu_0 & 0 & \cdots & 0
       \\
@@ -691,21 +701,7 @@ Let
       0 & \cdots & 0 & - \mu_{J - 1}
     \end{bmatrix},
     \\
-    \mat{F}_{\mathrm{new}} &= \mat{F},
-    \\
-    \mat{F}_{\mathrm{cur}} &= \mat{L} \mat{F},
-    \\
-    \vec{\tau} &=
-    \Delta t
-    \begin{bmatrix}
-      \nu_0 & \cdots & \nu_{J - 1}
-    \end{bmatrix},
-    \\
-    \vec{b} &=
-    \frac{1}{\Delta t}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix}_{J \times 1},
+    \mat{F}_{\mathrm{cur}} &= \mat{L} \mat{F}_{\mathrm{new}},
     \\
     \mat{B} &= \vec{b} \vec{\tau}.
   \end{align}
@@ -1090,10 +1086,28 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       R_0^{\ell} \\ \vdots \\ R_{J - 1}^{\ell}
     \end{bmatrix},
     \\
-    \vec{\beta} &=
-    \beta \Delta t
+    \vec{b} &=
+    \frac{1}{\Delta t}
     \begin{bmatrix}
-      \vec{0} & \vec{0} & \vec{0} & \vec{1} & \vec{0}
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}_{J \times 1},
+    \\
+    \vec{\iota} &=
+    \Delta t
+    \begin{bmatrix}
+      1 & \cdots & 1
+    \end{bmatrix}_{1 \times J},
+    \\
+    \vec{\tau} &=
+    \Delta t
+    \begin{bmatrix}
+      \nu_0 & \cdots & \nu_{J - 1}
+    \end{bmatrix},
+    \\
+    \vec{\beta} &=
+    \beta
+    \begin{bmatrix}
+      \vec{0} & \vec{0} & \vec{0} & \vec{\iota} & \vec{0}
     \end{bmatrix},
     \\
     \lambda^{\ell} &=
@@ -1108,24 +1122,21 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       0 & \cdots & 0 & 1 & 1
     \end{bmatrix}_{J \times J},
     \\
-    \mat{H}_{\mathrm{XX}} &= \mat{I}_{J \times J},
+    \mat{H}_{\mathrm{XX}, \mathrm{new}} &= \mat{I}_{J \times J},
     \\
-    \mat{H}_{\mathrm{new}, \mathrm{XX}} &= \mat{H}_{\mathrm{XX}},
-    \\
-    \mat{H}_{\mathrm{cur}, \mathrm{XX}} &=
-    \mat{L}_{\mathrm{XW}} \mat{H}_{\mathrm{XX}},
+    \mat{H}_{\mathrm{XX}, \mathrm{cur}} &= \mat{L}_{\mathrm{XW}},
     \\
     \mat{H}_{q} &=
     \begin{bmatrix}
-      \mat{H}_{q, \mathrm{XX}} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{H}_{q, \mathrm{XX}} & \mat{0} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{0} & \mat{H}_{q, \mathrm{XX}} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{q, \mathrm{XX}} & \mat{0}
+      \mat{H}_{\mathrm{XX}, q} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{H}_{\mathrm{XX}, q} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{H}_{\mathrm{XX}, q} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{\mathrm{XX}, q} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{q, \mathrm{XX}}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{\mathrm{XX}, q}
     \end{bmatrix},
     \\
-    \mat{F}_{\mathrm{XW}}(\vec{\pi}) &=
+    \mat{F}_{\mathrm{XW}, \mathrm{new}}(\vec{\pi}) &=
     \begin{bmatrix}
       \pi_0 & 0 & \cdots & 0 \\
       0 & \pi_1 & \ddots & \vdots \\
@@ -1133,32 +1144,29 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       0 & \cdots & 0 & \pi_{J - 1}
     \end{bmatrix},
     \\
-    \mat{F}_{\mathrm{new}, \mathrm{XW}}(\vec{\pi}) &=
-    \mat{F}_{\mathrm{XW}}(\vec{\pi}),
-    \\
-    \mat{F}_{\mathrm{cur}, \mathrm{XW}}(\vec{\pi}) &=
-    \mat{L}_{\mathrm{XW}} \mat{F}_{\mathrm{XW}}(\vec{\pi}),
+    \mat{F}_{\mathrm{XW}, \mathrm{cur}}(\vec{\pi}) &=
+    \mat{L}_{\mathrm{XW}} \mat{F}_{\mathrm{XW}, \mathrm{new}}(\vec{\pi}),
     \\
     \mat{F}_q &=
     \begin{bmatrix}
-      \mat{F}_{q, \mathrm{XW}}(- \omega - \vec{\mu}) & \mat{0}
+      \mat{F}_{\mathrm{XW}, q}(- \omega - \vec{\mu}) & \mat{0}
       & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{F}_{q, \mathrm{XW}}(\omega) & \mat{F}_{q, \mathrm{XW}}(- \vec{\mu})
+      \mat{F}_{\mathrm{XW}, q}(\omega) & \mat{F}_{\mathrm{XW}, q}(- \vec{\mu})
       & \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0}
-      & \mat{F}_{q, \mathrm{XW}}(- \rho - \vec{\mu})
+      & \mat{F}_{\mathrm{XW}, q}(- \rho - \vec{\mu})
       & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{F}_{q, \mathrm{XW}}(\rho)
-      & \mat{F}_{q, \mathrm{XW}}(- \gamma - \vec{\mu}) & \mat{0}
+      \mat{0} & \mat{0} & \mat{F}_{\mathrm{XW}, q}(\rho)
+      & \mat{F}_{\mathrm{XW}, q}(- \gamma - \vec{\mu}) & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{F}_{q, \mathrm{XW}}(\gamma)
-      & \mat{F}_{q, \mathrm{XW}}(- \vec{\mu})
+      \mat{0} & \mat{0} & \mat{0} & \mat{F}_{\mathrm{XW}, q}(\gamma)
+      & \mat{F}_{\mathrm{XW}, q}(- \vec{\mu})
     \end{bmatrix},
     \\
-    \mat{T}_{q, \mathrm{XW}} &= \mat{H}_{q, \mathrm{XX}},
+    \mat{T}_{\mathrm{XW}, q} &= \mat{H}_{\mathrm{XX}, q},
     \\
     \mat{T}_q &=
     \begin{bmatrix}
@@ -1172,18 +1180,6 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
     \end{bmatrix},
-    \\
-    \vec{\tau} &=
-    \Delta t
-    \begin{bmatrix}
-      \nu_0 & \cdots & \nu_{J - 1}
-    \end{bmatrix},
-    \\
-    \vec{b} &=
-    \frac{1}{\Delta t}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix}_{J \times 1},
     \\
     \mat{B}_{\mathrm{XW}} &= \vec{b} \vec{\tau},
     \\
@@ -1614,10 +1610,28 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       R^{\ell}
     \end{bmatrix},
     \\
-    \vec{\beta} &=
-    \beta \Delta t
+    \vec{\zeta} &=
+    \frac{1}{\Delta t}
     \begin{bmatrix}
-      \vec{0} & 0 & \vec{0} & \vec{1} & 0
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}_{K \times 1},
+    \\
+    \vec{\iota} &=
+    \Delta t
+    \begin{bmatrix}
+      1 & \cdots & 1
+    \end{bmatrix}_{1 \times K},
+    \\
+    \vec{\sigma}(\vec{\xi}) &=
+    \Delta t
+    \begin{bmatrix}
+      \xi_0 & \cdots & \xi_{K - 1}
+    \end{bmatrix},
+    \\
+    \vec{\beta} &=
+    \beta
+    \begin{bmatrix}
+      \vec{0} & 0 & \vec{0} & \vec{\iota} & 0
     \end{bmatrix},
     \\
     \lambda^{\ell} &=
@@ -1632,37 +1646,21 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       0 & \cdots & 0 & 1 & 1
     \end{bmatrix}_{K \times K},
     \\
-    \mat{H}_{\mathrm{yy}} &= \mat{I}_{K \times K},
+    \mat{H}_{\mathrm{yy}, \mathrm{new}} &= \mat{I}_{K \times K},
     \\
-    \mat{H}_{\mathrm{new}, \mathrm{yy}} &=
-    \mat{H}_{\mathrm{yy}},
-    \\
-    \mat{H}_{\mathrm{cur}, \mathrm{yy}} &=
-    \mat{L}_{\mathrm{yy}} \mat{H}_{\mathrm{yy}},
+    \mat{H}_{\mathrm{yy}, \mathrm{cur}} &= \mat{L}_{\mathrm{yy}},
     \\
     \mat{H}_{q} &=
     \begin{bmatrix}
-      \mat{H}_{q, \mathrm{yy}} & \vec{0} & \mat{0} & \mat{0} & \vec{0} \\
+      \mat{H}_{\mathrm{yy}, q} & \vec{0} & \mat{0} & \mat{0} & \vec{0} \\
       \vec{0} & 1 & \vec{0} & \vec{0} & 0 \\
-      \mat{0} & \vec{0} & \mat{H}_{q, \mathrm{yy}} & \mat{0} & \vec{0} \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{H}_{q, \mathrm{yy}} & \vec{0}
+      \mat{0} & \vec{0} & \mat{H}_{\mathrm{yy}, q} & \mat{0} & \vec{0} \\
+      \mat{0} & \vec{0} & \mat{0} & \mat{H}_{\mathrm{yy}, q} & \vec{0}
       \\
       \vec{0} & 0 & \vec{0} & \vec{0} & 1
     \end{bmatrix},
     \\
-    \vec{\sigma}(\vec{\xi}) &=
-    \Delta t
-    \begin{bmatrix}
-      \xi_0 & \cdots & \xi_{K - 1}
-    \end{bmatrix},
-    \\
-    \vec{\zeta} &=
-    \frac{1}{\Delta t}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix}_{K \times 1},
-    \\
-    \mat{F}_{\mathrm{yy}}(\vec{\xi}) &=
+    \mat{F}_{\mathrm{yy}, \mathrm{new}}(\vec{\xi}) &=
     \begin{bmatrix}
       \xi_0 & 0 & \cdots & 0 \\
       0 & \xi_1 & \ddots & \vdots \\
@@ -1670,30 +1668,27 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       0 & \cdots & 0 & \xi_{K - 1}
     \end{bmatrix},
     \\
-    \mat{F}_{\mathrm{new}, \mathrm{yy}}(\vec{\xi}) &=
-    \mat{F}_{\mathrm{yy}}(\vec{\xi}),
-    \\
-    \mat{F}_{\mathrm{cur}, \mathrm{yy}}(\vec{\xi}) &=
-    \mat{L}_{\mathrm{yy}} \mat{F}_{\mathrm{yy}}(\vec{\xi}),
+    \mat{F}_{\mathrm{yy}, \mathrm{cur}}(\vec{\xi}) &=
+    \mat{L}_{\mathrm{yy}} \mat{F}_{\mathrm{yy}, \mathrm{new}}(\vec{\xi}),
     \\
     \vec{f}_{\mathrm{Xy}}(\vec{\xi}) &=
     \vec{\sigma}(\vec{\xi}),
     \\
-    \mat{F}_{\mathrm{yz}}(\vec{\rho}) &=
+    \mat{F}_{\mathrm{yw}}(\vec{\rho}) &=
     \vec{\zeta} \vec{\sigma}(\vec{\rho}),
     \\
     \mat{F}_q &=
     \begin{bmatrix}
-      \mat{F}_{q, \mathrm{yy}}(- \vec{\omega} - \mu) & \vec{0} & \mat{0}
+      \mat{F}_{\mathrm{yy}, q}(- \vec{\omega} - \mu) & \vec{0} & \mat{0}
       & \mat{0} & \vec{0}
       \\
       \vec{f}_{\mathrm{Xy}}(\vec{\omega}) & - \mu & \vec{0} & \vec{0} & 0
       \\
-      \mat{0} & \vec{0} & \mat{F}_{q, \mathrm{yy}}(- \vec{\rho} - \mu)
+      \mat{0} & \vec{0} & \mat{F}_{\mathrm{yy}, q}(- \vec{\rho} - \mu)
       & \mat{0} & \vec{0}
       \\
-      \mat{0} & \vec{0} & \mat{F}_{\mathrm{yz}}(\vec{\rho})
-      & \mat{F}_{q, \mathrm{yy}}(- \vec{\gamma} - \mu) & \vec{0}
+      \mat{0} & \vec{0} & \mat{F}_{\mathrm{yw}}(\vec{\rho})
+      & \mat{F}_{\mathrm{yy}, q}(- \vec{\gamma} - \mu) & \vec{0}
       \\
       \vec{0} & 0 & \vec{0} & \vec{f}_{\mathrm{Xy}}(\vec{\gamma}) & - \mu
     \end{bmatrix},
@@ -1714,13 +1709,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \vec{0} & 0 & \vec{0} & \vec{0} & 0
     \end{bmatrix},
     \\
-    \vec{\tau} &=
-    \Delta t
-    \begin{bmatrix}
-      1 & \cdots & 1
-    \end{bmatrix}_{1 \times K},
-    \\
-    \vec{b}_{\mathrm{Xy}} &= \vec{\tau},
+    \vec{b}_{\mathrm{Xy}} &= \vec{\iota},
     \\
     \vec{b}_{\mathrm{yX}} &= \vec{\zeta},
     \\
@@ -2754,10 +2743,55 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       R_0^{\ell} \\ \vdots \\ R_{J - 1}^{\ell}
     \end{bmatrix},
     \\
-    \vec{\beta} &=
-    \beta (\Delta t)^2
+    \vec{b}_a &=
+    \frac{1}{\Delta t}
     \begin{bmatrix}
-      \vec{0}_J & \vec{0}_J & \vec{0}_{JK} & \vec{1}_{JK} & \vec{0}_J
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}_{J \times 1},
+    \\
+    \vec{\zeta}_z &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}_{K \times 1},
+    \\
+    \vec{\iota}_a &=
+    \Delta t
+    \begin{bmatrix}
+      1 & \cdots & 1
+    \end{bmatrix}_{1 \times J},
+    \\
+    \vec{\iota}_z &=
+    \Delta t
+    \begin{bmatrix}
+      1 & \cdots & 1
+    \end{bmatrix}_{1 \times K},
+    \\
+    \vec{\iota}_{\mathrm{y}} &=
+    \vec{\iota}_a \otimes \vec{\iota}_z,
+    \\
+    \vec{\sigma}_z(\vec{\xi}) &=
+    \Delta t
+    \begin{bmatrix}
+      \xi_0 & \cdots & \xi_{K - 1}
+    \end{bmatrix},
+    \\
+    \vec{\tau}_a &=
+    \Delta t
+    \begin{bmatrix}
+      \nu_0 & \cdots & \nu_{J - 1}
+    \end{bmatrix},
+    \\
+    \vec{\tau}_{\mathrm{X}} &= \vec{\tau}_a,
+    \\
+    \vec{\tau}_{\mathrm{y}} &=
+    \vec{\tau}_a \otimes \vec{\iota}_z,
+    \\
+    \vec{\beta} &=
+    \begin{bmatrix}
+      \vec{0}_{\mathrm{X}} & \vec{0}_{\mathrm{X}}
+      & \vec{0}_{\mathrm{y}} & \vec{\iota}_{\mathrm{y}}
+      & \vec{0}_{\mathrm{X}}
     \end{bmatrix},
     \\
     \lambda^{\ell} &=
@@ -2781,33 +2815,29 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       0 & \cdots & 0 & 1 & 1
     \end{bmatrix}_{K \times K},
     \\
-    \mat{H}_a &= \mat{I}_{J \times J},
+    \mat{H}_{a, \mathrm{new}} &= \mat{I}_{J \times J},
     \\
-    \mat{H}_{\mathrm{new}, a} &= \mat{H}_a,
+    \mat{H}_{a, \mathrm{cur}} &= \mat{L}_a,
     \\
-    \mat{H}_{\mathrm{cur}, a} &= \mat{L}_a \mat{H}_a,
+    \mat{H}_{z, \mathrm{new}} &= \mat{I}_{K \times K},
     \\
-    \mat{H}_z &= \mat{I}_{K \times K},
+    \mat{H}_{z, \mathrm{cur}} &= \mat{L}_z,
     \\
-    \mat{H}_{\mathrm{new}, z} &= \mat{H}_z,
+    \mat{H}_{\mathrm{XX}, q} &= \mat{H}_{a, q},
     \\
-    \mat{H}_{\mathrm{cur}, z} &= \mat{L}_z \mat{H}_z,
-    \\
-    \mat{H}_{q, \mathrm{XX}} &= \mat{H}_{q, a},
-    \\
-    \mat{H}_{q, \mathrm{yy}} &= \mat{H}_{q, a} \otimes \mat{H}_{q, z},
+    \mat{H}_{\mathrm{yy}, q} &= \mat{H}_{a, q} \otimes \mat{H}_{z, q},
     \\
     \mat{H}_q &=
     \begin{bmatrix}
-      \mat{H}_{q, \mathrm{XX}} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{H}_{q, \mathrm{XX}} & \mat{0} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{0} & \mat{H}_{q, \mathrm{yy}} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{q, \mathrm{yy}} & \mat{0}
+      \mat{H}_{\mathrm{XX}, q} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{H}_{\mathrm{XX}, q} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{H}_{\mathrm{yy}, q} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{\mathrm{yy}, q} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{q, \mathrm{XX}}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{\mathrm{XX}, q}
     \end{bmatrix},
     \\
-    \mat{F}_a(\vec{\pi}) &=
+    \mat{F}_{a, \mathrm{new}}(\vec{\pi}) &=
     \begin{bmatrix}
       \pi_0 & 0 & \cdots & 0 \\
       0 & \pi_1 & \ddots & \vdots \\
@@ -2815,25 +2845,10 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       0 & \cdots & 0 & \pi_{J - 1}
     \end{bmatrix},
     \\
-    \mat{F}_{\mathrm{new}, a}(\vec{\pi}) &=
-    \mat{F}_a(\vec{\pi}),
+    \mat{F}_{a, \mathrm{cur}}(\vec{\pi}) &=
+    \mat{L}_a \mat{F}_{a, \mathrm{new}}(\vec{\pi}),
     \\
-    \mat{F}_{\mathrm{cur}, a}(\vec{\pi}) &=
-    \mat{L}_a \mat{F}_a(\vec{\pi}),
-    \\
-    \vec{\sigma}_z(\vec{\xi}) &=
-    \Delta t
-    \begin{bmatrix}
-      \xi_0 & \cdots & \xi_{K - 1}
-    \end{bmatrix},
-    \\
-    \vec{\zeta}_z &=
-    \frac{1}{\Delta t}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix}_{K \times 1},
-    \\
-    \mat{F}_z(\vec{\xi}) &=
+    \mat{F}_{z, \mathrm{new}}(\vec{\xi}) &=
     \begin{bmatrix}
       \xi_0 & 0 & \cdots & 0 \\
       0 & \xi_1 & \ddots & \vdots \\
@@ -2841,94 +2856,67 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       0 & \cdots & 0 & \xi_{K - 1}
     \end{bmatrix},
     \\
-    \mat{F}_{\mathrm{new}, z}(\vec{\xi}) &=
-    \mat{F}_{z}(\vec{\xi}),
+    \mat{F}_{z, \mathrm{cur}}(\vec{\xi}) &=
+    \mat{L}_z \mat{F}_{z, \mathrm{new}}(\vec{\xi}),
     \\
-    \mat{F}_{\mathrm{cur}, z}(\vec{\xi}) &=
-    \mat{L}_z \mat{F}_{z}(\vec{\xi}),
+    \mat{F}_{\mathrm{XW}, q}(\vec{\pi}) &=
+    \mat{F}_{a, q}(\vec{\pi}),
     \\
-    \vec{f}_z(\vec{\gamma}) &=
-    \vec{\sigma}_z(\vec{\gamma}),
+    \mat{F}_{\mathrm{yy}, q}(\vec{\pi}, \vec{\xi}) &=
+    \mat{F}_{a, q} (\vec{\pi}) \otimes \mat{H}_{z, q}
+    + \mat{H}_{a, q} \otimes \mat{F}_{z, q}(\vec{\xi}),
     \\
-    \mat{F}_z(\vec{\rho}) &=
-    \vec{\zeta}_z \vec{\sigma}_z(\vec{\rho}),
+    \mat{F}_{\mathrm{Xy}, q}(\vec{\gamma}) &=
+    \mat{H}_{a, q} \otimes \vec{\sigma}_z(\vec{\gamma}),
     \\
-    \mat{F}_{q, \mathrm{XW}}(\vec{\pi}) &=
-    \mat{F}_{q, a}(\vec{\pi}),
-    \\
-    \mat{F}_{q, \mathrm{yy}}(\vec{\pi}, \vec{\xi}) &=
-    \mat{F}_{q, a} (\vec{\pi}) \otimes \mat{H}_{q, z}
-    + \mat{H}_{q, a} \otimes \mat{F}_{q, z}(\vec{\xi}),
-    \\
-    \mat{F}_{q, \mathrm{yz}}(\vec{\rho}) &=
-    \mat{H}_{q, a} \otimes \mat{F}_z(\vec{\rho}),
-    \\
-    \mat{F}_{q, \mathrm{Xy}}(\vec{\gamma}) &=
-    \mat{H}_{q, a} \otimes \vec{f}_z(\vec{\gamma}),
+    \mat{F}_{\mathrm{yw}, q}(\vec{\rho}) &=
+    \mat{H}_{a, q} \otimes \left[
+      \vec{\zeta}_z \vec{\sigma}_z(\vec{\rho})
+    \right],
     \\
     \mat{F}_q &=
     \begin{bmatrix}
-      \mat{F}_{q, \mathrm{XW}}(- \vec{\omega} - \vec{\mu}) & \mat{0} & \mat{0}
+      \mat{F}_{\mathrm{XW}, q}(- \vec{\omega} - \vec{\mu}) & \mat{0} & \mat{0}
       & \mat{0} & \mat{0}
       \\
-      \mat{F}_{q, \mathrm{XW}}(\vec{\omega}) & \mat{F}_{q, \mathrm{XW}}(- \vec{\mu})
+      \mat{F}_{\mathrm{XW}, q}(\vec{\omega})
+      & \mat{F}_{\mathrm{XW}, q}(- \vec{\mu})
       & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{F}_{q, \mathrm{yy}}(- \vec{\mu}, - \vec{\rho})
+      \mat{0} & \mat{0} & \mat{F}_{\mathrm{yy}, q}(- \vec{\mu}, - \vec{\rho})
       & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{F}_{q, \mathrm{yz}}(\vec{\rho})
-      & \mat{F}_{q, \mathrm{yy}}(- \vec{\mu}, - \vec{\gamma}) & \mat{0}
+      \mat{0} & \mat{0} & \mat{F}_{\mathrm{yw}, q}(\vec{\rho})
+      & \mat{F}_{\mathrm{yy}, q}(- \vec{\mu}, - \vec{\gamma}) & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0}
-      & \mat{F}_{q, \mathrm{Xy}}(\vec{\gamma}) & \mat{F}_{q, XW}(- \vec{\mu})
+      & \mat{F}_{\mathrm{Xy}, q}(\vec{\gamma})
+      & \mat{F}_{\mathrm{XW}, q}(- \vec{\mu})
     \end{bmatrix},
     \\
-    \mat{T}_{q, a} &= \mat{H}_{q, a},
+    \mat{T}_{a, q} &= \mat{H}_{a, q},
     \\
-    \vec{t}_z &= \vec{\zeta}_z,
+    \mat{T}_{\mathrm{XX}, q} &= \mat{T}_{a, q},
     \\
-    \mat{T}_{q, XX} &= \mat{T}_{q, a},
-    \\
-    \mat{T}_{q, yX} &=
-    \mat{T}_{q, a} \otimes \vec{t}_z,
+    \mat{T}_{\mathrm{yX}, q} &=
+    \mat{T}_{a, q} \otimes \vec{\zeta}_z,
     \\
     \mat{T}_q &=
     \begin{bmatrix}
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & - \mat{T}_{q, \mathrm{XX}} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0} & - \mat{T}_{\mathrm{XX}, q} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{T}_{q, \mathrm{yX}} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0} & \mat{T}_{\mathrm{yX}, q} & \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
     \end{bmatrix},
     \\
-    \vec{\tau}_a &=
-    \Delta t
-    \begin{bmatrix}
-      \nu_0 & \cdots & \nu_{J - 1}
-    \end{bmatrix},
+    \mat{B}_{\mathrm{XW}} &= \vec{b}_a \vec{\tau}_{\mathrm{X}},
     \\
-    \vec{\tau}_z &=
-    \Delta t
-    \begin{bmatrix}
-      1 & \cdots & 1
-    \end{bmatrix}_{1 \times K},
-    \\
-    \vec{\tau}_{az} &= \vec{\tau}_a \otimes \vec{\tau}_z,
-    \\
-    \vec{b}_a &=
-    \frac{1}{\Delta t}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix}_{J \times 1},
-    \\
-    \mat{B}_{\mathrm{XW}} &= \vec{b}_a \vec{\tau}_a,
-    \\
-    \mat{B}_{\mathrm{Xy}} &= \vec{b}_a \vec{\tau}_{a z},
+    \mat{B}_{\mathrm{Xy}} &= \vec{b}_a \vec{\tau}_{\mathrm{y}},
     \\
     \mat{B} &=
     \begin{bmatrix}

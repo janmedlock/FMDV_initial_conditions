@@ -22,16 +22,16 @@ class Solver(_model.solver.Solver):
 
     def _beta(self):
         '''Build the transmission rate vector beta.'''
-        beta = (
-            self.model.parameters.transmission.rate
-            * numpy.array([
-                [0, 0, 0, 1, 0]
-            ])
-        )
+        n = len(self.model.states)
+        blocks = [0] * n
+        infectious = self.model.states.index('infectious')
+        blocks[infectious] = 1
+        beta = (self.model.parameters.transmission.rate
+                * numpy.array(blocks).reshape((1, n)))
         return beta
 
     def _H(self, q):
-        '''Build the time step matrix H(q).'''
+        '''Build the time-step matrix H(q).'''
         H = self.I
         return H
 

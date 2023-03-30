@@ -52,6 +52,12 @@ def vstack(blocks, *args, **kwds):
     return array(arr)
 
 
+def kron(A, B, *args, **kwds):
+    '''The Kronecker product.'''
+    arr = scipy.sparse.kron(A, B, *args, **kwds)
+    return array(arr)
+
+
 def _idx_convert(arg):
     try:
         return slice(*arg)

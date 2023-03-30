@@ -11,6 +11,12 @@ class Model(time_since_entry_structured.Model,
             age_structured.Model):
     '''Age– and time-since-entry–structured model.'''
 
+    # Because the the 'maternal_immunity' class starts at birth ('age'
+    # = 0), 'age' and 'time_since_entry' are identical, so we can drop
+    # 'time_since_entry'.
+    states_with_z = time_since_entry_structured.Model.states_with_z.copy()
+    states_with_z.remove('maternal_immunity')
+
     _Solver = _solver.Solver
 
     def integral_over_a_and_z(self, obj, *args, **kwds):
