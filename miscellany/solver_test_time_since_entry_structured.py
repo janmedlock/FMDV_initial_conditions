@@ -14,54 +14,61 @@ class Tester(solver_test.Tester):
 
     def beta(self):
         K = len(self.model.z)
-        zeros = solver_test.sparse_array((1, K))
-        ones = numpy.ones((1, K))
+        zeros_X = solver_test.sparse_array((1, 1))
+        zeros_y = solver_test.sparse_array((1, K))
+        iota_y = (self.model.z_step
+                  * numpy.ones((1, K)))
         return (self.model.parameters.transmission.rate
-                * self.model.z_step
                 * scipy.sparse.hstack(
-                    [zeros, [[0]], zeros, ones, [[0]]]
+                    [zeros_y, zeros_X, zeros_y, iota_y, zeros_X]
                 ))
 
     def H(self, q):
         K = len(self.model.z)
         if q == 'new':
-            Hqyy = scipy.sparse.identity(K)
+            H_yy = scipy.sparse.identity(K)
         elif q == 'cur':
-            Hqyy = models._utility.sparse.diags_from_dict(
-                {-1: numpy.ones(K - 1),
-                 0: numpy.hstack([numpy.zeros(K - 1), 1])})
+            H_yy = models._utility.sparse.diags_from_dict({
+                -1: numpy.ones(K - 1),
+                0: numpy.hstack([numpy.zeros(K - 1), 1])
+            })
         else:
             return ValueError
-        return scipy.sparse.block_diag([Hqyy, [[1]], Hqyy, Hqyy, [[1]]])
+        H_XX = [[1]]
+        return scipy.sparse.block_diag([H_yy, H_XX, H_yy, H_yy, H_XX])
 
     def F(self, q):
         K = len(self.model.z)
 
-        def Fqyy(psi):
-            if numpy.isscalar(psi):
-                psi = psi * numpy.ones(K)
+        def F_yy(xi):
+            if numpy.isscalar(xi):
+                xi = xi * numpy.ones(K)
             if q == 'new':
-                return scipy.sparse.diags(psi)
+                return scipy.sparse.diags(xi)
             elif q == 'cur':
-                return models._utility.sparse.diags_from_dict(
-                    {-1: psi[:-1],
-                     0: numpy.hstack([numpy.zeros(K - 1), psi[-1]])})
+                return models._utility.sparse.diags_from_dict({
+                    -1: xi[:-1],
+                    0: numpy.hstack([numpy.zeros(K - 1), xi[-1]])
+                })
             else:
                 raise ValueError
 
-        def Fyz(psi):
-            if numpy.isscalar(psi):
-                psi = psi * numpy.ones(K)
-            Fyz_ = scipy.sparse.dok_array((K, K))
-            Fyz_[0] = psi
-            return Fyz_
+        def F_yw(xi):
+            if numpy.isscalar(xi):
+                xi = xi * numpy.ones(K)
+            F_yw_ = scipy.sparse.dok_array((K, K))
+            F_yw_[0] = xi
+            return F_yw_
 
-        def fXy(psi):
-            if numpy.isscalar(psi):
-                psi = psi * numpy.ones(K)
-            fXy_ = scipy.sparse.dok_array((1, K))
-            fXy_[0] = self.model.z_step * psi
-            return fXy_
+        def f_Xy(xi):
+            if numpy.isscalar(xi):
+                xi = xi * numpy.ones(K)
+            f_Xy_ = scipy.sparse.dok_array((1, K))
+            f_Xy_[0] = self.model.z_step * xi
+            return f_Xy_
+
+        def f_XX(pi):
+            return [[pi]]
 
         def get_rate(which):
             param = getattr(self.model.parameters, which)
@@ -73,44 +80,48 @@ class Tester(solver_test.Tester):
         rho = get_rate('progression')
         gamma = get_rate('recovery')
         return scipy.sparse.bmat([
-            [Fqyy(- omega - mu), None, None, None, None],
-            [fXy(omega), [[- mu]], None, None, None],
-            [None, None, Fqyy(- rho - mu), None, None],
-            [None, None, Fyz(rho), Fqyy(- gamma - mu), None],
-            [None, None, None, fXy(gamma), [[- mu]]]
+            [F_yy(- omega - mu), None, None, None, None],
+            [f_Xy(omega), f_XX(- mu), None, None, None],
+            [None, None, F_yy(- rho - mu), None, None],
+            [None, None, F_yw(rho), F_yy(- gamma - mu), None],
+            [None, None, None, f_Xy(gamma), f_XX(- mu)]
         ])
 
     def T(self, q):
         # `T` is independent of `q`.
         K = len(self.model.z)
-        tyX = scipy.sparse.dok_array((K, 1))
-        tyX[0, 0] = 1 / self.model.z_step
-        ZerosKK = solver_test.sparse_array((K, K))
-        zerosK1 = solver_test.sparse_array((K, 1))
-        zeros1K = solver_test.sparse_array((1, K))
+        t_XX = numpy.array([[1]])
+        t_yX = scipy.sparse.dok_array((K, 1))
+        t_yX[0, 0] = 1 / self.model.z_step
+        Zeros_yw = solver_test.sparse_array((K, K))
+        zeros_yX = solver_test.sparse_array((K, 1))
+        zeros_Xy = solver_test.sparse_array((1, K))
+        zeros_XW = solver_test.sparse_array((1, 1))
         return scipy.sparse.bmat([
-            [ZerosKK, zerosK1, ZerosKK, ZerosKK, zerosK1],
-            [zeros1K, [[- 1]], zeros1K, zeros1K, [[0]]],
-            [ZerosKK, tyX, ZerosKK, ZerosKK, zerosK1],
-            [ZerosKK, zerosK1, ZerosKK, ZerosKK, zerosK1],
-            [zeros1K, [[0]], zeros1K, zeros1K, [[0]]]
+            [Zeros_yw, zeros_yX, Zeros_yw, Zeros_yw, zeros_yX],
+            [zeros_Xy, - t_XX, zeros_Xy, zeros_Xy, zeros_XW],
+            [Zeros_yw, t_yX, Zeros_yw, Zeros_yw, zeros_yX],
+            [Zeros_yw, zeros_yX, Zeros_yw, Zeros_yw, zeros_yX],
+            [zeros_Xy, zeros_XW, zeros_Xy, zeros_Xy, zeros_XW]
         ])
 
     def B(self):
         K = len(self.model.z)
-        byX = scipy.sparse.dok_array((K, 1))
-        byX[0, 0] = 1 / self.model.z_step
-        bXy = scipy.sparse.dok_array((1, K))
-        bXy[0] = self.model.z_step
-        ZerosKK = solver_test.sparse_array((K, K))
-        zerosK1 = solver_test.sparse_array((K, 1))
-        zeros1K = solver_test.sparse_array((1, K))
+        b_yX = scipy.sparse.dok_array((K, 1))
+        b_yX[0, 0] = 1 / self.model.z_step
+        b_Xy = scipy.sparse.dok_array((1, K))
+        b_Xy[0] = self.model.z_step
+        b_XX = [[1]]
+        Zeros_yw = solver_test.sparse_array((K, K))
+        zeros_yX = solver_test.sparse_array((K, 1))
+        zeros_Xy = solver_test.sparse_array((1, K))
+        zeros_XW = solver_test.sparse_array((1, 1))
         return scipy.sparse.bmat([
-            [ZerosKK, zerosK1, ZerosKK, ZerosKK, byX],
-            [bXy, [[1]], bXy, bXy, [[0]]],
-            [ZerosKK, zerosK1, ZerosKK, ZerosKK, zerosK1],
-            [ZerosKK, zerosK1, ZerosKK, ZerosKK, zerosK1],
-            [zeros1K, [[0]], zeros1K, zeros1K, [[0]]]
+            [Zeros_yw, zeros_yX, Zeros_yw, Zeros_yw, b_yX],
+            [b_Xy, b_XX, b_Xy, b_Xy, zeros_XW],
+            [Zeros_yw, zeros_yX, Zeros_yw, Zeros_yw, zeros_yX],
+            [Zeros_yw, zeros_yX, Zeros_yw, Zeros_yw, zeros_yX],
+            [zeros_Xy, zeros_XW, zeros_Xy, zeros_Xy, zeros_XW]
         ])
 
 
