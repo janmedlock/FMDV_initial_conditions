@@ -6,7 +6,6 @@
   * Try bsr_array(blocksize=(J, J))?
 
 * Combination model
-  * Skip is_M_matrix() in _check_matrix()?
   * Test solver
 
 * Bootstrap up equilibria & limit cycles from simpler models

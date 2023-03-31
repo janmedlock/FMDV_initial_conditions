@@ -393,3 +393,9 @@ class Solver(_model.solver.Solver):
             [Zeros_XW, None, None, None, None]
         ])
         return B
+
+    def _check_matrices(self, is_M_matrix=False):
+        '''Check the solver matrices. Checking the M matrix requires
+        finding the dominant eigenvalue, which is very slow and very
+        memory intensive.'''
+        super()._check_matrices(is_M_matrix=is_M_matrix)

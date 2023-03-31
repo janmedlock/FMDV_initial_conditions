@@ -73,7 +73,7 @@ class Solver(metaclass=abc.ABCMeta):
         self.T = {q: self._T(q) for q in q_vals}
         self.B = self._B()
 
-    def _check_matrices(self):
+    def _check_matrices(self, is_M_matrix=True):
         '''Check the solver matrices.'''
         assert _utility.linalg.is_nonnegative(self.beta)
         assert _utility.linalg.is_Z_matrix(self.H['new'])
@@ -83,10 +83,11 @@ class Solver(metaclass=abc.ABCMeta):
         assert _utility.linalg.is_Metzler_matrix(self.B)
         assert _utility.linalg.is_nonnegative(self.B)
         birth = self.model.parameters.birth
-        HFB_new = (self.H['new']
-                   - self.t_step / 2 * (self.F['new']
-                                        + birth.rate_max * self.B))
-        assert _utility.linalg.is_M_matrix(HFB_new)
+        if is_M_matrix:
+            HFB_new = (self.H['new']
+                       - self.t_step / 2 * (self.F['new']
+                                            + birth.rate_max * self.B))
+            assert _utility.linalg.is_M_matrix(HFB_new)
         HFB_cur = (self.H['cur']
                    + self.t_step / 2 * (self.F['cur']
                                         + birth.rate_min * self.B))
