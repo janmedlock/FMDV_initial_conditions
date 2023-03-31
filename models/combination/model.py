@@ -1,6 +1,8 @@
 '''Based on our FMDV work, this is an age– and
 time-since-entry–structured model.'''
 
+import numpy
+
 from . import _solver
 from .. import age_structured, time_since_entry_structured
 
@@ -27,3 +29,24 @@ class Model(time_since_entry_structured.Model,
         return integrated_over_z_and_a
 
     integral_over_z_and_a = integral_over_a_and_z
+
+    def _fix_maternal_immunity(self, y, how):
+        '''Get scaled survivals.'''
+        if how == 'survival':
+            shape = self.parameters.waning.survival(self.a)
+            # Scale to integrate to 1.
+            shape /= self.integral_over_a(shape)
+        elif how == 'all_in_first':
+            J = len(self.a)
+            shape = numpy.hstack([1 / self.a_step,
+                                  numpy.zeros(J - 1)])
+        else:
+            raise ValueError(f'Unknown {how=}!')
+        total = self.integral_over_a(y['maternal_immunity'].to_numpy())
+        y['maternal_immunity'] = shape * total
+
+    def build_initial_conditions(self, how='survival', **kwds):
+        '''Build the initial conditions.'''
+        y = super().build_initial_conditions(how=how, **kwds)
+        self._fix_maternal_immunity(y, how)
+        return y

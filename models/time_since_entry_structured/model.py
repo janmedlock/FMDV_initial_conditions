@@ -114,9 +114,12 @@ class Model(unstructured.Model):
         idx_state = self._get_index_level('state')
         idx_state_z = self._extend_index(idx_state)
         n_z = pandas.Series(1, index=idx_state_z)
-        n_z['maternal_immunity'] = self._survival_scaled(
-            self.parameters.waning
-        )
+        # For the combination model, 'maternal_immunity' is not in
+        # `.states_with_z`.
+        if 'maternal_immunity' in self.states_with_z:
+            n_z['maternal_immunity'] = self._survival_scaled(
+                self.parameters.waning
+            )
         n_z['exposed'] = self._survival_scaled(self.parameters.progression)
         n_z['infectious'] = self._survival_scaled(self.parameters.recovery)
         return n_z
