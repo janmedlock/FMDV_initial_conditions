@@ -89,8 +89,9 @@ def _solution_prop_cycle(states):
 def _solution_make_axes(states):
     '''Make solution axes.'''
     fig = matplotlib.pyplot.figure()
-    prop_cycle = _solution_prop_cycle(states)
-    return fig.add_subplot(prop_cycle=prop_cycle)
+    return fig.add_subplot(
+        prop_cycle=_solution_prop_cycle(states),
+    )
 
 
 def solution(obj, states=None, ax=None, **kwds):
@@ -101,26 +102,37 @@ def solution(obj, states=None, ax=None, **kwds):
     return obj[states].plot(ax=ax, **kwds)
 
 
-def _eigvals_prop_cycle():
+def _complex_prop_cycle():
     '''Build a prop_cycle for the eigenvalue plot.'''
     orig = matplotlib.pyplot.rcParams['axes.prop_cycle']
     prop_cycle = _cycler_inner_product(orig, _markers)
     return prop_cycle
 
 
-def _eigvals_make_axes():
+def _complex_make_axes(title):
     fig = matplotlib.pyplot.figure()
-    prop_cycle = _eigvals_prop_cycle()
-    axis_labels = dict(xlabel=r'$\Re(\lambda)$',
-                       ylabel=r'$\Im(\lambda)$')
-    return fig.add_subplot(prop_cycle=prop_cycle,
-                           **axis_labels)
+    return fig.add_subplot(
+        title=title,
+        xlabel='$\\Re$',
+        ylabel='$\\Im$',
+        prop_cycle=_complex_prop_cycle(),
+    )
 
 
-def eigvals(eigs, ax=None, legend=False, **kwds):
-    if ax is None:
-        ax = _eigvals_make_axes()
-    ax.plot(eigs.real, eigs.imag, linestyle='', **kwds)
+def _complex(vals, ax, legend, **kwds):
+    ax.plot(vals.real, vals.imag, linestyle='', **kwds)
     if legend:
         ax.legend()
     return ax
+
+
+def multipliers(mults, ax=None, legend=False, **kwds):
+    if ax is None:
+        ax = _complex_make_axes('Floquet multipliers')
+    return _complex(mults, ax, legend, **kwds)
+
+
+def exponents(exps, ax=None, legend=False, **kwds):
+    if ax is None:
+        ax = _complex_make_axes('Floquent exponents')
+    return _complex(exps, ax, legend, **kwds)

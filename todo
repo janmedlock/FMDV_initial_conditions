@@ -1,12 +1,11 @@
 * Age-structured model
-  * Find limit cycle
-    * Not quite a limit cycle: run solution for longer first?
   * Find equiblibrium eigenvalues
   * Find limit-cycle exponents
   * Try bsr_array(blocksize=(J, J))?
 
 * Combination model
   * Test solver
+  * Change parameters so that I can solve with larger time steps
 
 * Bootstrap up equilibria & limit cycles from simpler models
 

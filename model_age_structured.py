@@ -3,12 +3,14 @@
 periodic birth rate.'''
 
 import matplotlib.pyplot
+import numpy
 
 import models
 
 
 if __name__ == '__main__':
     (t_start, t_end) = (0, 10)
+    period = model.parameters.period
     plot_states = ['susceptible', 'infectious', 'recovered']
 
     model_constant = models.age_structured.Model(birth_variation=0)
@@ -24,21 +26,21 @@ if __name__ == '__main__':
         states=plot_states
     )
     equilibrium_eigvals = model_constant.get_eigenvalues(equilibrium)
-    ax_eigvals = models.plotting.eigvals(equilibrium_eigvals,
-                                         label='equilibrium')
+    equilibrium_mults = numpy.exp(equilibrium_eigvals * period)
+    ax_mults = models.plotting.multipliers(equilibrium_mults,
+                                           label='equilibrium')
 
     model = models.age_structured.Model()
     solution = model.solve((t_start, t_end))
     models.plotting.solution(model.integral_over_a(solution),
                              ax=ax_solution, legend=False)
-    limit_cycle = model.find_limit_cycle(model.parameters.period,
-                                         t_end % model.parameters.period,
+    limit_cycle = model.find_limit_cycle(period, t_end % period,
                                          solution.loc[t_end])
     models.plotting.state(model.integral_over_a(limit_cycle),
                           states=plot_states, ax=ax_state)
-    limit_cycle_eigvals = model.get_characteristic_exponents(limit_cycle,
+    limit_cycle_mults = model.get_characteristic_multipliers(limit_cycle,
                                                              display=True)
-    models.plotting.eigvals(limit_cycle_eigvals, label='limit cycle',
-                            legend=True, ax=ax_eigvals)
+    models.plotting.multiprocessing(limit_cycle_mults, label='limit cycle',
+                                    legend=True, ax=ax_mults)
 
     matplotlib.pyplot.show()
