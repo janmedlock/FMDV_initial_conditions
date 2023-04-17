@@ -9,38 +9,31 @@ import models
 
 
 if __name__ == '__main__':
+    Model = models.age_structured.Model
     (t_start, t_end) = (0, 10)
-    period = model.parameters.period
     plot_states = ['susceptible', 'infectious', 'recovered']
 
-    model_constant = models.age_structured.Model(birth_variation=0)
-    solution_constant = model_constant.solve((t_start, t_end))
-    ax_solution = models.plotting.solution(
-        model_constant.integral_over_a(solution_constant)
-    )
-    equilibrium = model_constant.find_equilibrium(
-        solution_constant.loc[t_end]
-    )
-    ax_state = models.plotting.state(
-        model_constant.integral_over_a(equilibrium),
-        states=plot_states
-    )
-    equilibrium_eigvals = model_constant.get_eigenvalues(equilibrium)
-    equilibrium_mults = numpy.exp(equilibrium_eigvals * period)
-    ax_mults = models.plotting.multipliers(equilibrium_mults,
-                                           label='equilibrium')
+    model_const = Model(birth_variation=0)
+    model = Model()
+    period = model.parameters.period
 
-    model = models.age_structured.Model()
-    solution = model.solve((t_start, t_end))
-    models.plotting.solution(model.integral_over_a(solution),
-                             ax=ax_solution, legend=False)
-    limit_cycle = model.find_limit_cycle(period, t_end % period,
-                                         solution.loc[t_end])
-    models.plotting.state(model.integral_over_a(limit_cycle),
-                          states=plot_states, ax=ax_state)
-    limit_cycle_mults = model.get_characteristic_multipliers(limit_cycle,
-                                                             display=True)
-    models.plotting.multiprocessing(limit_cycle_mults, label='limit cycle',
+    soln_const = model_const.solve((t_start, t_end))
+    ax_soln = models.plotting.solution(model_const.integral_over_a(soln_const))
+    soln = model.solve((t_start, t_end))
+    models.plotting.solution(model.integral_over_a(soln),
+                             ax=ax_soln, legend=False)
+
+    eql = model_const.find_equilibrium(soln_const.loc[t_end])
+    ax_state = models.plotting.state(model_const.integral_over_a(eql),
+                                     states=plot_states)
+    lcy = model.find_limit_cycle(period, t_end % period, soln.loc[t_end])
+    models.plotting.state(model.integral_over_a(lcy), ax=ax_state)
+
+    exps_eql = model_const.get_eigenvalues(eql)
+    mults_eql = numpy.exp(exps_eql * period)
+    ax_mults = models.plotting.multipliers(mults_eql, label='equilibrium')
+    mults_lcy = model.get_characteristic_multipliers(lcy, display=True)
+    models.plotting.multiprocessing(mults_lcy, label='limit cycle',
                                     legend=True, ax=ax_mults)
 
     matplotlib.pyplot.show()

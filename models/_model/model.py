@@ -82,40 +82,51 @@ class Model(metaclass=abc.ABCMeta):
             return pandas.DataFrame(y, index=t, columns=self._index)
 
     def solve(self, t_span,
-              y_start=None, t=None, y=None, display=False):
+              y_start=None, t=None, y=None, display=False,
+              check_nonnegative=True):
         '''Solve the ODEs.'''
         if y_start is None:
             y_start = self.build_initial_conditions()
-        (t_, soln) = self._solver.solve(t_span, y_start,
+        (t_, soln_) = self._solver.solve(t_span, y_start,
                                         t=t, y=y, display=display)
-        _utility.numerical.assert_nonnegative(soln)
-        return self.Solution(soln, t_)
+        soln = self.Solution(soln_, t_)
+        if check_nonnegative:
+            _utility.numerical.assert_nonnegative(soln)
+        return soln
 
     def solution_at_t_end(self, t_span,
-                          y_start=None, t=None, y=None, display=False):
+                          y_start=None, t=None, y=None,
+                          display=False, check_nonnegative=True):
         '''Get the solution at the end time.'''
         if y_start is None:
             y_start = self.build_initial_conditions()
         y_end = self._solver.solution_at_t_end(t_span, y_start,
                                                t=t, y=y, display=display)
-        _utility.numerical.assert_nonnegative(y_end)
-        return self.Solution(y_end)
+        soln = self.Solution(y_end)
+        if check_nonnegative:
+            _utility.numerical.assert_nonnegative(soln)
+        return soln
 
     def find_equilibrium(self, eql_guess, t=0, t_solve=0,
-                         display=False, **root_kwds):
+                         display=False, check_nonnegative=True,
+                         **root_kwds):
         '''Find an equilibrium of the model.'''
-        eql = _equilibrium.find(self, eql_guess, t,
-                                t_solve=t_solve, weights=self._weights,
-                                display=display, **root_kwds)
-        _utility.numerical.assert_nonnegative(eql)
-        return self.Solution(eql)
+        eql_ = _equilibrium.find(self, eql_guess, t,
+                                 t_solve=t_solve, weights=self._weights,
+                                 display=display, **root_kwds)
+        eql = self.Solution(eql_)
+        if check_nonnegative:
+            _utility.numerical.assert_nonnegative(eql)
+        return eql
 
     def get_eigenvalues(self, eql, t=0, k=5):
         '''Get the eigenvalues of the Jacobian.'''
         return _equilibrium.eigenvalues(self, eql, t, k=k)
 
     def find_limit_cycle(self, period_0, t_0, lcy_0_guess,
-                         solution=True, display=False, **root_kwds):
+                         solution=True, display=False,
+                         check_nonnegative=True,
+                         **root_kwds):
         '''Find a limit cycle of the model.'''
         result = _limit_cycle.find_subharmonic(self, period_0, t_0,
                                                lcy_0_guess,
@@ -125,12 +136,13 @@ class Model(metaclass=abc.ABCMeta):
                                                **root_kwds)
         if solution:
             (t, lcy) = result
-            _utility.numerical.assert_nonnegative(lcy)
-            return self.Solution(lcy, t)
+            soln = self.Solution(lcy, t)
         else:
             lcy_0 = result
-            _utility.numerical.assert_nonnegative(lcy_0)
-            return self.Solution(lcy_0)
+            soln = self.Solution(lcy_0)
+        if check_nonnegative:
+            _utility.numerical.assert_nonnegative(soln)
+        return soln
 
     def get_characteristic_multipliers(self, lcy, k=5, display=False):
         '''Get the characteristic multipliers.'''

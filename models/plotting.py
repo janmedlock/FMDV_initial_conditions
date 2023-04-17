@@ -32,7 +32,7 @@ def population_size(obj):
     return obj.sum(axis=axis)
 
 
-def _get_states(obj, states):
+def _get_states(states, obj):
     '''Get the states to plot.'''
     if states is None:
         return obj.axes[-1]
@@ -60,11 +60,23 @@ def _state_make_axes(states):
                            **axis_labels)
 
 
+def _get_states_from_axes(ax):
+    '''Get the phase states from the axes `ax`.'''
+    states = [ax.get_xlabel(),
+              ax.get_ylabel()]
+    try:
+        states.append(ax.get_zlabel())
+    except AttributeError:
+        pass
+    return states
+
+
 def state(obj, states=None, ax=None, **kwds):
     '''Make a phase plot.'''
-    states = _get_states(obj, states)
     if ax is None:
-        ax = _state_make_axes(states)
+        ax = _state_make_axes(_get_states(states, obj))
+    if states is None:
+        states = _get_states_from_axes(ax)
     if obj.ndim == 1:
         ax.scatter(*obj[states], **kwds)
     elif obj.ndim == 2:
@@ -96,7 +108,7 @@ def _solution_make_axes(states):
 
 def solution(obj, states=None, ax=None, **kwds):
     '''Plot the solution vs time.'''
-    states = _get_states(obj, states)
+    states = _get_states(states, obj)
     if ax is None:
         ax = _solution_make_axes(states)
     return obj[states].plot(ax=ax, **kwds)
