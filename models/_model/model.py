@@ -95,13 +95,14 @@ class Model(metaclass=abc.ABCMeta):
         return soln
 
     def solution_at_t_end(self, t_span,
-                          y_start=None, t=None, y=None,
+                          y_start=None, t=None, y_temp=None,
                           display=False, check_nonnegative=True):
         '''Get the solution at the end time.'''
         if y_start is None:
             y_start = self.build_initial_conditions()
         y_end = self._solver.solution_at_t_end(t_span, y_start,
-                                               t=t, y=y, display=display)
+                                               t=t, y_temp=y_temp,
+                                               display=display)
         soln = self.Solution(y_end)
         if check_nonnegative:
             _utility.numerical.assert_nonnegative(soln)
