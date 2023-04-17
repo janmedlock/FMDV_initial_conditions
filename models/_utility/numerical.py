@@ -20,8 +20,17 @@ def arange(start, stop, step, endpoint=True, dtype=None):
 def build_t(start, stop, step):
     '''Increase `stop` if needed so that the interval is divided into
     a whole number of steps of width `step`.'''
-    stop = start + numpy.ceil((stop - start) / step) * step
-    return arange(start, stop, step)
+    width = stop - start
+    # See if using `n_steps = floor(width / step)` is close enough to
+    # `stop`.
+    n_steps = numpy.floor(width / step)
+    stop_new = start + n_steps * step
+    assert stop_new <= stop
+    if not numpy.isclose(stop_new, stop):
+        # Add another step.
+        stop_new += step
+        assert stop_new >= stop
+    return arange(start, stop_new, step)
 
 
 def is_increasing(arr):
