@@ -82,11 +82,6 @@ def characteristic_multipliers(model, limit_cycle, k=5, display=False):
     Psi = monodromy(model, limit_cycle, display=display)
     mlts = _utility.linalg.eigs(Psi, k=k, which='LM',
                                 return_eigenvectors=False)
-    # One of the multipliers of a limit cycle is always 1, so drop
-    # that.
-    drop = numpy.abs(mlts - 1).argmin()
-    if numpy.isclose(mlts[drop], 1):
-        mlts = numpy.delete(mlts, drop)
     return mlts
 
 
