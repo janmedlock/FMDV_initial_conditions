@@ -6,6 +6,7 @@
 * Combination model
   * Test solver
   * Change parameters so that I can solve with larger time steps
+    * It will take around a week to solve for 10 years at t_step=0.001
 
 * Bootstrap up equilibria & limit cycles from simpler models
 
