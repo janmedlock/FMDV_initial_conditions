@@ -2,8 +2,7 @@
 
 import functools
 
-import numpy
-import torch.autograd.functional
+import torch
 
 
 def jacobian(func, vectorize=True):
@@ -11,8 +10,12 @@ def jacobian(func, vectorize=True):
     at time `t`.'''
     def jac(t, y):
         func_y = functools.partial(func, t)
-        y_tensor = torch.tensor(y)
-        J = torch.autograd.functional.jacobian(func_y, y_tensor,
-                                               vectorize=vectorize)
-        return numpy.stack(J)
+        y_tensor = torch.as_tensor(y)
+        J_conj = torch.autograd.functional.jacobian(func_y,
+                                                    y_tensor,
+                                                    vectorize=vectorize)
+        if isinstance(J_conj, tuple):
+            J_conj = torch.stack(J_conj)
+        J = J_conj.conj()
+        return J.numpy(force=True)
     return jac
