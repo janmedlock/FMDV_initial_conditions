@@ -36,9 +36,9 @@ class Solver(_model.solver.Solver):
         '''Zero matrices used in constructing the other matrices.'''
         K = len(self.z)
         Zeros = {
-            'XW': _utility.sparse.array((1, 1)),
-            'Xy': _utility.sparse.array((1, K)),
-            'yw': _utility.sparse.array((K, K))
+            'XW': _utility.sparse.Array((1, 1)),
+            'Xy': _utility.sparse.Array((1, K)),
+            'yw': _utility.sparse.Array((K, K))
         }
         return Zeros
 
@@ -88,7 +88,7 @@ class Solver(_model.solver.Solver):
         if numpy.isscalar(xi):
             K = len(self.z)
             xi *= numpy.ones(K)
-        sigma = _utility.sparse.array(self.z_step * xi)
+        sigma = _utility.sparse.Array(self.z_step * xi)
         return sigma
 
     def _I(self):
@@ -145,7 +145,7 @@ class Solver(_model.solver.Solver):
 
     def _f_XX(self, pi):
         '''Build a diagonal block for an X state of F(q).'''
-        f_XX = _utility.sparse.array([[pi]])
+        f_XX = _utility.sparse.Array([[pi]])
         return f_XX
 
     def _F_yy(self, q, xi):
@@ -234,7 +234,7 @@ class Solver(_model.solver.Solver):
     def _b_Xy(self):
         '''Build a block to an X state from a y state of B.'''
         K = len(self.z)
-        tau = _utility.sparse.array(self.z_step * numpy.ones(shape=(1, K)))
+        tau = _utility.sparse.Array(self.z_step * numpy.ones(shape=(1, K)))
         b_Xy = tau
         return b_Xy
 

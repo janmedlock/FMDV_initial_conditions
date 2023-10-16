@@ -14,7 +14,7 @@ class Tester(solver_test.Tester):
 
     def beta(self):
         J = len(self.model.a)
-        zeros = solver_test.sparse_array((1, J))
+        zeros = solver_test.SparseArray((1, J))
         iota = (self.model.a_step
                 * numpy.ones((1, J)))
         return (self.model.parameters.transmission.rate
@@ -74,7 +74,7 @@ class Tester(solver_test.Tester):
             })
         else:
             raise ValueError
-        Zeros = solver_test.sparse_array((J, J))
+        Zeros = solver_test.SparseArray((J, J))
         return scipy.sparse.bmat([
             [Zeros, Zeros, Zeros, Zeros, Zeros],
             [Zeros, - T_XW, Zeros, Zeros, Zeros],
@@ -88,7 +88,7 @@ class Tester(solver_test.Tester):
         nu = self.model.parameters.birth.maternity(self.model.a)
         B_XW = scipy.sparse.dok_array((J, J))
         B_XW[0] = nu
-        Zeros = solver_test.sparse_array((J, J))
+        Zeros = solver_test.SparseArray((J, J))
         return scipy.sparse.bmat([
             [Zeros, Zeros, Zeros, Zeros, B_XW],
             [B_XW, B_XW, B_XW, B_XW, Zeros],

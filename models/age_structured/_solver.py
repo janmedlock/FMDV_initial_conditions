@@ -23,7 +23,7 @@ class Solver(_base.Solver, _model.solver.Solver):
     def Zeros(self):
         '''Zero matrix used in constructing the other matrices.'''
         J = len(self.a)
-        Zeros = _utility.sparse.array((J, J))
+        Zeros = _utility.sparse.Array((J, J))
         return Zeros
 
     @functools.cached_property
@@ -70,7 +70,7 @@ class Solver(_base.Solver, _model.solver.Solver):
         '''Build the transmission rate vector beta.'''
         n = len(self.model.states)
         J = len(self.a)
-        zeros = _utility.sparse.array((1, J))
+        zeros = _utility.sparse.Array((1, J))
         blocks = [zeros] * n
         infectious = self.model.states.index('infectious')
         blocks[infectious] = self._iota()
@@ -140,7 +140,7 @@ class Solver(_base.Solver, _model.solver.Solver):
         '''Build a block of B.'''
         J = len(self.a)
         nu = self.model.parameters.birth.maternity(self.a)
-        tau = _utility.sparse.array(self.a_step * nu)
+        tau = _utility.sparse.Array(self.a_step * nu)
         b = _utility.sparse.array_from_dict(
             {(0, 0): 1 / self.a_step},
             shape=(J, 1)

@@ -15,8 +15,8 @@ class Tester(solver_test.Tester):
     def beta(self):
         J = len(self.model.a)
         K = len(self.model.z)
-        zeros_X = solver_test.sparse_array((1, J))
-        zeros_y = solver_test.sparse_array((1, J * K))
+        zeros_X = solver_test.SparseArray((1, J))
+        zeros_y = solver_test.SparseArray((1, J * K))
         iota_y = (self.model.a_step
                   * self.model.z_step
                   * numpy.ones((1, J * K)))
@@ -148,10 +148,10 @@ class Tester(solver_test.Tester):
         zeta_z[0, 0] = 1 / self.model.z_step
         T_XX = T_a
         T_yX = scipy.sparse.kron(T_a, zeta_z)
-        Zeros_yw = solver_test.sparse_array((J * K, J * K))
-        Zeros_yX = solver_test.sparse_array((J * K, J))
-        Zeros_Xy = solver_test.sparse_array((J, J * K))
-        Zeros_XW = solver_test.sparse_array((J, J))
+        Zeros_yw = solver_test.SparseArray((J * K, J * K))
+        Zeros_yX = solver_test.SparseArray((J * K, J))
+        Zeros_Xy = solver_test.SparseArray((J, J * K))
+        Zeros_XW = solver_test.SparseArray((J, J))
         return scipy.sparse.bmat([
             [Zeros_XW, Zeros_XW, Zeros_Xy, Zeros_Xy, Zeros_XW],
             [Zeros_XW, - T_XX, Zeros_Xy, Zeros_Xy, Zeros_XW],
@@ -166,17 +166,17 @@ class Tester(solver_test.Tester):
         b_a = scipy.sparse.dok_array((J, 1))
         b_a[0, 0] = 1 / self.model.a_step
         nu = self.model.parameters.birth.maternity(self.model.a)
-        tau_a = solver_test.sparse_array(self.model.a_step
-                                         * nu.reshape((1, J)))
-        tau_z = solver_test.sparse_array(self.model.z_step
-                                         * numpy.ones((1, K)))
+        tau_a = solver_test.SparseArray(self.model.a_step
+                                        * nu.reshape((1, J)))
+        tau_z = solver_test.SparseArray(self.model.z_step
+                                        * numpy.ones((1, K)))
         tau_y = scipy.sparse.kron(tau_a, tau_z)
         B_XW = b_a @ tau_a
         B_Xy = b_a @ tau_y
-        Zeros_yw = solver_test.sparse_array((J * K, J * K))
-        Zeros_yX = solver_test.sparse_array((J * K, J))
-        Zeros_Xy = solver_test.sparse_array((J, J * K))
-        Zeros_XW = solver_test.sparse_array((J, J))
+        Zeros_yw = solver_test.SparseArray((J * K, J * K))
+        Zeros_yX = solver_test.SparseArray((J * K, J))
+        Zeros_Xy = solver_test.SparseArray((J, J * K))
+        Zeros_XW = solver_test.SparseArray((J, J))
         return scipy.sparse.bmat([
             [Zeros_XW, Zeros_XW, Zeros_Xy, Zeros_Xy, B_XW],
             [B_XW, B_XW, B_Xy, B_Xy, Zeros_XW],

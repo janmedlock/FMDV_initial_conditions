@@ -2,13 +2,11 @@
 
 import abc
 
-import scipy.sparse
-
 from context import models
 import models._utility
 
 
-sparse_array = models._utility.sparse.array
+SparseArray = models._utility.sparse.Array
 
 
 class Tester:

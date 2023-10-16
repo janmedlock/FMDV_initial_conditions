@@ -201,17 +201,17 @@ class Sparse(Base):
 
     _name = 'sparse'
 
-    _array = _utility.sparse.array
+    _Array = _utility.sparse.Array
 
     @classmethod
     def _convert_arr(cls, arr):
         '''Convert `arr` to the desired sparse format.'''
-        return cls._array(arr)
+        return cls._Array(arr)
 
     @classmethod
     def _make_column_vector(cls, y):
         '''Convert `y` with shape (n, ) to shape (n, 1).'''
-        return cls._array(super()._make_column_vector(y))
+        return cls._Array(super()._make_column_vector(y))
 
 
 class SparseCSR(Sparse):
@@ -219,7 +219,7 @@ class SparseCSR(Sparse):
 
     _name = 'sparse_csr'
 
-    _array = scipy.sparse.csr_array
+    _Array = scipy.sparse.csr_array
 
 
 class SparseCSC(Sparse):
@@ -227,7 +227,7 @@ class SparseCSC(Sparse):
 
     _name = 'sparse_csc'
 
-    _array = scipy.sparse.csc_array
+    _Array = scipy.sparse.csc_array
 
 
 def _get_subclasses(cls):

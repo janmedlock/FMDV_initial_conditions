@@ -14,8 +14,8 @@ class Tester(solver_test.Tester):
 
     def beta(self):
         K = len(self.model.z)
-        zeros_X = solver_test.sparse_array((1, 1))
-        zeros_y = solver_test.sparse_array((1, K))
+        zeros_X = solver_test.SparseArray((1, 1))
+        zeros_y = solver_test.SparseArray((1, K))
         iota_y = (self.model.z_step
                   * numpy.ones((1, K)))
         return (self.model.parameters.transmission.rate
@@ -93,10 +93,10 @@ class Tester(solver_test.Tester):
         t_XX = numpy.array([[1]])
         t_yX = scipy.sparse.dok_array((K, 1))
         t_yX[0, 0] = 1 / self.model.z_step
-        Zeros_yw = solver_test.sparse_array((K, K))
-        zeros_yX = solver_test.sparse_array((K, 1))
-        zeros_Xy = solver_test.sparse_array((1, K))
-        zeros_XW = solver_test.sparse_array((1, 1))
+        Zeros_yw = solver_test.SparseArray((K, K))
+        zeros_yX = solver_test.SparseArray((K, 1))
+        zeros_Xy = solver_test.SparseArray((1, K))
+        zeros_XW = solver_test.SparseArray((1, 1))
         return scipy.sparse.bmat([
             [Zeros_yw, zeros_yX, Zeros_yw, Zeros_yw, zeros_yX],
             [zeros_Xy, - t_XX, zeros_Xy, zeros_Xy, zeros_XW],
@@ -112,10 +112,10 @@ class Tester(solver_test.Tester):
         b_Xy = scipy.sparse.dok_array((1, K))
         b_Xy[0] = self.model.z_step
         b_XX = [[1]]
-        Zeros_yw = solver_test.sparse_array((K, K))
-        zeros_yX = solver_test.sparse_array((K, 1))
-        zeros_Xy = solver_test.sparse_array((1, K))
-        zeros_XW = solver_test.sparse_array((1, 1))
+        Zeros_yw = solver_test.SparseArray((K, K))
+        zeros_yX = solver_test.SparseArray((K, 1))
+        zeros_Xy = solver_test.SparseArray((1, K))
+        zeros_XW = solver_test.SparseArray((1, 1))
         return scipy.sparse.bmat([
             [Zeros_yw, zeros_yX, Zeros_yw, Zeros_yw, b_yX],
             [b_Xy, b_XX, b_Xy, b_Xy, zeros_XW],

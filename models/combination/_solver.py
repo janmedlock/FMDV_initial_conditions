@@ -45,10 +45,10 @@ class Solver(_model.solver.Solver):
         J = len(self.a)
         K = len(self.z)
         Zeros = {
-            'XW': _utility.sparse.array((J, J)),
-            'Xy': _utility.sparse.array((J, J * K)),
-            'yX': _utility.sparse.array((J * K, J)),
-            'yw': _utility.sparse.array((J * K, J * K))
+            'XW': _utility.sparse.Array((J, J)),
+            'Xy': _utility.sparse.Array((J, J * K)),
+            'yX': _utility.sparse.Array((J * K, J)),
+            'yw': _utility.sparse.Array((J * K, J * K))
         }
         return Zeros
 
@@ -149,7 +149,7 @@ class Solver(_model.solver.Solver):
         if numpy.isscalar(xi):
             K = len(self.z)
             xi *= numpy.ones(K)
-        sigma = _utility.sparse.array(self.z_step * xi)
+        sigma = _utility.sparse.Array(self.z_step * xi)
         return sigma
 
     @functools.cached_property
@@ -157,7 +157,7 @@ class Solver(_model.solver.Solver):
         '''Build the vector to integrate an vector in age over the
         age-dependent maternity.'''
         nu = self.model.parameters.birth.maternity(self.a)
-        tau_a = _utility.sparse.array(self.a_step * nu)
+        tau_a = _utility.sparse.Array(self.a_step * nu)
         return tau_a
 
     def _tau_X(self):
@@ -189,8 +189,8 @@ class Solver(_model.solver.Solver):
         '''Build the transmission rate vector beta.'''
         J = len(self.a)
         K = len(self.z)
-        zeros_X = _utility.sparse.array((1, J))
-        zeros_y = _utility.sparse.array((1, J * K))
+        zeros_X = _utility.sparse.Array((1, J))
+        zeros_y = _utility.sparse.Array((1, J * K))
         blocks = [
             zeros_y if state in self.model.states_with_z else zeros_X
             for state in self.model.states

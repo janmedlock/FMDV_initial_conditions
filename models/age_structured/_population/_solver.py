@@ -109,7 +109,7 @@ class Solver(_base.Solver):
         '''Build matrices needed by the solver.'''
         J = len(self.a)
         nu = self.parameters.birth.maternity(self.a)
-        tau = _utility.sparse.array(self.a_step * nu)
+        tau = _utility.sparse.Array(self.a_step * nu)
         b = _utility.sparse.array_from_dict(
             {(0, 0): 1 / self.a_step},
             shape=(J, 1)
