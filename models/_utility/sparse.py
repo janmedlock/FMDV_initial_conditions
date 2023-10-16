@@ -8,22 +8,22 @@ import scipy.sparse
 array = scipy.sparse.csr_array
 
 
-def density(A):
-    '''Get the density of `A`.'''
-    (nrow, ncol) = A.shape
-    dnst = A.nnz / nrow / ncol
+def density(arr):
+    '''Get the density of `arr`.'''
+    (nrow, ncol) = arr.shape
+    dnst = arr.nnz / nrow / ncol
     return dnst
 
 
-def identity(n, *args, **kwds):
+def identity(size, *args, **kwds):
     '''Build a sparse `array()` identity matrix.'''
-    I = scipy.sparse.identity(n, *args, **kwds)
-    return array(I)
+    eye = scipy.sparse.identity(size, *args, **kwds)
+    return array(eye)
 
 
-def block_diag(mats, *args, **kwds):
-    '''Build a sparse `array()` from the block diagonals `mat`.'''
-    arr = scipy.sparse.block_diag(mats, *args, **kwds)
+def block_diag(blocks, *args, **kwds):
+    '''Build a sparse `array()` from the block diagonals `blocks`.'''
+    arr = scipy.sparse.block_diag(blocks, *args, **kwds)
     return array(arr)
 
 
@@ -33,10 +33,9 @@ def bmat(blocks, *args, **kwds):
     return array(arr)
 
 
-def diags(diagonals, offsets=0, shape=None, *args, **kwds):
+def diags(diagonals, offsets=0, shape=None, **kwds):
     '''Build a sparse `array()` from the `diagonals`.'''
-    arr = scipy.sparse.diags(diagonals, offsets=offsets, shape=shape,
-                             *args, **kwds)
+    arr = scipy.sparse.diags(diagonals, offsets=offsets, shape=shape, **kwds)
     return array(arr)
 
 
@@ -52,9 +51,9 @@ def vstack(blocks, *args, **kwds):
     return array(arr)
 
 
-def kron(A, B, *args, **kwds):
+def kron(a, b, *args, **kwds):
     '''The Kronecker product.'''
-    arr = scipy.sparse.kron(A, B, *args, **kwds)
+    arr = scipy.sparse.kron(a, b, *args, **kwds)
     return array(arr)
 
 
@@ -88,7 +87,7 @@ def _get_shape(locs):
     return shape
 
 
-def array_from_dict(data, shape=None, *args, **kwds):
+def array_from_dict(data, shape=None, **kwds):
     '''Build a sparse `array()` from the dictionary `data` with keys
     (row, col).'''
     locs = map(_loc_convert, data.keys())
@@ -97,19 +96,18 @@ def array_from_dict(data, shape=None, *args, **kwds):
             shape = _get_shape(locs)
         except ValueError as err:
             raise ValueError('Set the `shape` argument.') from err
-    arr = scipy.sparse.dok_array(shape, *args, **kwds)
+    arr = scipy.sparse.dok_array(shape, **kwds)
     for (loc, val) in zip(locs, data.values()):
         arr[loc] = val
     return array(arr)
 
 
-def diags_from_dict(data, shape=None, *args, **kwds):
+def diags_from_dict(data, shape=None, **kwds):
     '''Build a sparse `array()` from the dictionary of diagonals
     `data`.'''
     diagonals = data.values()
     offsets = tuple(data.keys())
-    return diags(diagonals, offsets=offsets, shape=shape,
-                 *args, **kwds)
+    return diags(diagonals, offsets=offsets, shape=shape, **kwds)
 
 
 def equals(a, b):

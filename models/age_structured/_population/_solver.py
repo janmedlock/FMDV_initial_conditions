@@ -208,7 +208,7 @@ class Solver(_base.Solver):
         rho_guess = (self.multiplier_from_exponent(_guess)
                      if _guess is not None
                      else None)
-        rho_dom = _utility.linalg.get_dominant_eigen(
+        rho_dom = _utility.linalg.eig_dominant(
             Psi,
             which='LM', sigma=rho_guess,
             return_eigenvector=False
@@ -253,7 +253,7 @@ class Solver(_base.Solver):
         growth_mult = self.multiplier_from_exponent(growth_rate)
         # Find the eigenvector for the multiplier closest to
         # `growth_mult`, i.e. the exponent closest to `growth_rate`.
-        (rho_dom, v_dom) = _utility.linalg.get_dominant_eigen(
+        (rho_dom, v_dom) = _utility.linalg.eig_dominant(
             Psi, which='LM', sigma=growth_mult, return_eigenvector=True
         )
         assert numpy.isclose(rho_dom, growth_mult)

@@ -64,17 +64,17 @@ class Simplex:
         self.weights = weights
 
     @staticmethod
-    def _w_mid(K):
+    def _w_mid(size):
         # The w values that map to x[k] = 0.
-        return 1 / numpy.arange(K, 1, -1)
+        return 1 / numpy.arange(size, 1, -1)
 
     def __call__(self, y):
-        K = len(y)
+        size = len(y)
         # `z` is on the unit simplex.
         z = (y * self.weights) / numerical.weighted_sum(y, self.weights)
         remainder = 1 - numpy.hstack([0, numpy.cumsum(z[:-1])])
         assert (remainder >= 0).all()
-        w_mid = self._w_mid(K)
+        w_mid = self._w_mid(size)
         # w = z[:-1] / remainder[:-1]
         # but if z[k] = remainder[k] = 0,
         # use w[k] = w_mid[k] so that x[k] = 0.
@@ -88,12 +88,12 @@ class Simplex:
         return x
 
     def inverse(self, x):
-        K = len(x) + 1
-        w_mid = self._w_mid(K)
+        size = len(x) + 1
+        w_mid = self._w_mid(size)
         w = scipy.special.expit(x + scipy.special.logit(w_mid))
-        z = numpy.empty(K)
+        z = numpy.empty(size)
         remainder = 1
-        for k in range(K - 1):
+        for k in range(size - 1):
             z[k] = remainder * w[k]
             remainder -= z[k]
         z[-1] = remainder

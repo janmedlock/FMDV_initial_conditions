@@ -62,10 +62,12 @@ def weighted_sum(y, weights):
 
 
 def identity(*args, sparse=False, **kwds):
+    '''Make an identity matrix.'''
     if sparse:
-        return sparse_.identity(*args, **kwds)
+        eye = sparse_.identity(*args, **kwds)
     else:
-        return numpy.identity(*args, **kwds)
+        eye = numpy.identity(*args, **kwds)
+    return eye
 
 
 def memmaptemp(**kwds):
