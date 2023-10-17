@@ -91,7 +91,7 @@ class Model(metaclass=abc.ABCMeta):
                                         t=t, y=y, display=display)
         soln = self.Solution(soln_, t_)
         if check_nonnegative:
-            _utility.numerical.assert_nonnegative(soln)
+            _utility.numerical.check_nonnegative(soln)
         return soln
 
     def solution_at_t_end(self, t_span,
@@ -105,7 +105,7 @@ class Model(metaclass=abc.ABCMeta):
                                                display=display)
         soln = self.Solution(y_end)
         if check_nonnegative:
-            _utility.numerical.assert_nonnegative(soln)
+            _utility.numerical.check_nonnegative(soln)
         return soln
 
     def find_equilibrium(self, eql_guess, t=0, t_solve=0,
@@ -117,7 +117,7 @@ class Model(metaclass=abc.ABCMeta):
                                  display=display, **root_kwds)
         eql = self.Solution(eql_)
         if check_nonnegative:
-            _utility.numerical.assert_nonnegative(eql)
+            _utility.numerical.check_nonnegative(eql)
         return eql
 
     def get_eigenvalues(self, eql, t=0, k=5):
@@ -142,7 +142,7 @@ class Model(metaclass=abc.ABCMeta):
             lcy_0 = result
             soln = self.Solution(lcy_0)
         if check_nonnegative:
-            _utility.numerical.assert_nonnegative(soln)
+            _utility.numerical.check_nonnegative(soln)
         return soln
 
     def get_characteristic_multipliers(self, lcy, k=5, display=False):

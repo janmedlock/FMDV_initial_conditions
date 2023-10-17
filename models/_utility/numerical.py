@@ -1,6 +1,7 @@
 '''Numerical utilities.'''
 
 import tempfile
+import warnings
 
 import numpy
 import pandas
@@ -38,9 +39,10 @@ def is_increasing(arr):
     return numpy.all(numpy.diff(arr) > 0)
 
 
-def assert_nonnegative(y):
+def check_nonnegative(y):
     '''Check that `y` is non-negative.'''
-    assert numpy.all((y >= 0) | numpy.isclose(y, 0))
+    if not numpy.all((y >= 0) | numpy.isclose(y, 0)):
+        warnings.warn('Some entries are negative.', stacklevel=2)
 
 
 def rate_make_finite(rates):
