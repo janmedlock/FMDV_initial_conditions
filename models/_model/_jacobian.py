@@ -248,8 +248,7 @@ def Calculator(solver, method):
     '''Factory function to build a Jacobian calculator.'''
     calculators = _get_calculators()
     try:
-        Calculator = calculators[method]
+        calculator = calculators[method]
     except KeyError:
-        raise ValueError(f'{method=}')
-    else:
-        return Calculator(solver)
+        raise ValueError(f'{method=}') from None
+    return calculator(solver)
