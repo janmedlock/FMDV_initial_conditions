@@ -1,5 +1,6 @@
 '''Model parameters.'''
 
+import collections.abc
 import dataclasses
 
 import numpy
@@ -8,8 +9,28 @@ from . import birth, death, progression, recovery, transmission, waning
 from .age_structured import _population
 
 
+class _MappingMixin(collections.abc.Mapping):
+    '''Mix-in methods that allows `_Parameters()` instances to be used
+    as keyword mappings in function calls like `f(**parameters)`.
+    `parameters['attr']` returns `parameters.attr`.  This mapping
+    interface is *not mutable*.'''
+
+    def __getitem__(self, key):
+        try:
+            return getattr(self, key)
+        except AttributeError as exc:
+            raise KeyError(key) from exc
+
+    def __iter__(self):
+        for field in dataclasses.fields(self):
+            yield field.name
+
+    def __len__(self):
+        return len(dataclasses.fields(self))
+
+
 @dataclasses.dataclass
-class _Parameters:
+class _Parameters(_MappingMixin):
     '''Model parameters common to all SATs.'''
 
     # Not handled by `dataclasses.dataclass()`.
