@@ -9,7 +9,7 @@ from .. import linalg
 
 
 def eigs(arr,
-         k=5, which='LR', return_eigenvectors=True, maxiter=None,
+         k=5, which='LR', return_eigenvectors=True,
          **kwds):
     '''Get the first `k` eigenvalues of `arr` and, optionally, their
     corresponding right eigenvectors. The eigenvalues are sorted by:
@@ -23,18 +23,12 @@ def eigs(arr,
     size = arr.shape[0]
     if k < size - 1:
         # Use `scipy.sparse.linalg.eigs()` for efficiency.
-        if maxiter is None:
-            # The default `maxiter` in `scipy.sparse.linalg.eigs()` is
-            # `size * 10`. Make sure it is at least 10,000.
-            # TODO: Is this necessary?
-            maxiter = max(size * 10, 10000)
         # The solver just spins when `arr` has inf or NaN entries, so
         # make sure `arr` is finite.
         assert linalg.is_finite(arr), '`arr` has inf or NaN entries.'
         result = scipy.sparse.linalg.eigs(
             arr, k=k, which=which,
             return_eigenvectors=return_eigenvectors,
-            maxiter=maxiter,
             **kwds
         )
     else:
