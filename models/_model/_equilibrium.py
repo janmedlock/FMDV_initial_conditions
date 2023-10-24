@@ -45,10 +45,14 @@ def find(model, y_guess, t=0, t_solve=0, weights=1,
     return y
 
 
-def eigenvalues(model, equilibrium, t=0, k=5):
+def eigenvalues(model, equilibrium, t=0, k=5, verbose=False):
     '''Get the `k` eigenvalues of `equilibrium` with largest real
     part.'''
-    J = model._solver.jacobian(t, equilibrium, equilibrium)
-    evals = _utility.linalg.eigs(J, k=k, which='LR',
+    if verbose:
+        print('Building the jacobian...')
+    jac = model._solver.jacobian(t, equilibrium, equilibrium)
+    if verbose:
+        print('Finding eigenvalues...')
+    evals = _utility.linalg.eigs(jac, k=k, which='LR',
                                  return_eigenvectors=False)
     return evals

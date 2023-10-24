@@ -120,9 +120,9 @@ class Model(metaclass=abc.ABCMeta):
             _utility.numerical.check_nonnegative(eql)
         return eql
 
-    def get_eigenvalues(self, eql, t=0, k=5):
+    def get_eigenvalues(self, eql, t=0, k=5, **kws):
         '''Get the eigenvalues of the Jacobian.'''
-        return _equilibrium.eigenvalues(self, eql, t, k=k)
+        return _equilibrium.eigenvalues(self, eql, t, k=k, **kws)
 
     def find_limit_cycle(self, period_0, t_0, lcy_0_guess,
                          solution=True, display=False,
