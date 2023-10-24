@@ -19,7 +19,7 @@ import timer
 
 
 # Monkeypatch to set the array type.
-models._utility.sparse.array = scipy.sparse.csr_array
+models._utility.sparse.Array = scipy.sparse.csr_array
 
 
 class TestSolver(_population._solver.Solver):
@@ -65,7 +65,7 @@ class TestSolver(_population._solver.Solver):
         self._time_methods()
 
     def test(self):
-        self.population_growth_rate(1, _guess=0)
+        self.population_growth_rate(1., _guess=0)
         bscl = self.birth_scaling_for_zero_population_growth()
         self.parameters.birth.mean *= bscl
         self.stable_age_density()

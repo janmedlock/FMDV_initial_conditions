@@ -12,7 +12,7 @@
 #   sparse_csr:  3.6 sec
 #        dense: 29.2 sec
 #
-# models.age_structured.Model(t_step=0.01, transmission_rate=10)
+# models.age_structured.Model(transmission_rate=10)
 #       t_step:     1e-2       5e-3       4e-3
 # method:
 #   sparse_csc  42.8 sec
@@ -31,8 +31,8 @@ from context import models
 def time_jac(Model, t_step, method, t_solve=10, **kwds):
     model = Model(t_step=t_step,
                   birth_variation=0,
-                  _solver_options=dict(_check_matrices=False,
-                                       _jacobian_method=method),
+                  _solver_options={'_check_matrices': False,
+                                   '_jacobian_method': method},
                   **kwds)
     t0_eql = time.perf_counter()
     eql = model.find_equilibrium(model.build_initial_conditions(),
@@ -54,7 +54,7 @@ if __name__ == '__main__':
     # Model = models.unstructured.Model
     # Model = models.time_since_entry_structured.Model
     Model = models.age_structured.Model
-    kwds = dict(transmission_rate=10)
+    kwds = {'transmission_rate': 10}
 
     t_steps = pandas.Index([4e-3],
                            name='t_step')

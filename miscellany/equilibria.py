@@ -9,14 +9,14 @@ from context import models
 
 
 if __name__ == '__main__':
-    params = dict(birth_variation=0)
-    t_solve = 20
+    params = {'birth_variation': 0}
+    T_SOLVE = 20
     plot_states = ['susceptible', 'infectious', 'recovered']
 
     model_us = models.unstructured.Model(**params)
     ic_us = model_us.build_initial_conditions()
     eql_us = model_us.find_equilibrium(ic_us,
-                                       t_solve=t_solve)
+                                       t_solve=T_SOLVE)
     ax_state = models.plotting.state(eql_us,
                                      label='unstructured',
                                      states=plot_states)

@@ -44,6 +44,6 @@ def get_error(t_step):
 
 
 if __name__ == '__main__':
-    t_step = 1e-2
-    error = get_error(t_step)
-    print(f'{t_step=}: {error=}')
+    T_STEP = 1e-2
+    error = get_error(T_STEP)
+    print(f'{T_STEP=}: {error=}')

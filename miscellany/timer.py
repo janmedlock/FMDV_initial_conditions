@@ -22,11 +22,11 @@ def timer(func):
     '''A decorator to time function calls.'''
     @functools.wraps(func)
     def wrapped(*args, **kwds):
-        t0 = time.perf_counter()
+        start = time.perf_counter()
         result = func(*args, **kwds)
-        t1 = time.perf_counter()
-        t = t1 - t0
+        end = time.perf_counter()
+        duration = end - start
         call_str = _call_str(func, *args, **kwds)
-        print(f'{call_str}: {t} sec')
+        print(f'{call_str}: {duration} sec')
         return result
     return wrapped

@@ -229,13 +229,13 @@ class Solver(_base.Solver):
         # `birth_scaling`. Find a starting bracket `(lower, upper)` with
         # `.population_growth_rate(upper) > 0` and
         # `.population_growth_rate(lower) < 0`.
-        SCALE = 2
+        scale = 2
         upper = 1.  # Starting guess.
         while growth_rate(upper) < 0:
-            upper *= SCALE
-        lower = upper / SCALE  # Starting guess.
+            upper *= scale
+        lower = upper / scale  # Starting guess.
         while growth_rate(lower) > 0:
-            (lower, upper) = (lower / SCALE, lower)
+            (lower, upper) = (lower / scale, lower)
         scaling = scipy.optimize.brentq(growth_rate, lower, upper)
         return scaling
 
@@ -254,7 +254,9 @@ class Solver(_base.Solver):
         # Find the eigenvector for the multiplier closest to
         # `growth_mult`, i.e. the exponent closest to `growth_rate`.
         (rho_dom, v_dom) = _utility.linalg.eig_dominant(
-            Psi, which='LM', sigma=growth_mult, return_eigenvector=True
+            Psi,
+            which='LM', sigma=growth_mult,
+            return_eigenvector=True
         )
         assert numpy.isclose(rho_dom, growth_mult)
         # Normalize `v_dom` in place so that its integral over a is 1.

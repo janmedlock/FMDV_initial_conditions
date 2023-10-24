@@ -16,19 +16,24 @@ class Tester:
         self.model = model
 
     @abc.abstractmethod
-    def beta(self): pass
+    def beta(self):
+        pass
 
     @abc.abstractmethod
-    def H(self, q): pass
+    def H(self, q):
+        pass
 
     @abc.abstractmethod
-    def F(self, q): pass
+    def F(self, q):
+        pass
 
     @abc.abstractmethod
-    def T(self, q): pass
+    def T(self, q):
+        pass
 
     @abc.abstractmethod
-    def B(self): pass
+    def B(self):
+        pass
 
     def test(self):
         solver = self.model._solver

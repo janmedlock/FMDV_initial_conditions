@@ -15,13 +15,13 @@ def time_solve(Model, t_step, t_span,
                **kwds):
     model = Model(t_step=t_step, **kwds)
     y_start = model.build_initial_conditions()
-    t0 = time.perf_counter()
+    start = time.perf_counter()
     y_end = model.solution_at_t_end(t_span,
                                     y_start=y_start,
                                     display=display,
                                     check_nonnegative=check_nonnegative)
-    t = time.perf_counter() - t0
-    return t
+    duration = time.perf_counter() - start
+    return duration
 
 
 def time_solves(Model, t_steps, t_span, **kwds):
@@ -35,24 +35,23 @@ def time_solves(Model, t_steps, t_span, **kwds):
 
 
 def plot_times(times, t_step_default):
-    ax = times.plot(ylabel=times.name, marker='o', logx=True, logy=True)
-    ax.invert_xaxis()
+    axes = times.plot(ylabel=times.name, marker='o', logx=True, logy=True)
+    axes.invert_xaxis()
     x = numpy.log(times.index)
     y = numpy.log(times)
     model = scipy.stats.linregress(x, y)
     x_ = numpy.linspace(times.index.max(), t_step_default, 101)
     y_ = numpy.exp(model.slope * numpy.log(x_) + model.intercept)
-    ax.plot(x_, y_, color='black', linestyle='dashed', zorder=1)
-    return ax
+    axes.plot(x_, y_, color='black', linestyle='dashed', zorder=1)
+    return axes
 
 
 if __name__ == '__main__':
     Model = models.combination.Model
     t_steps = [1e-1, 5e-2, 2e-2, 1e-2]
     t_span = (0, 1)
-    kwds = dict(transmission_rate=10,
-                _solver_options=dict(_check_matrices=False))
+    kwds = {'transmission_rate': 10,
+            '_solver_options': {'_check_matrices': False}}
     times = time_solves(Model, t_steps, t_span, **kwds)
-    ax = plot_times(times, Model._t_step_default)
+    axes = plot_times(times, Model._t_step_default)
     matplotlib.pyplot.show()
-

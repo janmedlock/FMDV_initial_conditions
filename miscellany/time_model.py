@@ -2,13 +2,13 @@
 #
 #                                        CSR             CSC
 # time-since-entry-structured model
-#   get_characteristic_multipliers()    8006.6 sec      7800.1 sec
+#   get_characteristic_exponents()      8006.6 sec      7800.1 sec
 # age-structured model
 #   solve() unstructured                 320.0 sec
 #   find_equilibrium()                     1.2 sec
 #   get_eigenvalues()
 #   find_limit_cycle()
-#   get_characteristic_multipliers()
+#   get_characteristic_exponents()
 #
 
 from context import models
