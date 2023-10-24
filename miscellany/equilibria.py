@@ -34,7 +34,6 @@ if __name__ == '__main__':
     model_as = models.age_structured.Model(**params)
     n_a = model_as.stable_age_density()
     ic_as = numpy.outer(eql_us, n_a).ravel()
-    # The equilbrium found has a negative component.
     eql_as = model_as.find_equilibrium(ic_as,
                                        display=True)
     models.plotting.state(model_as.integral_over_a(eql_as),
