@@ -1,14 +1,16 @@
 * Age-structured model
   * Find equiblibrium eigenvalues
   * Find limit-cycle exponents
-  * Try bsr_array(blocksize=(J, J))?
 
 * Combination model
   * Test solver
   * Change parameters so that I can solve with larger time steps
     * It will take around a week to solve for 10 years at t_step=0.001
 
-* Bootstrap up equilibria & limit cycles from simpler models
+* Bootstrap equilibria & limit cycles from simpler models
+  * Equilibria
+    * time-since-infection & age -> combination
+  * Limit cycles
 
 * Make Solvers inherit from each other
   * Move '_Hq()', '_Fq()', '_Tq()', '_B', etc into _model.solver.Solver()

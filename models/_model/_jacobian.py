@@ -5,6 +5,7 @@ import functools
 import numpy
 import scipy.sparse
 
+from .. import age_structured
 from .. import _utility
 
 
@@ -29,7 +30,8 @@ class Base:
 
     _name = 'base'
 
-    # Attributes that a subclass might convert to a different format.
+    # Attributes of `solver` that a subclass might convert to a
+    # different format.
     _array_attrs = ('I', 'beta', 'H', 'F', 'T', 'B')
 
     def __init__(self, solver):
@@ -203,15 +205,13 @@ class Sparse(Base):
 
     _Array = _utility.sparse.Array
 
-    @classmethod
-    def _convert_arr(cls, arr):
+    def _convert_arr(self, arr):
         '''Convert `arr` to the desired sparse format.'''
-        return cls._Array(arr)
+        return self._Array(arr)
 
-    @classmethod
-    def _make_column_vector(cls, y):
+    def _make_column_vector(self, y):
         '''Convert `y` with shape (n, ) to shape (n, 1).'''
-        return cls._Array(super()._make_column_vector(y))
+        return self._Array(super()._make_column_vector(y))
 
 
 class SparseCSR(Sparse):
@@ -228,6 +228,56 @@ class SparseCSC(Sparse):
     _name = 'sparse_csc'
 
     _Array = scipy.sparse.csc_array
+
+
+class SparseBSR(Sparse):
+    '''Jacobian caclulator using `scipy.sparse.bsr_array()` matrices.'''
+
+    _name = 'sparse_bsr'
+
+    @staticmethod
+    def _get_shape(arg1):
+        '''Get the shape from `arg1`.'''
+        try:
+            # `arg1` has a `shape` attribute, e.g. a dense or
+            # sparse array.
+            shape = arg1.shape
+        except AttributeError:
+            # Use `scipy.sparse.bsr_array()` to get the shape
+            # for other forms of `arg1`.
+            shape = scipy.sparse.bsr_array(arg1).shape
+        else:
+            assert len(shape) == 2
+        return shape
+
+    def _guess_blocksize(self, arg1, shape):
+        '''Try to guess `blocksize`.'''
+        if isinstance(self.model, age_structured.Model):
+            # Use the number of age groups for the dimensions of the
+            # blocksize.
+            n_ages = len(self.model.a)
+            blocksize = (n_ages, n_ages)
+            # Handle (m, 1) and (1, n) vectors.
+            if shape is None:
+                shape = self._get_shape(arg1)
+            blocksize = tuple(
+                1 if sh == 1 else bs
+                for (sh, bs) in zip(shape, blocksize)
+            )
+        else:
+            # Let `scipy.sparse.bsr_array()` choose `blocksize`.
+            blocksize = None
+        return blocksize
+
+    def _Array(self, arg1,
+               shape=None, dtype=None, copy=False, blocksize=None):
+        '''`scipy.sparse.bsr_array()` with an informed guess for
+        `blocksize` when it is not passed explicitly.'''
+        if blocksize is None:
+            blocksize = self._guess_blocksize(arg1, shape)
+        return scipy.sparse.bsr_array(arg1,
+                                      shape=shape, dtype=dtype, copy=copy,
+                                      blocksize=blocksize)
 
 
 def _get_subclasses(cls):
