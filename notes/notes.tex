@@ -7,13 +7,17 @@
 \usepackage[babel=true]{microtype}
 \usepackage{lmodern}
 \usepackage{datetime2}
-% hyperref should be loaded last but I cannot get it to work without
-% errors with more than 26 subequations.
-\usepackage[pdfborderstyle={/S/U/W 1}]{hyperref}
 \usepackage{amsmath}
+% Allow more than 26 subequations.
+\usepackage{alphalph}
+\renewcommand{\alph}[1]{\alphalph{\value{#1}}}
+% Use Arabic numbers for subequation labels.
+\usepackage{etoolbox}
+\patchcmd{\subequations}{\alph{equation}}{.\arabic{equation}}{}{}
 \usepackage{units}
 \usepackage{csquotes}
 \usepackage[style=vancouver]{biblatex}
+\usepackage[pdfborderstyle={/S/U/W 1}]{hyperref}
 
 \addbibresource{notes.bib}
 
@@ -23,10 +27,6 @@
 \newcommand{\me}{\mathrm{e}}
 
 \allowdisplaybreaks[1]
-
-% Use Arabic numbers for subequation labels.
-\usepackage{etoolbox}
-\patchcmd{\subequations}{\alph{equation}}{.\arabic{equation}}{}{}
 
 
 \title{Crank--Nicolson for some SIR models}
