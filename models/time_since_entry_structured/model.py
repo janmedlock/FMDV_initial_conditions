@@ -22,7 +22,7 @@ class Model(unstructured.Model):
     # small. Those processes are 'waning', 'progression', and
     # 'recovery': 'waning' is by far the slowest, i.e. the one that
     # determines where `z_max` is large enough. See the method
-    # `._check_survivals_at_zmax()` at the end of this class. At
+    # `._check_survivals_at_z_max()` at the end of this class. At
     # `z_max` = 3, the survival for waning is less than 1.1e-4 and the
     # survivals for the other processes are less than 1e-270.
     _z_max_default = 3
