@@ -33,11 +33,15 @@ class Solver(metaclass=abc.ABCMeta):
         if _check_matrices:
             self._check_matrices()
         if self._sparse:
-            self._root_kwds = dict(
-                options=dict(jac_options=dict(inner_M=self._preconditioner()))
-            )
+            self._root_kwds = {
+                'options': {
+                    'jac_options': {
+                        'inner_M': self._preconditioner(),
+                    },
+                },
+            }
         else:
-            self._root_kwds = dict()
+            self._root_kwds = {}
 
     @abc.abstractmethod
     def _I(self):
