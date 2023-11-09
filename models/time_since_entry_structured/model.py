@@ -14,6 +14,14 @@ class Model(unstructured.Model):
 
     states_with_z = ['maternal_immunity', 'exposed', 'infectious']
 
+    _waiting_times_z = {
+        # For the combination model, 'maternal_immunity' is not in
+        # `states_with_z`.
+        'maternal_immunity': 'waning',
+        'exposed':           'progression',
+        'infectious':        'recovery',
+    }
+
     _Solver = _solver.Solver
 
     # The default maximum time since entry `z_max`.
@@ -102,27 +110,22 @@ class Model(unstructured.Model):
         else:
             raise NotImplementedError
 
-    def _survival_scaled(self, waiting_time):
-        '''`waiting_time.survival(z)` scaled to integrate to 1.'''
-        survival = waiting_time.survival(self.z)
-        # Scale to integrate to 1.
-        total = self.integral_over_z(survival)
-        return survival / total
-
-    def _survivals_scaled(self):
+    def _survivals(self):
         '''Get scaled survivals.'''
         idx_state = self._get_index_level('state')
         idx_state_z = self._extend_index(idx_state)
-        n_z = pandas.Series(1, index=idx_state_z)
-        # For the combination model, 'maternal_immunity' is not in
-        # `.states_with_z`.
-        if 'maternal_immunity' in self.states_with_z:
-            n_z['maternal_immunity'] = self._survival_scaled(
-                self.parameters.waning
-            )
-        n_z['exposed'] = self._survival_scaled(self.parameters.progression)
-        n_z['infectious'] = self._survival_scaled(self.parameters.recovery)
-        return n_z
+        survivals = pandas.Series(1, index=idx_state_z)
+        for state in self.states_with_z:
+            waiting_time = getattr(self.parameters,
+                                   self._waiting_times_z[state])
+            survivals[state] = waiting_time.survival(self.z)
+        return survivals
+
+    def _survivals_scaled(self):
+        '''Get survivals scaled to integrate to 1.'''
+        survivals = self._survivals()
+        totals = self.integral_over_z(survivals)
+        return survivals / totals
 
     def _all_in_first(self):
         '''Get a vector with all the density in the first time since
@@ -172,8 +175,5 @@ class Model(unstructured.Model):
         '''Get the survivals at `z_max` to check whether `z_max` is
         large enough.'''
         self = cls(**kwds)
-        survivals_scaled = self._survivals_scaled() \
-                               .loc[self.states_with_z]
-        z = self.z
-        survivals = survivals_scaled / survivals_scaled.loc[:, z[0]]
-        return survivals.loc[:, z[-1]]
+        survivals = self._survivals()
+        return survivals.loc[self.states_with_z, self.z[-1]]

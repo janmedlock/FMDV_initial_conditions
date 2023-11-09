@@ -302,15 +302,15 @@ class Solver(_model.solver.Solver):
     def _get_rate_a(self, which):
         '''Get the age-dependent rate `which` and make finite any
         infinite entries.'''
-        param = getattr(self.model.parameters, which)
-        rate = param.rate(self.a)
+        waiting_time = getattr(self.model.parameters, which)
+        rate = waiting_time.rate(self.a)
         return _utility.numerical.rate_make_finite(rate)
 
     def _get_rate_z(self, which):
         '''Get the time-since-entry-dependent rate `which` and make
         finite any infinite entries.'''
-        param = getattr(self.model.parameters, which)
-        rate = param.rate(self.z)
+        waiting_time = getattr(self.model.parameters, which)
+        rate = waiting_time.rate(self.z)
         return _utility.numerical.rate_make_finite(rate)
 
     def _F(self, q):

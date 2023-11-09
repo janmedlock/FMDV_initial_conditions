@@ -33,7 +33,9 @@ class Model(time_since_entry_structured.Model,
     def _fix_maternal_immunity(self, y, how):
         '''Get scaled survivals.'''
         if how == 'survival':
-            shape = self.parameters.waning.survival(self.a)
+            waiting_time = getattr(self.parameters,
+                                   self._waiting_times_z['maternal_immunity'])
+            shape = waiting_time.survival(self.a)
             # Scale to integrate to 1.
             shape /= self.integral_over_a(shape)
         elif how == 'all_in_first':

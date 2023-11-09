@@ -172,8 +172,8 @@ class Solver(_model.solver.Solver):
 
     def _get_rate(self, which):
         '''Get the rate `which` and make finite any infinite entries.'''
-        param = getattr(self.model.parameters, which)
-        rate = param.rate(self.z)
+        waiting_time = getattr(self.model.parameters, which)
+        rate = waiting_time.rate(self.z)
         return _utility.numerical.rate_make_finite(rate)
 
     def _F(self, q):

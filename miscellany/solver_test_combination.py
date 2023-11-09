@@ -111,13 +111,13 @@ class Tester(solver_test.Tester):
             return scipy.sparse.kron(H_a, zeta_z @ sigma_z(xi))
 
         def get_rate_a(which):
-            param = getattr(self.model.parameters, which)
-            rate = param.rate(self.model.a)
+            waiting_time = getattr(self.model.parameters, which)
+            rate = waiting_time.rate(self.model.a)
             return models._utility.numerical.rate_make_finite(rate)
 
         def get_rate_z(which):
-            param = getattr(self.model.parameters, which)
-            rate = param.rate(self.model.z)
+            waiting_time = getattr(self.model.parameters, which)
+            rate = waiting_time.rate(self.model.z)
             return models._utility.numerical.rate_make_finite(rate)
 
         mu = get_rate_a('death')

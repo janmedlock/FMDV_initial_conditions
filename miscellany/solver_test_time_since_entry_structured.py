@@ -71,8 +71,8 @@ class Tester(solver_test.Tester):
             return [[pi]]
 
         def get_rate(which):
-            param = getattr(self.model.parameters, which)
-            rate = param.rate(self.model.z)
+            waiting_time = getattr(self.model.parameters, which)
+            rate = waiting_time.rate(self.model.z)
             return models._utility.numerical.rate_make_finite(rate)
 
         mu = self.model.parameters.death_rate_mean
