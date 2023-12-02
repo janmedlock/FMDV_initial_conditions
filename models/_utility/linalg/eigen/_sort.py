@@ -25,7 +25,7 @@ def _reverse(key):
 
 
 def _get_key(which):
-    '''Parse `which` into a key function.'''
+    '''Parse `which` to build the key function.'''
     try:
         (direction, kind) = which
         reverse = _REVERSE[direction]
