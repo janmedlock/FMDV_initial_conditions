@@ -52,7 +52,7 @@ def rate_make_finite(rates):
         raise NotImplementedError
     rates = pandas.Series(rates)
     rates[numpy.isposinf(rates)] = numpy.NaN
-    rates = rates.fillna(method='ffill') \
+    rates = rates.ffill() \
                  .to_numpy()
     assert numpy.isfinite(rates).all()
     return rates

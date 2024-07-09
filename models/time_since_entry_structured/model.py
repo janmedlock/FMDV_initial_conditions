@@ -84,7 +84,7 @@ class Model(unstructured.Model):
         # has weight `self.z_step`.  For states without
         # 'time_since_entry', each has weight 1.
         idx_state = self._get_index_level('state')
-        weights_z = pandas.Series(1, index=idx_state)
+        weights_z = pandas.Series(1, index=idx_state, dtype=float)
         weights_z[self.states_with_z] = self.z_step
         weights = weights_other * weights_z
         return weights
@@ -114,7 +114,7 @@ class Model(unstructured.Model):
         '''Get scaled survivals.'''
         idx_state = self._get_index_level('state')
         idx_state_z = self._extend_index(idx_state)
-        survivals = pandas.Series(1, index=idx_state_z)
+        survivals = pandas.Series(1, index=idx_state_z, dtype=float)
         for state in self.states_with_z:
             waiting_time = getattr(self.parameters,
                                    self._waiting_times_z[state])
