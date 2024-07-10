@@ -42,15 +42,18 @@
 
 
 All of the models will use the periodic birth rate
-\begin{equation}
-  b(t) = \bar{b} \left[
-    1 + \sigma \sqrt{2} \cos\left(2 \pi t / T\right)
-  \right],
-\end{equation}
-with period
-\begin{equation}
-  T = \unit[1]{y}.
-\end{equation}
+\begin{subequations}
+  \label{birth_rate}
+  \begin{equation}
+    b(t) = \bar{b} \left[
+      1 + \sigma \sqrt{2} \cos\left(2 \pi t / T\right)
+    \right],
+  \end{equation}
+  with period
+  \begin{equation}
+    T = \unit[1]{y}.
+  \end{equation}
+\end{subequations}
 As we will show for each model, the mean birth rate $\bar{b}$
 was chosen so that the total population is periodic in time.
 
@@ -78,12 +81,13 @@ The model is
   \end{align}
   with force of infection
   \begin{equation}
-    \lambda(t) = \beta I(t)
+    \lambda(t) = \beta I(t),
   \end{equation}
-  and population size
+  population size
   \begin{equation}
-    N(t) = M(t) + S(t) + E(t) + I(t) + R(t).
+    N(t) = M(t) + S(t) + E(t) + I(t) + R(t),
   \end{equation}
+  and periodic birth rate \eqref{birth_rate}.
 \end{subequations}
 
 
@@ -410,12 +414,13 @@ The model is
   \end{align}
   with force of infection
   \begin{equation}
-    \lambda(t) = \beta \int_0^{+\infty} I(t, a) \md a
+    \lambda(t) = \beta \int_0^{+\infty} I(t, a) \md a,
   \end{equation}
-  and population size
+  population size
   \begin{equation}
-    N(t, a) = M(t, a) + S(t, a) + E(t, a) + I(t, a) + R(t, a).
+    N(t, a) = M(t, a) + S(t, a) + E(t, a) + I(t, a) + R(t, a),
   \end{equation}
+  and periodic birth rate \eqref{birth_rate}.
 \end{subequations}
 
 
@@ -1272,14 +1277,15 @@ The model is
   \end{align}
   with force of infection
   \begin{equation}
-    \lambda(t) = \beta \int_0^{+\infty} i(t, z) \md z
+    \lambda(t) = \beta \int_0^{+\infty} i(t, z) \md z,
   \end{equation}
-  and population size
+  population size
   \begin{equation}
     N(t) =
     S(t) + R(t)
-    + \int_0^{+\infty} m(t, z) + e(t, z) + i(t, z) \md z.
+    + \int_0^{+\infty} m(t, z) + e(t, z) + i(t, z) \md z,
   \end{equation}
+  and periodic birth rate \eqref{birth_rate}.
 \end{subequations}
 
 
@@ -1824,14 +1830,15 @@ The model is
     \beta
     \int_0^{+\infty} \int_0^{+\infty}
     i(t, a, z)
-    \md a \md z
+    \md a \md z,
   \end{equation}
-  and population size
+  population size
   \begin{equation}
     N(t, a) =
     M(t, a) + S(t, a) + R(t, a)
-    + \int_0^{+\infty} e(t, a, z) + i(t, a, z) \md z.
+    + \int_0^{+\infty} e(t, a, z) + i(t, a, z) \md z,
   \end{equation}
+  and periodic birth rate \eqref{birth_rate}.
 \end{subequations}
 
 
