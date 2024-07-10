@@ -12,9 +12,10 @@ if __name__ == '__main__':
     Model = models.age_structured.Model
     (t_start, t_end) = (0, 10)
     plot_states = ['susceptible', 'infectious', 'recovered']
+    parameters = {'SAT': 1}
 
-    model_const = Model(birth_variation=0)
-    model = Model()
+    model_const = Model(**parameters, birth_variation=0)
+    model = Model(**parameters)
     period = model.parameters.period
 
     soln_const = model_const.solve((t_start, t_end))
