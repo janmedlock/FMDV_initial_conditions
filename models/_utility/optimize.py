@@ -4,7 +4,7 @@ import scipy.optimize
 
 
 _METHOD_DEFAULT = 'hybr'
-_METHODS_WITHOUT_DISP_OPTION = ('hybr', 'lm')
+_METHODS_WITHOUT_DISP_OPTION = {'hybr', 'lm'}
 
 
 def root(*args, sparse=False, display=False, **kwds):
