@@ -16,7 +16,7 @@
 \patchcmd{\subequations}{\alph{equation}}{.\arabic{equation}}{}{}
 \usepackage{units}
 \usepackage{csquotes}
-\usepackage[style=vancouver]{biblatex}
+\usepackage[bibstyle=authoryear,citestyle=authoryear-comp]{biblatex}
 \usepackage[pdfborderstyle={/S/U/W 1}]{hyperref}
 
 \addbibresource{notes.bib}
@@ -41,7 +41,7 @@
 \maketitle
 
 
-All of the models will use the periodic birth rate
+All of the models use the periodic birth rate
 \begin{subequations}
   \label{birth_rate}
   \begin{equation}
@@ -54,8 +54,8 @@ All of the models will use the periodic birth rate
     T = \unit[1]{y}.
   \end{equation}
 \end{subequations}
-As we will show for each model, the mean birth rate $\bar{b}$
-was chosen so that the total population is periodic in time.
+As we show for each model, the mean birth rate $\bar{b}$ was chosen so
+that the total population is periodic in time.
 
 
 \section{Unstructured model}
