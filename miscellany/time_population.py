@@ -1,15 +1,23 @@
 #!/usr/bin/python3
-#
-#                                                CSR       CSC
-# Constant birth
-#   population_growth_rate()                     0.2 sec   0.2 sec
-#   birth_scaling_for_zero_population_growth()   1.7 sec   1.8 sec
-#   stable_age_density()                         0.2 sec   0.2 sec
-# Periodic birth
-#   population_growth_rate()                     4.0 sec   8.3 sec
-#   birth_scaling_for_zero_population_growth()  35.4 sec  89.6 sec
-#   stable_age_density()                         4.1 sec   9.1 sec
-#
+'''Time the population solver.
+
++----------------------------------------------+----------+----------+
+|                                              |   jacobian_method   |
+| birth rate & method                          +----------+----------+
+|                                              |   CSR    |    CSC   |
++----------------------------------------------+----------+----------+
+| Constant birth                               |          |          |
+|   population_growth_rate()                   |  0.2 sec |  0.2 sec |
+|   birth_scaling_for_zero_population_growth() |  1.7 sec |  1.8 sec |
+|   stable_age_density()                       |  0.2 sec |  0.2 sec |
++----------------------------------------------+----------+----------+
+| Periodic birth                               |          |          |
+|   population_growth_rate()                   |  4.0 sec |  8.3 sec |
+|   birth_scaling_for_zero_population_growth() | 35.4 sec | 89.6 sec |
+|   stable_age_density()                       |  4.1 sec |  9.1 sec |
++----------------------------------------------+----------+----------+
+'''
+
 
 import scipy.sparse
 

@@ -1,15 +1,22 @@
 #!/usr/bin/python3
-#
-#                                        CSR             CSC
-# time-since-entry-structured model
-#   get_characteristic_exponents()      8006.6 sec      7800.1 sec
-# age-structured model
-#   solve() unstructured                 320.0 sec
-#   find_equilibrium()                     1.2 sec
-#   get_eigenvalues()
-#   find_limit_cycle()
-#   get_characteristic_exponents()
-#
+'''Time model methods vs. step size.
+
++-----------------------------------+------------+------------+
+|                                   |     jacobian_method     |
+| model & method                    +------------+------------+
+|                                   |    CSR     |    CSC     |
++-----------------------------------+------------+------------+
+| time-since-entry-structured model |            |            |
+|   get_characteristic_exponents()  | 8006.6 sec | 7800.1 sec |
++-----------------------------------+------------+------------+
+| age-structured model              |            |            |
+|   solve() unstructured            |  320.0 sec |            |
+|   find_equilibrium()              |    1.2 sec |            |
+|   get_eigenvalues()               |            |            |
+|   find_limit_cycle()              |            |            |
+|   get_characteristic_exponents()  |            |            |
++-----------------------------------+------------+------------+
+'''
 
 from context import models
 import timer
