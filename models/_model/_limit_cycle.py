@@ -29,7 +29,8 @@ def find_with_period(model, period, t_0, y_0_guess,
     # Find a fixed point `y_0` of the Poincaré map, i.e. that gives
     # `y(t_0 + period) = y_0`.
     poincaré_map = _poincaré.Map(model, period, t_0)
-    transform = _transform.Logarithm(a=1e-6, weights=weights)
+    transform = _transform.Logarithm(a=1e-6,
+                                     weights=weights)
     x_0_guess = transform(y_0_guess)
     result = _utility.optimize.root(
         _objective, x_0_guess,
