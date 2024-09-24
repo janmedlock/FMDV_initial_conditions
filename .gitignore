@@ -12,6 +12,7 @@ __pycache__/
 *.synctex.gz
 *.pdf
 _cache/
+miscellany/limit_cycle_*.pkl
 
 ### JetBrains+all ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
