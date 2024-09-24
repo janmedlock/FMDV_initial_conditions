@@ -91,16 +91,6 @@ The model is
 \end{subequations}
 
 
-\subsection{Aggregating over immune state}
-
-Summing model \eqref{model_unstructured} over immune state gives
-\begin{equation}
-  \label{model_unstructured_agg_state}
-  \frac{\md}{\md t} N(t)
-  = b(t) N(t) - \mu N(t).
-\end{equation}
-
-
 \subsection{Total population}
 
 The total population follows
@@ -192,20 +182,6 @@ i.e.~periodic with period $T = \unit[1]{y}$.
 \end{subequations}
 
 
-\subsubsection{Aggregating over immune state}
-
-Summing numerical method \eqref{numerics_unstructured} over
-immune state gives
-\begin{equation}
-  \label{numerics_unstructured_agg_state}
-  \frac{N^{\ell} - N^{\ell - 1}}{\Delta t}
-  = b^{\ell - 1 / 2} \frac{N^{\ell} + N^{\ell - 1}}{2}
-  - \mu \frac{N^{\ell} + N^{\ell - 1}}{2},
-\end{equation}
-which is identical to our Crank--Nicolson scheme applied to model
-\eqref{model_unstructured_agg_state}.
-
-
 \subsubsection{Linear algebra}
 
 Let
@@ -258,8 +234,7 @@ Let
       0 & 0 & 0 & 0 & 0
     \end{bmatrix}.
   \end{align}
-  Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
-  we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
+  System \eqref{numerics_unstructured} is then
   \begin{multline}
     \label{step_unstructured}
     \left[
@@ -285,84 +260,8 @@ Let
     \right]
     \vec{x}^{\ell - 1}.
   \end{multline}
-\end{subequations}
-
-
-\paragraph{Jacobian}
-
-To find the Jacobian, we first differentiate \eqref{step_unstructured}
-with respect to $\vec{x}^{\ell - 1}$:
-\begin{multline}
-  \frac{\md}{\md \vec{x}^{\ell - 1}}
-  \left\{
-    \left[
-      \mat{H}_{\mathrm{new}}
-      - \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{new}}
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
-        + b^{\ell - 1 / 2} \mat{B}
-      \right)
-    \right]
-    \vec{x}^{\ell}
-  \right\}
-  \\
-  = \frac{\md}{\md \vec{x}^{\ell - 1}}
-  \left\{
-    \left[
-      \mat{H}_{\mathrm{cur}}
-      + \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{cur}}
-        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
-        + b^{\ell - 1 / 2} \mat{B}
-      \right)
-    \right]
-    \vec{x}^{\ell - 1}
-  \right\}.
-\end{multline}
-This gives
-\begin{subequations}
-  \label{jacobian}
-  \begin{multline}
-    \left[
-      \mat{H}_{\mathrm{new}}
-      - \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{new}}
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
-        + \mat{T}_{\mathrm{new}} \vec{x}^{\ell} \vec{\beta}
-        + b^{\ell - 1 / 2} \mat{B}
-      \right)
-    \right]
-    \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
-    \\
-    = \mat{H}_{\mathrm{cur}}
-    + \frac{\Delta t}{2}
-    \left(
-      \mat{F}_{\mathrm{cur}}
-      + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
-      + \mat{T}_{\mathrm{cur}} \vec{x}^{\ell - 1} \vec{\beta}
-      + b^{\ell - 1 / 2} \mat{B}
-    \right),
-  \end{multline}
-  which, given $\vec{x}^{\ell}$ and $\vec{x}^{\ell - 1}$,
-  we solve for $\frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}$.
-  The Jacobian is then
-  \begin{equation}
-    \begin{split}
-      \mat{J}\left(t^{\ell - 1}, \vec{x}^{\ell}, \vec{x}^{\ell - 1}\right)
-      &= \frac{\md}{\md \vec{x}^{\ell - 1}}
-      \left(
-        \frac{\vec{x}^{\ell} - \vec{x}^{\ell - 1}}{\Delta t}
-      \right)
-      \\
-      &= \frac{1}{\Delta t} \left(
-        \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
-        - \mat{I}
-      \right).
-    \end{split}
-  \end{equation}
+  For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
+  solver to find $\vec{x}^{\ell}$.
 \end{subequations}
 
 
@@ -424,121 +323,6 @@ The model is
 \end{subequations}
 
 
-\subsection{Aggregating over immune state}
-
-Summing model \eqref{model_age_structured} over immune state gives
-\begin{subequations}
-  \label{model_age_structured_agg_state}
-  \begin{align}
-    N(t, 0)
-    &= b(t) \int_0^{+\infty} \nu(a) N(t, a) \md a,
-    \\
-    \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial a}\right)
-    N(t, a)
-    &= - \mu(a) N(t, a).
-  \end{align}
-\end{subequations}
-
-
-\subsubsection{Aggregating over age}
-
-Let
-\begin{subequations}
-  \begin{align}
-    \bar{N}(t)
-    &= \int_0^{+\infty} N(t, a) \md a,
-    \\
-    \bar{\mu}_N(t)
-    &= \frac{\int_0^{+\infty} \mu(a) N(t, a) \md a}
-    {\int_0^{+\infty} N(t, a) \md a},
-    \\
-    \bar{\nu}_N(t)
-    &= \frac{\int_0^{+\infty} \nu(a) N(t, a) \md a}
-    {\int_0^{+\infty} N(t, a) \md a}.
-  \end{align}
-\end{subequations}
-Then summing model \eqref{model_age_structured_agg_state} over age gives
-\begin{equation}
-  \label{model_age_structured_agg_state_age}
-  \frac{\md}{\md t} \bar{N}(t)
-  = b(t) \bar{\nu}_N(t) \bar{N}(t)
-  - \bar{\mu}_N(t) \bar{N}(t).
-\end{equation}
-
-
-\subsection{Aggregating over age}
-
-Let
-\begin{subequations}
-  \begin{align}
-    \bar{M}(t) &= \int_0^{+\infty} M(t, a) \md a,
-    \\
-    \bar{S}(t) &= \int_0^{+\infty} S(t, a) \md a,
-    \\
-    \bar{E}(t) &= \int_0^{+\infty} E(t, a) \md a,
-    \\
-    \bar{I}(t) &= \int_0^{+\infty} I(t, a) \md a,
-    \\
-    \bar{R}(t) &= \int_0^{+\infty} R(t, a) \md a,
-    \\
-    \bar{\mu}_X(t)
-    &= \frac{\int_0^{+\infty} \mu(a) X(t, a) \md a}
-    {\int_0^{+\infty} X(t, a) \md a},
-    \\
-    \bar{\nu}_X(t)
-    &= \frac{\int_0^{+\infty} \nu(a) X(t, a) \md a}
-    {\int_0^{+\infty} X(t, a) \md a}.
-  \end{align}
-\end{subequations}
-Then
-\begin{subequations}
-  \label{model_age_structured_agg_age}
-  \begin{align}
-    \frac{\md}{\md t} \bar{M}(t)
-    &= b(t) \bar{\nu}_R(t) \bar{R}(t)
-    - \left[\omega + \bar{\mu}_M(t)\right] \bar{M}(t),
-    \\
-    \frac{\md}{\md t} \bar{S}(t)
-    &= b(t) \left[
-      \bar{\nu}_N(t) \bar{N}(t)
-      - \bar{\nu}_R(t) \bar{R}(t)
-    \right]
-    + \omega \bar{M}(t)
-    - \left[\lambda(t) + \bar{\mu}_S(t)\right] \bar{S}(t),
-    \\
-    \frac{\md}{\md t} \bar{E}(t)
-    &= \lambda(t) \bar{S}(t)
-    - \left[\rho + \bar{\mu}_E(t)\right] \bar{E}(t),
-    \\
-    \frac{\md}{\md t} \bar{I}(t)
-    &= \rho \bar{E}(t)
-    - \left[\gamma + \bar{\mu}_I(t)\right] \bar{I}(t),
-    \\
-    \frac{\md}{\md t} \bar{R}(t)
-    &= \gamma \bar{I}(t)
-    - \bar{\mu}_R(t) \bar{R}(t).
-  \end{align}
-\end{subequations}
-
-
-\subsubsection{Aggregating over immune state}
-
-Let
-\begin{equation}
-  \bar{N}(t)
-  = \bar{M}(t) + \bar{S}(t) + \bar{E}(t) + \bar{I}(t) + \bar{R}(t).
-\end{equation}
-Then summing model \eqref{model_age_structured_agg_age} over immune
-state gives
-\begin{equation}
-  \label{model_age_structured_agg_age_state}
-  \frac{\md}{\md t} \bar{N}(t)
-  = b(t) \bar{\nu}_N(t) \bar{N}(t)
-  - \bar{\mu}_N(t) \bar{N}(t).
-\end{equation}
-
-
 \subsection{Total population}
 
 The total population follows the linear PDE
@@ -556,213 +340,10 @@ The total population follows the linear PDE
 \end{subequations}
 
 Because $b(t)$ is periodic with period $T = \unit[1]{y}$, we used
-Floquet theory \autocite{parker_1992} to find the stable age
-distribution and the asymptotic population growth rate. Floquet theory
-requires the fundamental solution $\Phi(t, a, a')$ to
-\begin{subequations}
-  \begin{align}
-    \Phi(t, 0, a')
-    &= b(t) \int_0^{+\infty} \nu(a) \Phi(t, a, a') \md a,
-    \\
-    \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial a}\right)
-    \Phi(t, a, a')
-    &= - \mu(a) \Phi(t, a, a'),
-    \\
-    \Phi(t_0, a, a')
-    &= \delta(a - a'),
-  \end{align}
-\end{subequations}
-where $\delta(x)$ is the Dirac delta.
-
-To numerically solve the PDE for the fundamental solution, we used the
-Crank--Nicolson method on characteristics and the composite rectangle
-rule for the birth integral \autocite{milner_1992}.  Given the time
-step $\Delta t$, let $a_j = j \Delta t$ and $a'_k = k \Delta t$ for
-$j, k \in \{0, 1, 2, \ldots, J - 1\}$;
-$t^{\ell} = t_0 + \ell \Delta t$ for
-$\ell \in \{0, 1, \ldots, L - 1\}$;
-$\Phi_{j, k}^{\ell} \approx \Phi(t^{\ell}, a_j, a'_k)$;
-$b^{\ell - 1 / 2} = b(t^{\ell - 1 / 2})$; and
-$\pi_j = \pi(a_j)$ for $\pi \in \{\mu, \nu\}$.
-For each $j$ and $k$ the initial condition is
-\begin{subequations}
-  \label{numerics_age_structured_fundamental}
-  \begin{equation}
-    \Phi_{j, k}^0 =
-    \begin{cases}
-      1 & \text{if $j = k$}, \\
-      0 & \text{otherwise}.
-    \end{cases}
-  \end{equation}
-  For each $1 \leq j \leq J - 2$, each $k$, and each $\ell
-  \geq 1$, the Crank--Nicolson method on characteristics is
-  \begin{align}
-    \left(1 + \frac{\Delta t}{2} \mu_0\right)
-    \Phi_{0, k}^{\ell}
-    &= b^{\ell - 1 / 2}
-    \sum_{j = 0}^{J - 1}
-    \nu_j \frac{\Phi_{j, k}^{\ell} + \Phi_{j, k}^{\ell - 1}}{2}
-    \Delta t,
-    \\
-    \frac{\Phi_{j, k}^{\ell} - \Phi_{j - 1, k}^{\ell - 1}}{\Delta t}
-    &= - \frac{\mu_j \Phi_{j, k}^{\ell}
-      + \mu_{j - 1} \Phi_{j - 1, k}^{\ell - 1}}{2},
-    \\
-    \begin{split}
-      \frac{\Phi_{J - 1, k}^{\ell} - \Phi_{J - 2, k}^{\ell - 1}}{\Delta t}
-      &= - \frac{\mu_{J - 1} \Phi_{J - 1, k}^{\ell}
-        + \mu_{J - 2} \Phi_{J - 2, k}^{\ell - 1}}{2}
-      \\
-      & \quad {}
-      + \left(\frac{1}{\Delta t} - \frac{1}{2} \mu_{J - 1}\right)
-      \Phi_{J - 1, k}^{\ell - 1}.
-    \end{split}
-    \label{age_structured_pop_last}
-  \end{align}
-\end{subequations}
-In equation \eqref{age_structured_pop_last}, the final term prevents
-aging out of the last age group.
-
-
-\subsubsection{Aggregating over age}
-
-Let
-\begin{subequations}
-  \begin{align}
-    \bar{\Phi}_k^{\ell}
-    &= \sum_{j = 0}^{J - 1} \Phi_{j, k}^{\ell} \Delta t,
-    \\
-    \bar{\mu}_k^{\ell}
-    &= \frac{\sum_{j = 0}^{J - 1} \mu_j \Phi_{j, k}^{\ell} \Delta t}
-    {\sum_{j = 0}^{J - 1} \Phi_{j, k}^{\ell} \Delta t},
-    \\
-    \bar{\nu}_k^{\ell}
-    &= \frac{\sum_{j = 0}^{J - 1} \nu_j \Phi_{j, k}^{\ell} \Delta t}
-    {\sum_{j = 0}^{J - 1} \Phi_{j, k}^{\ell} \Delta t}.
-  \end{align}
-\end{subequations}
-Then summing numerical method
-\eqref{numerics_age_structured_fundamental} over age gives
-\begin{equation}
-  \frac{\bar{\Phi}_k^{\ell} - \bar{\Phi}_k^{\ell - 1}}{\Delta t}
-  = - \frac{\bar{\mu}_k^{\ell} \bar{\Phi}_k^{\ell}
-    + \bar{\mu}_k^{\ell - 1} \bar{\Phi}_k^{\ell - 1}}{2}
-  + b^{\ell - 1 / 2}
-  \frac{\bar{\nu}_k^{\ell} \bar{\Phi}_k^{\ell}
-    + \bar{\nu}_k^{\ell - 1} \bar{\Phi}_k^{\ell - 1}}{2},
-\end{equation}
-which is identical to our Crank--Nicolson scheme applied to the
-version of model \eqref{model_age_structured_agg_state} for the
-fundamental solution.
-
-
-\subsubsection{Linear algebra}
-
-Let
-\begin{subequations}
-  \begin{align}
-    \mat{\Phi}^{\ell}
-    &= \left[\Phi_{j, k}^{\ell}\right],
-    \\
-    \vec{b} &=
-    \frac{1}{\Delta t}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix}_{J \times 1},
-    \\
-    \vec{\tau} &=
-    \Delta t
-    \begin{bmatrix}
-      \nu_0 & \cdots & \nu_{J - 1}
-    \end{bmatrix},
-    \\
-    \mat{L} &=
-    \begin{bmatrix}
-      0 & \cdots & \cdots & 0 & 0
-      \\
-      1 & \ddots & & \vdots & \vdots
-      \\
-      0 & \ddots & \ddots & \vdots & \vdots
-      \\
-      \vdots & \ddots & \ddots & 0 & 0
-      \\
-      0 & \cdots & 0 & 1 & 1
-    \end{bmatrix}_{J \times J},
-    \\
-    \mat{H}_{\mathrm{new}} &= \mat{I}_{J \times J},
-    \\
-    \mat{H}_{\mathrm{cur}} &= \mat{L},
-    \\
-    \mat{F}_{\mathrm{new}} &=
-    \begin{bmatrix}
-      - \mu_0 & 0 & \cdots & 0
-      \\
-      0 & - \mu_1 & \ddots & \vdots
-      \\
-      \vdots & \ddots & \ddots & 0
-      \\
-      0 & \cdots & 0 & - \mu_{J - 1}
-    \end{bmatrix},
-    \\
-    \mat{F}_{\mathrm{cur}} &= \mat{L} \mat{F}_{\mathrm{new}},
-    \\
-    \mat{B} &= \vec{b} \vec{\tau}.
-  \end{align}
-  Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
-  \begin{multline}
-    \left[
-      \mat{H}_{\mathrm{new}}
-      - \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{new}}
-        + b^{\ell - 1 / 2} \mat{B}
-      \right)
-    \right]
-    \mat{\Phi}^{\ell}
-    \\
-    =
-    \left[
-      \mat{H}_{\mathrm{cur}}
-      + \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{cur}}
-        + b^{\ell - 1 / 2} \mat{B}
-      \right)
-    \right]
-    \mat{\Phi}^{\ell - 1}.
-  \end{multline}
-\end{subequations}
-
-Using this numerical scheme, we solved for the monodromy matrix, the
-fundamental solution after one period:
-\begin{equation}
-  \mat{\Psi} = [\Psi_{j, k}] \approx [\Phi(t_0 + T, a_j, a'_k)].
-\end{equation}
-The monodromy matrix projects the population forward at by one period,
-\begin{equation}
-  \vec{n}(t_0 + T) = \mat{\Psi} \vec{n}(t_0),
-\end{equation}
-where $\vec{n}(t) = [N(t, a_j)]$.
-Using the monodromy matrix to repeatedly project the population
-forward gives
-\begin{equation}
-  \vec{n}(t_0 + m T)
-  = \mat{\Psi}^m \vec{n}(t_0)
-  \to \rho_{\mathrm{dom}}^m \vec{w}_{\mathrm{dom}}
-  = \me^{r m T} \vec{w}_{\mathrm{dom}}
-\end{equation}
-as $m \to +\infty$, where $\rho_{\mathrm{dom}}$ is the dominant eigenvalue,
-i.e.~the eigenvalue with largest magnitude, of $\mat{\Psi}$;
-the corresponding right eigenvector $\vec{w}_{\mathrm{dom}}$ is the
-stable age distribution; and
-\begin{equation}
-  r = \frac{1}{T} \log \rho_{\mathrm{dom}}
-\end{equation}
-is the asymptotic population growth rate.
-
-We used a nonlinear solver to search for the mean birth rate $\bar{b}$
-that gives population growth rate $r = 0$.
+Floquet theory to find the stable age distribution and the asymptotic
+population growth rate and then a nonlinear solver to find the value
+of the mean birth rate $\bar{b}$ that gives population growth rate $r
+= 0$. See \autoref{appendix_Floquet_theory} for more details.
 
 
 \subsection{Numerical method}
@@ -915,167 +496,6 @@ Crank--Nicolson method on characteristics is
   \end{equation}
 \end{subequations}
 
-\subsubsection{Aggregating over immune state}
-
-Summing numerical method \eqref{numerics_age_structured} over immune
-state gives
-\begin{subequations}
-  \label{numerics_age_structured_agg_state}
-  \begin{align}
-    \left[1 + \frac{\Delta t}{2} \mu_0\right] N_0^{\ell}
-    &= b^{\ell - 1 / 2}
-    \sum_{j = 0}^{J - 1} \nu_j \frac{N_j^{\ell} + N_j^{\ell - 1}}{2} \Delta t,
-    \\
-    \frac{N_j^{\ell} - N_{j - 1}^{\ell - 1}}{\Delta t}
-    &= - \frac{\mu_j N_j^{\ell} + \mu_{j - 1} N_{j - 1}^{\ell - 1}}{2},
-    \\
-    \begin{split}
-      \frac{N_{J - 1}^{\ell} - N_{J - 2}^{\ell - 1}}{\Delta t}
-      &= - \frac{\mu_{J - 1} N_{J - 1}^{\ell} + \mu_{J - 2} N_{J - 2}^{\ell - 1}}{2}
-      \\ & \quad {}
-      + \left[\frac{1}{\Delta t} - \frac{1}{2} \mu_{J - 1}\right]
-      N_{J - 1}^{\ell - 1},
-    \end{split}
-  \end{align}
-\end{subequations}
-which is identical to our Crank--Nicolson scheme applied to model
-\eqref{model_age_structured_agg_state}.
-
-
-\paragraph{Aggregating over age}
-
-Let
-\begin{subequations}
-  \begin{align}
-    \bar{N}^{\ell}
-    &= \sum_{j = 0}^{J - 1} N_j^{\ell} \Delta t,
-    \\
-    \bar{\mu}^{\ell}
-    &= \frac{\sum_{j = 0}^{J - 1} \mu_j N_j^{\ell} \Delta t}
-    {\sum_{j = 0}^{J - 1} N_j^{\ell} \Delta t},
-    \\
-    \bar{\nu}^{\ell}
-    &= \frac{\sum_{j = 0}^{J - 1} \nu_j N_j^{\ell} \Delta t}
-    {\sum_{j = 0}^{J - 1} N_j^{\ell} \Delta t}.
-  \end{align}
-\end{subequations}
-Then summing numerical method
-\eqref{numerics_age_structured_agg_state} over age gives
-\begin{equation}
-  \label{numerics_age_structured_agg_state_age}
-  \frac{\bar{N}^{\ell} - \bar{N}^{\ell - 1}}{\Delta t}
-  = b^{\ell - 1 / 2}
-  \frac{\bar{\nu}^{\ell} \bar{N}^{\ell}
-    + \bar{\nu}^{\ell - 1} \bar{N}^{\ell - 1}}{2}
-  - \frac{\bar{\mu}^{\ell} \bar{N}^{\ell}
-    + \bar{\mu}^{\ell - 1} \bar{N}^{\ell - 1}}{2},
-\end{equation}
-which is identical to our Crank--Nicolson scheme applied to model
-\eqref{model_age_structured_agg_state_age}.
-
-
-\subsubsection{Aggregating over age}
-
-Let
-\begin{subequations}
-  \begin{align}
-    \bar{M}^{\ell}
-    &= \sum_{j = 0}^{J - 1} M_j^{\ell} \Delta t,
-    \\
-    \bar{S}^{\ell}
-    &= \sum_{j = 0}^{J - 1} S_j^{\ell} \Delta t,
-    \\
-    \bar{E}^{\ell}
-    &= \sum_{j = 0}^{J - 1} E_j^{\ell} \Delta t,
-    \\
-    \bar{I}^{\ell}
-    &= \sum_{j = 0}^{J - 1} I_j^{\ell} \Delta t,
-    \\
-    \bar{R}^{\ell}
-    &= \sum_{j = 0}^{J - 1} R_j^{\ell} \Delta t,
-    \\
-    \bar{\mu}_X^{\ell}
-    &= \frac{\sum_{j = 0}^{J - 1} \mu_j X_j^{\ell} \Delta t}
-      {\sum_{j = 0}^{J - 1} X_j^{\ell} \Delta t},
-    \\
-    \bar{\nu}_X^{\ell}
-    &= \frac{\sum_{j = 0}^{J - 1} \nu_j X_j^{\ell} \Delta t}
-    {\sum_{j = 0}^{J - 1} X_j^{\ell} \Delta t}.
-  \end{align}
-\end{subequations}
-Then summing numerical method
-\eqref{numerics_age_structured} over age gives
-\begin{subequations}
-  \label{numerics_age_structured_agg_age}
-  \begin{align}
-    \begin{split}
-      \frac{\bar{M}^{\ell} - \bar{M}^{\ell - 1}}{\Delta t}
-      &= - \frac{(\omega + \bar{\mu}_M^{\ell}) \bar{M}^{\ell}
-        + (\omega + \bar{\mu}_M^{\ell - 1}) \bar{M}^{\ell - 1}}{2}
-      \\ & \quad {}
-      + b^{\ell - 1 / 2}
-      \frac{\bar{\nu}_R^{\ell} \bar{R}^{\ell}
-        + \bar{\nu}_R^{\ell - 1} \bar{R}^{\ell - 1}}{2},
-    \end{split}
-    \\
-    \begin{split}
-      \frac{\bar{S}^{\ell} - \bar{S}^{\ell - 1}}{\Delta t}
-      &= \omega \frac{\bar{M}^{\ell} + \bar{M}^{\ell - 1}}{2}
-      \\ & \quad {}
-      - \frac{(\lambda^{\ell} + \bar{\mu}_S^{\ell}) \bar{S}^{\ell}
-        + (\lambda^{\ell - 1} + \bar{\mu}_S^{\ell - 1}) \bar{S}^{\ell - 1}}{2}
-      \\ & \quad {}
-      + b^{\ell - 1 / 2}
-      \frac{\bar{\nu}_N^{\ell} \bar{N}^{\ell}
-        - \bar{\nu}_R^{\ell} \bar{R}^{\ell}
-        + \bar{\nu}_N^{\ell - 1} \bar{N}^{\ell - 1}
-        - \bar{\nu}_N^{\ell - 1} \bar{R}^{\ell - 1}}{2},
-    \end{split}
-    \\
-    \frac{\bar{E}^{\ell} - \bar{E}^{\ell - 1}}{\Delta t}
-    &= \frac{\lambda^{\ell} \bar{S}^{\ell}
-      + \lambda^{\ell - 1} \bar{S}^{\ell - 1}}{2}
-    - \frac{(\rho + \bar{\mu}_E^{\ell}) \bar{E}^{\ell}
-      + (\rho + \bar{\mu}_E^{\ell - 1}) \bar{E}^{\ell - 1}}{2},
-    \\
-    \frac{\bar{I}^{\ell} - \bar{I}^{\ell - 1}}{\Delta t}
-    &= \rho \frac{\bar{E}^{\ell} + \bar{E}^{\ell - 1}}{2}
-    - \frac{(\gamma + \bar{\mu}_I^{\ell}) \bar{I}^{\ell}
-      + (\gamma + \bar{\mu}_I^{\ell - 1}) \bar{I}^{\ell - 1}}{2},
-    \\
-    \frac{\bar{R}^{\ell} - \bar{R}^{\ell - 1}}{\Delta t}
-    &= \gamma \frac{\bar{I}^{\ell} + \bar{I}^{\ell - 1}}{2}
-    - \frac{\bar{\mu}_R^{\ell} \bar{R}^{\ell}
-      + \bar{\mu}_R^{\ell - 1} \bar{R}^{\ell - 1}}{2},
-  \end{align}
-\end{subequations}
-which is identical to our Crank--Nicolson scheme applied to model
-\eqref{model_age_structured_agg_age}.
-
-
-\paragraph{Aggregating over immune state}
-
-Let
-\begin{equation}
-  \bar{N}^{\ell}
-  = \bar{M}^{\ell} + \bar{S}^{\ell} + \bar{E}^{\ell}
- + \bar{I}^{\ell} + \bar{R}^{\ell}.
-\end{equation}
-Then summing numerical method
-\eqref{numerics_age_structured_agg_age} over immune state gives
-\begin{equation}
-  \label{numerics_age_structured_agg_age_state}
-  \frac{\bar{N}^{\ell} - \bar{N}^{\ell - 1}}{\Delta t}
-  = b^{\ell - 1 / 2}
-  \frac{\bar{\nu}_N^{\ell} \bar{N}^{\ell}
-  + \bar{\nu}_N^{\ell - 1} \bar{N}^{\ell - 1}}{2}
-  - \frac{\bar{\mu}_N^{\ell} \bar{N}^{\ell}
-  + \bar{\mu}_N^{\ell - 1} \bar{N}^{\ell - 1}}{2},
-\end{equation}
-which is identical to our Crank--Nicolson scheme applied to model
-\eqref{model_age_structured_agg_age_state}.
-
-
 \subsubsection{Linear algebra}
 
 For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
@@ -1117,7 +537,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \lambda^{\ell} &=
     \vec{\beta} \vec{x}^{\ell},
     \\
-    \mat{L}_{\mathrm{XW}} &=
+    \mat{L}_{XW} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0 \\
       1 & \ddots & & \vdots & \vdots \\
@@ -1126,21 +546,21 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       0 & \cdots & 0 & 1 & 1
     \end{bmatrix}_{J \times J},
     \\
-    \mat{H}_{\mathrm{XX}, \mathrm{new}} &= \mat{I}_{J \times J},
+    \mat{H}_{XX, \mathrm{new}} &= \mat{I}_{J \times J},
     \\
-    \mat{H}_{\mathrm{XX}, \mathrm{cur}} &= \mat{L}_{\mathrm{XW}},
+    \mat{H}_{XX, \mathrm{cur}} &= \mat{L}_{XW},
     \\
     \mat{H}_{q} &=
     \begin{bmatrix}
-      \mat{H}_{\mathrm{XX}, q} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{H}_{\mathrm{XX}, q} & \mat{0} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{0} & \mat{H}_{\mathrm{XX}, q} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{\mathrm{XX}, q} & \mat{0}
+      \mat{H}_{XX, q} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{H}_{XX, q} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{H}_{XX, q} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{XX, q} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{\mathrm{XX}, q}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{XX, q}
     \end{bmatrix},
     \\
-    \mat{F}_{\mathrm{XW}, \mathrm{new}}(\vec{\pi}) &=
+    \mat{F}_{XW, \mathrm{new}}(\vec{\pi}) &=
     \begin{bmatrix}
       \pi_0 & 0 & \cdots & 0 \\
       0 & \pi_1 & \ddots & \vdots \\
@@ -1148,51 +568,51 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       0 & \cdots & 0 & \pi_{J - 1}
     \end{bmatrix},
     \\
-    \mat{F}_{\mathrm{XW}, \mathrm{cur}}(\vec{\pi}) &=
-    \mat{L}_{\mathrm{XW}} \mat{F}_{\mathrm{XW}, \mathrm{new}}(\vec{\pi}),
+    \mat{F}_{XW, \mathrm{cur}}(\vec{\pi}) &=
+    \mat{L}_{XW} \mat{F}_{XW, \mathrm{new}}(\vec{\pi}),
     \\
     \mat{F}_q &=
     \begin{bmatrix}
-      \mat{F}_{\mathrm{XW}, q}(- \omega - \vec{\mu}) & \mat{0}
+      \mat{F}_{XW, q}(- \omega - \vec{\mu}) & \mat{0}
       & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{F}_{\mathrm{XW}, q}(\omega) & \mat{F}_{\mathrm{XW}, q}(- \vec{\mu})
+      \mat{F}_{XW, q}(\omega) & \mat{F}_{XW, q}(- \vec{\mu})
       & \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0}
-      & \mat{F}_{\mathrm{XW}, q}(- \rho - \vec{\mu})
+      & \mat{F}_{XW, q}(- \rho - \vec{\mu})
       & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{F}_{\mathrm{XW}, q}(\rho)
-      & \mat{F}_{\mathrm{XW}, q}(- \gamma - \vec{\mu}) & \mat{0}
+      \mat{0} & \mat{0} & \mat{F}_{XW, q}(\rho)
+      & \mat{F}_{XW, q}(- \gamma - \vec{\mu}) & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{F}_{\mathrm{XW}, q}(\gamma)
-      & \mat{F}_{\mathrm{XW}, q}(- \vec{\mu})
+      \mat{0} & \mat{0} & \mat{0} & \mat{F}_{XW, q}(\gamma)
+      & \mat{F}_{XW, q}(- \vec{\mu})
     \end{bmatrix},
     \\
-    \mat{T}_{\mathrm{XW}, q} &= \mat{H}_{\mathrm{XX}, q},
+    \mat{T}_{XW, q} &= \mat{H}_{XX, q},
     \\
     \mat{T}_q &=
     \begin{bmatrix}
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & - \mat{T}_{\mathrm{XW}, q} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0} & - \mat{T}_{XW, q} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{T}_{\mathrm{XW}, q} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0} & \mat{T}_{XW, q} & \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
     \end{bmatrix},
     \\
-    \mat{B}_{\mathrm{XW}} &= \vec{b} \vec{\tau},
+    \mat{B}_{XW} &= \vec{b} \vec{\tau},
     \\
     \mat{B} &=
     \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{\mathrm{XW}}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{XW}
       \\
-      \mat{B}_{\mathrm{XW}} & \mat{B}_{\mathrm{XW}} & \mat{B}_{\mathrm{XW}}
-      & \mat{B}_{\mathrm{XW}} & \mat{0}
+      \mat{B}_{XW} & \mat{B}_{XW} & \mat{B}_{XW}
+      & \mat{B}_{XW} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
@@ -1201,8 +621,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
     \end{bmatrix}.
   \end{align}
-  Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
-  we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
+  System \eqref{numerics_age_structured} is then
   \begin{multline}
     \label{step_age_structured}
     \left[
@@ -1225,12 +644,9 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \right)
     \right] \vec{x}^{\ell - 1}.
   \end{multline}
+  For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
+  solver to find $\vec{x}^{\ell}$.
 \end{subequations}
-
-
-\paragraph{Jacobian}
-
-The Jacobian is calculated using \eqref{jacobian}.
 
 
 \section{Time-since-entry-structured model}
@@ -1287,104 +703,6 @@ The model is
   \end{equation}
   and periodic birth rate \eqref{birth_rate}.
 \end{subequations}
-
-
-\subsection{Aggregating over time since entry}
-
-Let
-\begin{subequations}
-  \begin{align}
-    M(t)
-    &= \int_0^{+\infty} m(t, z) \md z,
-    \\
-    E(t)
-    &= \int_0^{+\infty} e(t, z) \md z,
-    \\
-    I(t)
-    &= \int_0^{+\infty} i(t, z) \md z,
-    \\
-    \bar{\omega}(t)
-    &= \frac{\int_0^{+\infty} \omega(z) m(t, z) \md z}
-      {\int_0^{+\infty} m(t, z) \md z},
-    \\
-    \bar{\rho}(t)
-    &= \frac{\int_0^{+\infty} \rho(z) e(t, z) \md z}
-      {\int_0^{+\infty} e(t, z) \md z},
-    \\
-    \bar{\gamma}(t)
-    &= \frac{\int_0^{+\infty} \gamma(z) i(t, z) \md z}
-      {\int_0^{+\infty} i(t, z) \md z}.
-  \end{align}
-\end{subequations}
-Then summing model \eqref{model_time_since_entry_structured} over time
-since entry gives
-\begin{subequations}
-  \label{model_time_since_entry_structured_agg_tse}
-  \begin{align}
-    \begin{split}
-      \frac{\md}{\md t} M(t)
-      &= b(t) R(t)
-      - \int_0^{+\infty} \left[\omega(z) + \mu\right] m(t, z) \md z
-      \\
-      &= b(t) R(t)
-      - \left[\bar{\omega}(t) + \mu\right] M(t),
-    \end{split}
-    \\
-    \begin{split}
-      \frac{\md}{\md t} S(t)
-      &= b(t) \left[N(t) - R(t)\right]
-      + \int_0^{+\infty} \omega(z) m(t, z) \md z
-      - [\lambda(t) + \mu] S(t)
-      \\
-      &= b(t) \left[N(t) - R(t)\right]
-      + \bar{\omega}(t) M(t)
-      - [\lambda(t) + \mu] S(t),
-    \end{split}
-    \\
-    \begin{split}
-      \frac{\md}{\md t} E(t)
-      &= \lambda(t) S(t)
-      - \int_0^{+\infty} \left[\rho(z) + \mu\right] e(t, z) \md z
-      \\
-      &= \lambda(t) S(t)
-      - \left[\bar{\rho}(t) + \mu\right] E(t),
-    \end{split}
-    \\
-    \begin{split}
-      \frac{\md}{\md t} I(t)
-      &= \int_0^{+\infty} \rho(z) e(t, z) \md z
-      - \int_0^{+\infty} \left[\gamma(z) + \mu\right] i(t, z) \md z
-      \\
-      &= \bar{\rho}(t) E(t)
-      - \left[\bar{\gamma}(t) + \mu\right] I(t),
-    \end{split}
-    \\
-    \begin{split}
-      \frac{\md}{\md t} R(t)
-      &= \int_0^{+\infty} \gamma(z) i(t, z) \md z
-      - \mu R(t)
-      \\
-      &= \bar{\gamma}(t) I(t)
-      - \mu R(t).
-    \end{split}
-  \end{align}
-\end{subequations}
-
-
-\subsubsection{Aggregating over immune state}
-
-Let
-\begin{equation}
-  N(t)
-  = M(t) + S(t) + E(t) + I(t) + R(t).
-\end{equation}
-Then summing model \eqref{model_time_since_entry_structured_agg_tse}
-over immune state gives
-\begin{equation}
-  \label{model_time_since_entry_structured_agg_tse_state}
-  \frac{\md}{\md t} N(t)
-  = b(t) N(t) - \mu N(t).
-\end{equation}
 
 
 \subsection{Total population}
@@ -1510,97 +828,6 @@ the Crank--Nicolson method on characteristics is
 \end{subequations}
 
 
-\subsubsection{Aggregating over time since entry}
-
-Let
-\begin{subequations}
-  \begin{align}
-    M^{\ell}
-    &= \sum_{k = 0}^{K - 1} m_k^{\ell} \Delta t,
-    \\
-    E^{\ell}
-    &= \sum_{k = 0}^{K - 1} e_k^{\ell} \Delta t,
-    \\
-    I^{\ell}
-    &= \sum_{k = 0}^{K - 1} i_k^{\ell} \Delta t,
-    \\
-    \bar{\omega}^{\ell}
-    &= \frac{\sum_{k = 0}^{K - 1} \omega_k m_k^{\ell} \Delta t}
-      {\sum_{k = 0}^{K - 1} m_k^{\ell} \Delta t},
-    \\
-    \bar{\rho}^{\ell}
-    &= \frac{\sum_{k = 0}^{K - 1} \rho_k e_k^{\ell} \Delta t}
-      {\sum_{k = 0}^{K - 1} e_k^{\ell} \Delta t},
-    \\
-    \bar{\gamma}^{\ell}
-    &= \frac{\sum_{k = 0}^{K - 1} \gamma_k i_k^{\ell} \Delta t}
-      {\sum_{k = 0}^{K - 1} i_k^{\ell} \Delta t}.
-  \end{align}
-\end{subequations}
-Then summing numerical method
-\eqref{numerics_time_since_entry_structured} over time since entry
-gives
-\begin{subequations}
-  \label{numerics_time_since_entry_structured_agg_tse}
-  \begin{align}
-    \frac{M^{\ell}  - M^{\ell - 1}}{\Delta t}
-    &= - \frac{(\bar{\omega}^{\ell} + \mu) M^{\ell}
-      + (\bar{\omega}^{\ell - 1} + \mu) M^{\ell - 1}}{2}
-      + b^{\ell - 1 / 2} \frac{R^{\ell} + R^{\ell - 1}}{2},
-    \\
-    \begin{split}
-      \frac{S^{\ell} - S^{\ell - 1}}{\Delta t}
-      &= b^{\ell - 1 / 2}
-      \frac{N^{\ell} - R^{\ell} + N^{\ell - 1} - R^{\ell - 1}}{2}
-      + \frac{\bar{\omega}^{\ell} M^{\ell}
-        + \bar{\omega}^{\ell - 1} M^{\ell - 1}}{2}
-      \\ & \quad {}
-      - \frac{(\lambda^{\ell} + \mu) S^{\ell}
-        + (\lambda^{\ell - 1} + \mu) S^{\ell - 1}}{2},
-    \end{split}
-    \\
-    \frac{E^{\ell}  - E^{\ell - 1}}{\Delta t}
-    &= - \frac{(\bar{\rho}^{\ell} + \mu) E^{\ell}
-      + (\bar{\rho}^{\ell - 1} + \mu) E^{\ell - 1}}{2}
-      + \frac{\lambda^{\ell} S^{\ell}
-      + \lambda^{\ell - 1} S^{\ell - 1}}{2},
-    \\
-    \frac{I^{\ell}  - I^{\ell - 1}}{\Delta t}
-    &= - \frac{(\bar{\gamma}^{\ell} + \mu) I^{\ell}
-      + (\bar{\gamma}^{\ell - 1} + \mu) I^{\ell - 1}}{2}
-      + \frac{\bar{\rho}^{\ell} E^{\ell}
-      + \bar{\rho}^{\ell - 1} E^{\ell - 1}}{2},
-    \\
-    \frac{R^{\ell} - R^{\ell - 1}}{\Delta t}
-    &= \frac{\bar{\gamma}^{\ell} I^{\ell}
-      + \bar{\gamma}^{\ell - 1} I^{\ell - 1}}{2}
-      - \mu \frac{R^{\ell} + R^{\ell - 1}}{2},
-  \end{align}
-\end{subequations}
-which is identical to our Crank--Nicolson scheme applied to model
-\eqref{model_time_since_entry_structured_agg_tse}.
-
-
-\paragraph{Aggregating over immune state}
-
-Let
-\begin{equation}
-  N^{\ell}
-  = M^{\ell} + S^{\ell} + E^{\ell} + I^{\ell} + R^{\ell}.
-\end{equation}
-Then summing numerical method
-\eqref{numerics_time_since_entry_structured_agg_tse} over immune state
-gives
-\begin{equation}
-  \label{numerics_time_since_entry_structured_agg_tse_state}
-  \frac{N^{\ell} - N^{\ell - 1}}{\Delta t}
-  = b^{\ell - 1 / 2} \frac{N^{\ell} + N^{\ell - 1}}{2}
-  - \mu \frac{N^{\ell} + N^{\ell - 1}}{2},
-\end{equation}
-which is identical to our Crank--Nicolson scheme applied to model
-\eqref{model_time_since_entry_structured_agg_tse_state}.
-
-
 \subsubsection{Linear algebra}
 
 For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
@@ -1642,7 +869,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \lambda^{\ell} &=
     \vec{\beta} \vec{x}^{\ell},
     \\
-    \mat{L}_{\mathrm{yy}} &=
+    \mat{L}_{yy} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0 \\
       1 & \ddots & & \vdots & \vdots \\
@@ -1651,21 +878,21 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       0 & \cdots & 0 & 1 & 1
     \end{bmatrix}_{K \times K},
     \\
-    \mat{H}_{\mathrm{yy}, \mathrm{new}} &= \mat{I}_{K \times K},
+    \mat{H}_{yy, \mathrm{new}} &= \mat{I}_{K \times K},
     \\
-    \mat{H}_{\mathrm{yy}, \mathrm{cur}} &= \mat{L}_{\mathrm{yy}},
+    \mat{H}_{yy, \mathrm{cur}} &= \mat{L}_{yy},
     \\
     \mat{H}_{q} &=
     \begin{bmatrix}
-      \mat{H}_{\mathrm{yy}, q} & \vec{0} & \mat{0} & \mat{0} & \vec{0} \\
+      \mat{H}_{yy, q} & \vec{0} & \mat{0} & \mat{0} & \vec{0} \\
       \vec{0} & 1 & \vec{0} & \vec{0} & 0 \\
-      \mat{0} & \vec{0} & \mat{H}_{\mathrm{yy}, q} & \mat{0} & \vec{0} \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{H}_{\mathrm{yy}, q} & \vec{0}
+      \mat{0} & \vec{0} & \mat{H}_{yy, q} & \mat{0} & \vec{0} \\
+      \mat{0} & \vec{0} & \mat{0} & \mat{H}_{yy, q} & \vec{0}
       \\
       \vec{0} & 0 & \vec{0} & \vec{0} & 1
     \end{bmatrix},
     \\
-    \mat{F}_{\mathrm{yy}, \mathrm{new}}(\vec{\xi}) &=
+    \mat{F}_{yy, \mathrm{new}}(\vec{\xi}) &=
     \begin{bmatrix}
       \xi_0 & 0 & \cdots & 0 \\
       0 & \xi_1 & \ddots & \vdots \\
@@ -1673,32 +900,32 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       0 & \cdots & 0 & \xi_{K - 1}
     \end{bmatrix},
     \\
-    \mat{F}_{\mathrm{yy}, \mathrm{cur}}(\vec{\xi}) &=
-    \mat{L}_{\mathrm{yy}} \mat{F}_{\mathrm{yy}, \mathrm{new}}(\vec{\xi}),
+    \mat{F}_{yy, \mathrm{cur}}(\vec{\xi}) &=
+    \mat{L}_{yy} \mat{F}_{yy, \mathrm{new}}(\vec{\xi}),
     \\
-    \vec{f}_{\mathrm{Xy}}(\vec{\xi}) &=
+    \vec{f}_{Xy}(\vec{\xi}) &=
     \vec{\sigma}(\vec{\xi}),
     \\
-    \mat{F}_{\mathrm{yw}}(\vec{\rho}) &=
+    \mat{F}_{yw}(\vec{\rho}) &=
     \vec{\zeta} \vec{\sigma}(\vec{\rho}),
     \\
     \mat{F}_q &=
     \begin{bmatrix}
-      \mat{F}_{\mathrm{yy}, q}(- \vec{\omega} - \mu) & \vec{0} & \mat{0}
+      \mat{F}_{yy, q}(- \vec{\omega} - \mu) & \vec{0} & \mat{0}
       & \mat{0} & \vec{0}
       \\
-      \vec{f}_{\mathrm{Xy}}(\vec{\omega}) & - \mu & \vec{0} & \vec{0} & 0
+      \vec{f}_{Xy}(\vec{\omega}) & - \mu & \vec{0} & \vec{0} & 0
       \\
-      \mat{0} & \vec{0} & \mat{F}_{\mathrm{yy}, q}(- \vec{\rho} - \mu)
+      \mat{0} & \vec{0} & \mat{F}_{yy, q}(- \vec{\rho} - \mu)
       & \mat{0} & \vec{0}
       \\
-      \mat{0} & \vec{0} & \mat{F}_{\mathrm{yw}}(\vec{\rho})
-      & \mat{F}_{\mathrm{yy}, q}(- \vec{\gamma} - \mu) & \vec{0}
+      \mat{0} & \vec{0} & \mat{F}_{yw}(\vec{\rho})
+      & \mat{F}_{yy, q}(- \vec{\gamma} - \mu) & \vec{0}
       \\
-      \vec{0} & 0 & \vec{0} & \vec{f}_{\mathrm{Xy}}(\vec{\gamma}) & - \mu
+      \vec{0} & 0 & \vec{0} & \vec{f}_{Xy}(\vec{\gamma}) & - \mu
     \end{bmatrix},
     \\
-    \vec{t}_{\mathrm{yX}} &= \vec{\zeta},
+    \vec{t}_{yX} &= \vec{\zeta},
     \\
     \mat{T}_{\mathrm{new}} =
     \mat{T}_{\mathrm{cur}} &=
@@ -1707,22 +934,22 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \\
       \vec{0} & - 1 & \vec{0} & \vec{0} & 0
       \\
-      \mat{0} & \vec{t}_{\mathrm{yX}} & \mat{0} & \mat{0} & \vec{0}
+      \mat{0} & \vec{t}_{yX} & \mat{0} & \mat{0} & \vec{0}
       \\
       \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
       \vec{0} & 0 & \vec{0} & \vec{0} & 0
     \end{bmatrix},
     \\
-    \vec{b}_{\mathrm{Xy}} &= \vec{\iota},
+    \vec{b}_{Xy} &= \vec{\iota},
     \\
-    \vec{b}_{\mathrm{yX}} &= \vec{\zeta},
+    \vec{b}_{yX} &= \vec{\zeta},
     \\
     \mat{B} &=
     \begin{bmatrix}
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{b}_{\mathrm{yX}}
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{b}_{yX}
       \\
-      \vec{b}_{\mathrm{Xy}} & 1 & \vec{b}_{\mathrm{Xy}} & \vec{b}_{\mathrm{Xy}} & 0
+      \vec{b}_{Xy} & 1 & \vec{b}_{Xy} & \vec{b}_{Xy} & 0
       \\
       \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
@@ -1731,8 +958,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \mat{0} & 0 & \mat{0} & \mat{0} & 0
     \end{bmatrix}.
   \end{align}
-  Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
-  we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
+  System \eqref{numerics_time_since_entry_structured} is then
   \begin{multline}
     \label{step_time_since_entry_structured}
     \left[
@@ -1755,12 +981,9 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \right)
     \right] \vec{x}^{\ell - 1}.
   \end{multline}
+  For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
+  solver to find $\vec{x}^{\ell}$.
 \end{subequations}
-
-
-\paragraph{Jacobian}
-
-The Jacobian is calculated using \eqref{jacobian}.
 
 
 \section{Age- and time-since-entry-structured model}
@@ -1842,218 +1065,6 @@ The model is
 \end{subequations}
 
 
-\subsection{Aggregating over time since entry}
-
-Let
-\begin{subequations}
-  \begin{align}
-    E(t, a)
-    &= \int_0^{+\infty} e(t, a, z) \md z,
-    \\
-    I(t, a)
-    &= \int_0^{+\infty} i(t, a, z) \md z,
-    \\
-    \bar{\rho}(t, a)
-    &= \frac{\int_0^{+\infty} \rho(z) e(t, a, z) \md z}
-      {\int_0^{+\infty} e(t, a, z) \md z},
-    \\
-    \bar{\gamma}(t, a)
-    &= \frac{\int_0^{+\infty} \gamma(z) i(t, a, z) \md z}
-      {\int_0^{+\infty} i(t, a, z) \md z}.
-  \end{align}
-\end{subequations}
-Then summing model \eqref{model_age_and_time_since_entry_structured}
-over time since entry gives
-\begin{subequations}
-  \label{model_age_and_time_since_entry_structured_agg_tse}
-  \begin{align}
-    M(t, 0) &=
-    b(t) \int_0^{+\infty} \nu(a) R(t, a) \md a,
-    \\
-    \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial a}\right)
-    M(t, a) &=
-    - \omega(a) M(t, a) - \mu(a) M(t, a),
-    \\
-    S(t, 0) &=
-    b(t) \int_0^{+\infty} \nu(a) \left[N(t, a) - R(t, a)\right] \md a,
-    \\
-    \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial a}\right)
-    S(t, a) &=
-    \omega(a) M(t, a) - \lambda(t) S(t, a) - \mu(a) S(t, a),
-    \\
-    E(t, 0) &= 0,
-    \\
-    \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial a}\right)
-    E(t, a)
-    &= \lambda(t) S(t, a)
-    - \bar{\rho}(t, a) E(t, a) - \mu(a) E(t, a),
-    \\
-    I(t, 0) &= 0,
-    \\
-    \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial a}\right)
-    I(t, a)
-    &= \bar{\rho}(t, a) E(t, a)
-    - \bar{\gamma}(t, a) I(t, a) - \mu(a) I(t, a),
-    \\
-    R(t, 0) &= 0,
-    \\
-    \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial a}\right)
-    R(t, a)
-    &= \bar{\gamma}(t, a) I(t, a) - \mu(a) R(t, a).
-  \end{align}
-\end{subequations}
-
-
-\subsubsection{Aggregating over immune state}
-
-Let
-\begin{equation}
-  N(t, a)
-  = M(t, a) + S(t, a) + E(t, a) + I(t, a) + R(t, a).
-\end{equation}
-Then summing model
-\eqref{model_age_and_time_since_entry_structured_agg_tse} over immune
-state gives
-\begin{subequations}
-  \label{model_age_and_time_since_entry_structured_agg_tse_state}
-  \begin{align}
-    N(t, 0)
-    &= b(t) \int_0^{+\infty} \nu(a) N(t, a) \md a,
-    \\
-    \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial a}\right)
-    N(t, a)
-    &= - \mu(a) N(t, a).
-  \end{align}
-\end{subequations}
-
-
-\paragraph{Aggregating over age}
-
-Let
-\begin{subequations}
-  \begin{align}
-    \bar{N}(t)
-    &= \int_0^{+\infty} N(t, a) \md a,
-    \\
-    \bar{\mu}_N(t)
-    &= \frac{\int_0^{+\infty} \mu(a) N(t, a) \md a}
-    {\int_0^{+\infty} N(t, a) \md a},
-    \\
-    \bar{\nu}_N(t)
-    &= \frac{\int_0^{+\infty} \nu(a) N(t, a) \md a}
-    {\int_0^{+\infty} N(t, a) \md a}.
-  \end{align}
-\end{subequations}
-Then summing model
-\eqref{model_age_and_time_since_entry_structured_agg_tse_state} over
-age gives
-\begin{equation}
-  \label{model_age_and_time_since_entry_structured_agg_tse_state_age}
-  \frac{\md}{\md t} \bar{N}(t)
-  = b(t) \bar{\nu}_N(t) \bar{N}(t)
-  - \bar{\mu}_N(t) \bar{N}(t).
-\end{equation}
-
-
-\subsubsection{Aggregating over age}
-
-Let
-\begin{subequations}
-  \begin{align}
-    \bar{M}(t) &= \int_0^{+\infty} M(t, a) \md a,
-    \\
-    \bar{S}(t) &= \int_0^{+\infty} S(t, a) \md a,
-    \\
-    \bar{E}(t) &= \int_0^{+\infty} E(t, a) \md a,
-    \\
-    \bar{I}(t) &= \int_0^{+\infty} I(t, a) \md a,
-    \\
-    \bar{R}(t) &= \int_0^{+\infty} R(t, a) \md a,
-    \\
-    \bar{\mu}_X(t)
-    &= \frac{\int_0^{+\infty} \mu(a) X(t, a) \md a}
-    {\int_0^{+\infty} X(t, a) \md a},
-    \\
-    \bar{\nu}_X(t)
-    &= \frac{\int_0^{+\infty} \nu(a) X(t, a) \md a}
-    {\int_0^{+\infty} X(t, a) \md a},
-    \\
-    \bar{\omega}(t)
-    &= \frac{\int_0^{+\infty} \omega(a) M(t, a) \md a}
-    {\int_0^{+\infty} M(t, a) \md a},
-    \\
-    \bar{\bar{\rho}}(t)
-    &= \frac{\int_0^{+\infty} \bar{\rho}(t, a) E(t, a) \md a}
-    {\int_0^{+\infty} E(t, a) \md a},
-    \\
-    \bar{\bar{\gamma}}(t)
-    &= \frac{\int_0^{+\infty} \bar{\gamma}(t, a) I(t, a) \md a}
-    {\int_0^{+\infty} I(t, a) \md a}.
-  \end{align}
-\end{subequations}
-Then summing model
-\eqref{model_age_and_time_since_entry_structured_agg_tse} over age
-gives
-\begin{subequations}
-  \label{model_age_and_time_since_entry_structured_agg_tse_age}
-  \begin{align}
-    \frac{\md}{\md t} \bar{M}(t)
-    &= b(t) \bar{\nu}_R(t) \bar{R}(t)
-    - \left[\bar{\omega}(t) + \bar{\mu}_M(t)\right]
-    \bar{M}(t),
-    \\
-    \begin{split}
-      \frac{\md}{\md t} \bar{S}(t)
-      &= b(t) \left[\bar{\nu}_N(t) \bar{N}(t)
-        - \bar{\nu}_R(t) \bar{R}(t)\right]
-      \\ & \quad {}
-      + \bar{\omega}(t) \bar{M}(t)
-      - \lambda(t) \bar{S}(t)
-      - \bar{\mu}_S(t) \bar{S}(t),
-    \end{split}
-    \\
-    \frac{\md}{\md t} \bar{E}(t)
-    &= \lambda(t) \bar{S}(t)
-    - \bar{\bar{\rho}}(t) \bar{E}(t)
-    - \bar{\mu}_E(t) \bar{E}(t),
-    \\
-    \frac{\md}{\md t} \bar{I}(t)
-    &= \bar{\bar{\rho}}(t) \bar{E}(t)
-      - \bar{\bar{\gamma}}(t) \bar{I}(t)
-      - \bar{\mu}_I(t) \bar{I}(t),
-    \\
-    \frac{\md}{\md t} \bar{R}(t)
-    &= \bar{\bar{\gamma}}(t) \bar{I}(t)
-    - \bar{\mu}_R(t) \bar{R}(t).
-  \end{align}
-\end{subequations}
-
-
-\paragraph{Aggregating over immune state}
-
-Let
-\begin{equation}
-  \bar{N}(t)
-  = \bar{M}(t) + \bar{S}(t) + \bar{E}(t)
-  + \bar{I}(t) + \bar{R}(t).
-\end{equation}
-Then summing model
-\eqref{model_age_and_time_since_entry_structured_agg_tse_age} over
-immune state gives
-\begin{equation}
-  \label{model_age_and_time_since_entry_structured_agg_tse_age_state}
-  \frac{\md}{\md t} \bar{N}(t)
-  = b(t) \bar{\nu}_N(t) \bar{N}(t)
-  - \bar{\mu}_N(t) \bar{N}(t).
-\end{equation}
-
-
 \subsection{Total population}
 
 The total population follows the linear PDE
@@ -2072,7 +1083,7 @@ This is the same as model \eqref{model_age_structured_total} for the
 total population for the age-structured model: as we did for that
 model, we used Floquet theory and a nonlinear solver to find the value
 of the mean birth rate $\bar{b}$ that gives population growth rate
-$r = 0$.
+$r = 0$.  See \autoref{appendix_Floquet_theory} for more details.
 
 
 \subsection{Numerical method}
@@ -2361,7 +1372,1042 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
 \end{subequations}
 
 
+\subsubsection{Linear algebra}
+
+For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
+\begin{subequations}
+  \begin{align}
+    \vec{x}^{\ell} &=
+    \begin{bmatrix}
+      M_0^{\ell} \\ \vdots \\ M_{J - 1}^{\ell} \\
+      S_0^{\ell} \\ \vdots \\ S_{J - 1}^{\ell} \\
+      e_{0, 0}^{\ell} \\ \vdots \\ e_{0, K - 1}^{\ell} \\ \vdots
+      \\ e_{J - 1, 0}^{\ell} \\ \vdots \\ e_{J - 1, K - 1}^{\ell} \\
+      i_{0, 0}^{\ell} \\ \vdots \\ i_{0, K - 1}^{\ell} \\ \vdots
+      \\ i_{J - 1, 0}^{\ell} \\ \vdots \\ i_{J - 1, K - 1}^{\ell} \\
+      R_0^{\ell} \\ \vdots \\ R_{J - 1}^{\ell}
+    \end{bmatrix},
+    \\
+    \vec{b}_a &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}_{J \times 1},
+    \\
+    \vec{\zeta}_z &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}_{K \times 1},
+    \\
+    \vec{\iota}_a &=
+    \Delta t
+    \begin{bmatrix}
+      1 & \cdots & 1
+    \end{bmatrix}_{1 \times J},
+    \\
+    \vec{\iota}_z &=
+    \Delta t
+    \begin{bmatrix}
+      1 & \cdots & 1
+    \end{bmatrix}_{1 \times K},
+    \\
+    \vec{\iota}_{y} &=
+    \vec{\iota}_a \otimes \vec{\iota}_z,
+    \\
+    \vec{\sigma}_z(\vec{\xi}) &=
+    \Delta t
+    \begin{bmatrix}
+      \xi_0 & \cdots & \xi_{K - 1}
+    \end{bmatrix},
+    \\
+    \vec{\tau}_a &=
+    \Delta t
+    \begin{bmatrix}
+      \nu_0 & \cdots & \nu_{J - 1}
+    \end{bmatrix},
+    \\
+    \vec{\tau}_{X} &= \vec{\tau}_a,
+    \\
+    \vec{\tau}_{y} &=
+    \vec{\tau}_a \otimes \vec{\iota}_z,
+    \\
+    \vec{\beta} &=
+    \beta
+    \begin{bmatrix}
+      \vec{0}_{X} & \vec{0}_{X}
+      & \vec{0}_{y} & \vec{\iota}_{y}
+      & \vec{0}_{X}
+    \end{bmatrix},
+    \\
+    \lambda^{\ell} &=
+    \vec{\beta} \vec{x}^{\ell},
+    \\
+    \mat{L}_a &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & 0 & 0 \\
+      1 & \ddots & & \vdots & \vdots \\
+      0 & \ddots & \ddots & \vdots & \vdots \\
+      \vdots & \ddots & \ddots & 0 & 0 \\
+      0 & \cdots & 0 & 1 & 1
+    \end{bmatrix}_{J \times J},
+    \\
+    \mat{L}_z &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & 0 & 0 \\
+      1 & \ddots & & \vdots & \vdots \\
+      0 & \ddots & \ddots & \vdots & \vdots \\
+      \vdots & \ddots & \ddots & 0 & 0 \\
+      0 & \cdots & 0 & 1 & 1
+    \end{bmatrix}_{K \times K},
+    \\
+    \mat{H}_{a, \mathrm{new}} &= \mat{I}_{J \times J},
+    \\
+    \mat{H}_{a, \mathrm{cur}} &= \mat{L}_a,
+    \\
+    \mat{H}_{z, \mathrm{new}} &= \mat{I}_{K \times K},
+    \\
+    \mat{H}_{z, \mathrm{cur}} &= \mat{L}_z,
+    \\
+    \mat{H}_{XX, q} &= \mat{H}_{a, q},
+    \\
+    \mat{H}_{yy, q} &= \mat{H}_{a, q} \otimes \mat{H}_{z, q},
+    \\
+    \mat{H}_q &=
+    \begin{bmatrix}
+      \mat{H}_{XX, q} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{H}_{XX, q} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{H}_{yy, q} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{yy, q} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{XX, q}
+    \end{bmatrix},
+    \\
+    \mat{F}_{a, \mathrm{new}}(\vec{\pi}) &=
+    \begin{bmatrix}
+      \pi_0 & 0 & \cdots & 0 \\
+      0 & \pi_1 & \ddots & \vdots \\
+      \vdots & \ddots & \ddots & 0 \\
+      0 & \cdots & 0 & \pi_{J - 1}
+    \end{bmatrix},
+    \\
+    \mat{F}_{a, \mathrm{cur}}(\vec{\pi}) &=
+    \mat{L}_a \mat{F}_{a, \mathrm{new}}(\vec{\pi}),
+    \\
+    \mat{F}_{z, \mathrm{new}}(\vec{\xi}) &=
+    \begin{bmatrix}
+      \xi_0 & 0 & \cdots & 0 \\
+      0 & \xi_1 & \ddots & \vdots \\
+      \vdots & \ddots & \ddots & 0 \\
+      0 & \cdots & 0 & \xi_{K - 1}
+    \end{bmatrix},
+    \\
+    \mat{F}_{z, \mathrm{cur}}(\vec{\xi}) &=
+    \mat{L}_z \mat{F}_{z, \mathrm{new}}(\vec{\xi}),
+    \\
+    \mat{F}_{XW, q}(\vec{\pi}) &=
+    \mat{F}_{a, q}(\vec{\pi}),
+    \\
+    \mat{F}_{yy, q}(\vec{\pi}, \vec{\xi}) &=
+    \mat{F}_{a, q} (\vec{\pi}) \otimes \mat{H}_{z, q}
+    + \mat{H}_{a, q} \otimes \mat{F}_{z, q}(\vec{\xi}),
+    \\
+    \mat{F}_{Xy, q}(\vec{\gamma}) &=
+    \mat{H}_{a, q} \otimes \vec{\sigma}_z(\vec{\gamma}),
+    \\
+    \mat{F}_{yw, q}(\vec{\rho}) &=
+    \mat{H}_{a, q} \otimes \left[
+      \vec{\zeta}_z \vec{\sigma}_z(\vec{\rho})
+    \right],
+    \\
+    \mat{F}_q &=
+    \begin{bmatrix}
+      \mat{F}_{XW, q}(- \vec{\omega} - \vec{\mu}) & \mat{0} & \mat{0}
+      & \mat{0} & \mat{0}
+      \\
+      \mat{F}_{XW, q}(\vec{\omega})
+      & \mat{F}_{XW, q}(- \vec{\mu})
+      & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{F}_{yy, q}(- \vec{\mu}, - \vec{\rho})
+      & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{F}_{yw, q}(\vec{\rho})
+      & \mat{F}_{yy, q}(- \vec{\mu}, - \vec{\gamma}) & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0}
+      & \mat{F}_{Xy, q}(\vec{\gamma})
+      & \mat{F}_{XW, q}(- \vec{\mu})
+    \end{bmatrix},
+    \\
+    \mat{T}_{a, q} &= \mat{H}_{a, q},
+    \\
+    \mat{T}_{XX, q} &= \mat{T}_{a, q},
+    \\
+    \mat{T}_{yX, q} &=
+    \mat{T}_{a, q} \otimes \vec{\zeta}_z,
+    \\
+    \mat{T}_q &=
+    \begin{bmatrix}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & - \mat{T}_{XX, q} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{T}_{yX, q} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+    \end{bmatrix},
+    \\
+    \mat{B}_{XW} &= \vec{b}_a \vec{\tau}_{X},
+    \\
+    \mat{B}_{Xy} &= \vec{b}_a \vec{\tau}_{y},
+    \\
+    \mat{B} &=
+    \begin{bmatrix}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{XW}
+      \\
+      \mat{B}_{XW} & \mat{B}_{XW} & \mat{B}_{Xy}
+      & \mat{B}_{Xy} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+    \end{bmatrix},
+  \end{align}
+  where $\otimes$ is the Kronecker product.
+  System \eqref{numerics_age_and_time_since_entry_structured} is then
+  \begin{multline}
+    \label{step_age_and_time_since_entry_structured}
+    \left[
+      \mat{H}_{\mathrm{new}}
+      - \frac{\Delta t}{2}
+      \left(
+        \mat{F}_{\mathrm{new}}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right] \vec{x}^{\ell}
+    \\
+    = \left[
+      \mat{H}_{\mathrm{cur}}
+      + \frac{\Delta t}{2}
+      \left(
+        \mat{F}_{\mathrm{cur}}
+        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right] \vec{x}^{\ell - 1}.
+  \end{multline}
+  For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
+  solver to find $\vec{x}^{\ell}$.
+\end{subequations}
+
+
+\appendix
+
+
+\section{Age-structured total-population model}
+\label{appendix_Floquet_theory}
+
+For the models with age structure, the total population follows the
+linear PDE
+\begin{subequations}
+  \begin{align}
+    N(t, 0)
+    &= b(t) \int_0^{+\infty} \nu(a) N(t, a) \md a,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    N(t, a)
+    &= - \mu(a) N(t, a).
+  \end{align}
+\end{subequations}
+
+Because $b(t)$ is periodic with period $T = \unit[1]{y}$, we used
+Floquet theory \autocite{parker_1992} to find the stable age
+distribution and the asymptotic population growth rate. Floquet theory
+requires the fundamental solution $\Phi(t, a, a')$ to
+\begin{subequations}
+  \begin{align}
+    \Phi(t, 0, a')
+    &= b(t) \int_0^{+\infty} \nu(a) \Phi(t, a, a') \md a,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    \Phi(t, a, a')
+    &= - \mu(a) \Phi(t, a, a'),
+    \\
+    \Phi(t_0, a, a')
+    &= \delta(a - a'),
+  \end{align}
+\end{subequations}
+where $\delta(x)$ is the Dirac delta.
+
+
+\subsection{Numerical method}
+
+To numerically solve the PDE for the fundamental solution, we used the
+Crank--Nicolson method on characteristics and the composite rectangle
+rule for the birth integral \autocite{milner_1992}.  Given the time
+step $\Delta t$, let $a_j = j \Delta t$ and $a'_k = k \Delta t$ for
+$j, k \in \{0, 1, 2, \ldots, J - 1\}$;
+$t^{\ell} = t_0 + \ell \Delta t$ for
+$\ell \in \{0, 1, \ldots, L - 1\}$;
+$\Phi_{j, k}^{\ell} \approx \Phi(t^{\ell}, a_j, a'_k)$;
+$b^{\ell - 1 / 2} = b(t^{\ell - 1 / 2})$; and
+$\pi_j = \pi(a_j)$ for $\pi \in \{\mu, \nu\}$.
+For each $j$ and $k$ the initial condition is
+\begin{subequations}
+  \label{numerics_age_structured_fundamental}
+  \begin{equation}
+    \Phi_{j, k}^0 =
+    \begin{cases}
+      1 & \text{if $j = k$}, \\
+      0 & \text{otherwise}.
+    \end{cases}
+  \end{equation}
+  For each $1 \leq j \leq J - 2$, each $k$, and each $\ell
+  \geq 1$, the Crank--Nicolson method on characteristics is
+  \begin{align}
+    \left(1 + \frac{\Delta t}{2} \mu_0\right)
+    \Phi_{0, k}^{\ell}
+    &= b^{\ell - 1 / 2}
+    \sum_{j = 0}^{J - 1}
+    \nu_j \frac{\Phi_{j, k}^{\ell} + \Phi_{j, k}^{\ell - 1}}{2}
+    \Delta t,
+    \\
+    \frac{\Phi_{j, k}^{\ell} - \Phi_{j - 1, k}^{\ell - 1}}{\Delta t}
+    &= - \frac{\mu_j \Phi_{j, k}^{\ell}
+      + \mu_{j - 1} \Phi_{j - 1, k}^{\ell - 1}}{2},
+    \\
+    \begin{split}
+      \frac{\Phi_{J - 1, k}^{\ell} - \Phi_{J - 2, k}^{\ell - 1}}{\Delta t}
+      &= - \frac{\mu_{J - 1} \Phi_{J - 1, k}^{\ell}
+        + \mu_{J - 2} \Phi_{J - 2, k}^{\ell - 1}}{2}
+      \\
+      & \quad {}
+      + \left(\frac{1}{\Delta t} - \frac{1}{2} \mu_{J - 1}\right)
+      \Phi_{J - 1, k}^{\ell - 1}.
+    \end{split}
+    \label{age_structured_pop_last}
+  \end{align}
+\end{subequations}
+In equation \eqref{age_structured_pop_last}, the final term prevents
+aging out of the last age group.
+
+
+\subsubsection{Linear algebra}
+
+Let
+\begin{subequations}
+  \begin{align}
+    \mat{\Phi}^{\ell}
+    &= \left[\Phi_{j, k}^{\ell}\right],
+    \\
+    \vec{b} &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}_{J \times 1},
+    \\
+    \vec{\tau} &=
+    \Delta t
+    \begin{bmatrix}
+      \nu_0 & \cdots & \nu_{J - 1}
+    \end{bmatrix},
+    \\
+    \mat{L} &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & 0 & 0
+      \\
+      1 & \ddots & & \vdots & \vdots
+      \\
+      0 & \ddots & \ddots & \vdots & \vdots
+      \\
+      \vdots & \ddots & \ddots & 0 & 0
+      \\
+      0 & \cdots & 0 & 1 & 1
+    \end{bmatrix}_{J \times J},
+    \\
+    \mat{H}_{\mathrm{new}} &= \mat{I}_{J \times J},
+    \\
+    \mat{H}_{\mathrm{cur}} &= \mat{L},
+    \\
+    \mat{F}_{\mathrm{new}} &=
+    \begin{bmatrix}
+      - \mu_0 & 0 & \cdots & 0
+      \\
+      0 & - \mu_1 & \ddots & \vdots
+      \\
+      \vdots & \ddots & \ddots & 0
+      \\
+      0 & \cdots & 0 & - \mu_{J - 1}
+    \end{bmatrix},
+    \\
+    \mat{F}_{\mathrm{cur}} &= \mat{L} \mat{F}_{\mathrm{new}},
+    \\
+    \mat{B} &= \vec{b} \vec{\tau}.
+  \end{align}
+  System \eqref{numerics_age_structured_fundamental} is then
+  \begin{multline}
+    \left[
+      \mat{H}_{\mathrm{new}}
+      - \frac{\Delta t}{2}
+      \left(
+        \mat{F}_{\mathrm{new}}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right]
+    \mat{\Phi}^{\ell}
+    \\
+    =
+    \left[
+      \mat{H}_{\mathrm{cur}}
+      + \frac{\Delta t}{2}
+      \left(
+        \mat{F}_{\mathrm{cur}}
+        + b^{\ell - 1 / 2} \mat{B}
+      \right)
+    \right]
+    \mat{\Phi}^{\ell - 1}.
+  \end{multline}
+  For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
+  solver to find $\mat{\Phi}^{\ell}$.
+\end{subequations}
+
+Using this numerical scheme, we solved for the monodromy matrix, the
+fundamental solution after one period:
+\begin{equation}
+  \mat{\Psi} = [\Psi_{j, k}] \approx [\Phi(t_0 + T, a_j, a'_k)].
+\end{equation}
+The monodromy matrix projects the population forward at by one period,
+\begin{equation}
+  \vec{n}(t_0 + T) = \mat{\Psi} \vec{n}(t_0),
+\end{equation}
+where $\vec{n}(t) = [N(t, a_j)]$.
+Using the monodromy matrix to repeatedly project the population
+forward gives
+\begin{equation}
+  \vec{n}(t_0 + m T)
+  = \mat{\Psi}^m \vec{n}(t_0)
+  \to \rho_{\mathrm{dom}}^m \vec{w}_{\mathrm{dom}}
+  = \me^{r m T} \vec{w}_{\mathrm{dom}}
+\end{equation}
+as $m \to +\infty$, where $\rho_{\mathrm{dom}}$ is the dominant eigenvalue,
+i.e.~the eigenvalue with largest magnitude, of $\mat{\Psi}$;
+the corresponding right eigenvector $\vec{w}_{\mathrm{dom}}$ is the
+stable age distribution; and
+\begin{equation}
+  r = \frac{1}{T} \log \rho_{\mathrm{dom}}
+\end{equation}
+is the asymptotic population growth rate.
+
+We used a nonlinear solver to find the mean birth rate $\bar{b}$ that
+gives population growth rate $r = 0$.
+
+
+\section{Jacobian}
+
+The numerical methods for the MSEIR models require solving
+\begin{multline}
+  \label{step}
+  \left[
+    \mat{H}_{\mathrm{new}}
+    - \frac{\Delta t}{2}
+    \left(
+      \mat{F}_{\mathrm{new}}
+      + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
+      + b^{\ell - 1 / 2} \mat{B}
+    \right)
+  \right]
+  \vec{x}^{\ell}
+  \\
+  =
+  \left[
+    \mat{H}_{\mathrm{cur}}
+    + \frac{\Delta t}{2}
+    \left(
+      \mat{F}_{\mathrm{cur}}
+      + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
+      + b^{\ell - 1 / 2} \mat{B}
+    \right)
+  \right]
+  \vec{x}^{\ell - 1},
+\end{multline}
+for $\vec{x}^{\ell}$ given $\vec{x}^{\ell - 1}$.
+Taking the derivative of this equation with respect to
+$\vec{x}^{\ell - 1}$ gives
+\begin{multline}
+  \left[
+    \mat{H}_{\mathrm{new}}
+    - \frac{\Delta t}{2}
+    \left(
+      \mat{F}_{\mathrm{new}}
+      + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
+      + \mat{T}_{\mathrm{new}} \vec{x}^{\ell} \vec{\beta}
+      + b^{\ell - 1 / 2} \mat{B}
+    \right)
+  \right]
+  \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
+  \\
+  = \mat{H}_{\mathrm{cur}}
+  + \frac{\Delta t}{2}
+  \left(
+    \mat{F}_{\mathrm{cur}}
+    + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
+    + \mat{T}_{\mathrm{cur}} \vec{x}^{\ell - 1} \vec{\beta}
+    + b^{\ell - 1 / 2} \mat{B}
+  \right),
+\end{multline}
+which, given $\vec{x}^{\ell}$ and $\vec{x}^{\ell - 1}$,
+we can solve for $\frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}$.
+The Jacobian is then
+\begin{equation}
+  \begin{split}
+    \mat{J}\left(t^{\ell - 1}, \vec{x}^{\ell}, \vec{x}^{\ell - 1}\right)
+    &= \frac{\md}{\md \vec{x}^{\ell - 1}}
+      \left(
+      \frac{\vec{x}^{\ell} - \vec{x}^{\ell - 1}}{\Delta t}
+      \right)
+    \\
+    &= \frac{1}{\Delta t} \left(
+      \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
+      - \mat{I}
+      \right).
+  \end{split}
+\end{equation}
+
+
+\section{Aggregated models}
+
+
+\subsection{Unstructured model}
+
+
+\subsubsection{Aggregating over immune state}
+
+Summing model \eqref{model_unstructured} over immune state gives
+\begin{equation}
+  \label{model_unstructured_agg_state}
+  \frac{\md}{\md t} N(t)
+  = b(t) N(t) - \mu N(t).
+\end{equation}
+
+Summing numerical method \eqref{numerics_unstructured} over
+immune state gives
+\begin{equation}
+  \label{numerics_unstructured_agg_state}
+  \frac{N^{\ell} - N^{\ell - 1}}{\Delta t}
+  = b^{\ell - 1 / 2} \frac{N^{\ell} + N^{\ell - 1}}{2}
+  - \mu \frac{N^{\ell} + N^{\ell - 1}}{2},
+\end{equation}
+which is identical to our Crank--Nicolson scheme applied to aggregated
+model \eqref{model_unstructured_agg_state}.
+
+
+\subsection{Age-structured model}
+
+
+\subsubsection{Aggregating over immune state}
+
+Summing model \eqref{model_age_structured} over immune state gives
+\begin{subequations}
+  \label{model_age_structured_agg_state}
+  \begin{align}
+    N(t, 0)
+    &= b(t) \int_0^{+\infty} \nu(a) N(t, a) \md a,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    N(t, a)
+    &= - \mu(a) N(t, a).
+  \end{align}
+\end{subequations}
+
+Summing numerical method \eqref{numerics_age_structured} over immune
+state gives
+\begin{subequations}
+  \label{numerics_age_structured_agg_state}
+  \begin{align}
+    \left[1 + \frac{\Delta t}{2} \mu_0\right] N_0^{\ell}
+    &= b^{\ell - 1 / 2}
+    \sum_{j = 0}^{J - 1} \nu_j \frac{N_j^{\ell} + N_j^{\ell - 1}}{2} \Delta t,
+    \\
+    \frac{N_j^{\ell} - N_{j - 1}^{\ell - 1}}{\Delta t}
+    &= - \frac{\mu_j N_j^{\ell} + \mu_{j - 1} N_{j - 1}^{\ell - 1}}{2},
+    \\
+    \begin{split}
+      \frac{N_{J - 1}^{\ell} - N_{J - 2}^{\ell - 1}}{\Delta t}
+      &= - \frac{\mu_{J - 1} N_{J - 1}^{\ell} + \mu_{J - 2} N_{J - 2}^{\ell - 1}}{2}
+      \\ & \quad {}
+      + \left[\frac{1}{\Delta t} - \frac{1}{2} \mu_{J - 1}\right]
+      N_{J - 1}^{\ell - 1},
+    \end{split}
+  \end{align}
+\end{subequations}
+which is identical to our Crank--Nicolson scheme applied to aggregated
+model \eqref{model_age_structured_agg_state}.
+
+
+\paragraph{Aggregating over age}
+
+Let
+\begin{subequations}
+  \begin{align}
+    \bar{N}(t)
+    &= \int_0^{+\infty} N(t, a) \md a,
+    \\
+    \bar{\mu}_N(t)
+    &= \frac{\int_0^{+\infty} \mu(a) N(t, a) \md a}
+    {\int_0^{+\infty} N(t, a) \md a},
+    \\
+    \bar{\nu}_N(t)
+    &= \frac{\int_0^{+\infty} \nu(a) N(t, a) \md a}
+    {\int_0^{+\infty} N(t, a) \md a}.
+  \end{align}
+\end{subequations}
+Then integrating model \eqref{model_age_structured_agg_state} over age
+gives
+\begin{equation}
+  \label{model_age_structured_agg_state_age}
+  \frac{\md}{\md t} \bar{N}(t)
+  = b(t) \bar{\nu}_N(t) \bar{N}(t)
+  - \bar{\mu}_N(t) \bar{N}(t).
+\end{equation}
+
+Let
+\begin{subequations}
+  \begin{align}
+    \bar{N}^{\ell}
+    &= \sum_{j = 0}^{J - 1} N_j^{\ell} \Delta t,
+    \\
+    \bar{\mu}^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \mu_j N_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} N_j^{\ell} \Delta t},
+    \\
+    \bar{\nu}^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \nu_j N_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} N_j^{\ell} \Delta t}.
+  \end{align}
+\end{subequations}
+Then summing numerical method
+\eqref{numerics_age_structured_agg_state} over age gives
+\begin{equation}
+  \label{numerics_age_structured_agg_state_age}
+  \frac{\bar{N}^{\ell} - \bar{N}^{\ell - 1}}{\Delta t}
+  = b^{\ell - 1 / 2}
+  \frac{\bar{\nu}^{\ell} \bar{N}^{\ell}
+    + \bar{\nu}^{\ell - 1} \bar{N}^{\ell - 1}}{2}
+  - \frac{\bar{\mu}^{\ell} \bar{N}^{\ell}
+    + \bar{\mu}^{\ell - 1} \bar{N}^{\ell - 1}}{2},
+\end{equation}
+which is identical to our Crank--Nicolson scheme applied to aggregated
+model \eqref{model_age_structured_agg_state_age}.
+
+
+\subsubsection{Aggregating over age}
+
+Let
+\begin{subequations}
+  \begin{align}
+    \bar{M}(t) &= \int_0^{+\infty} M(t, a) \md a,
+    \\
+    \bar{S}(t) &= \int_0^{+\infty} S(t, a) \md a,
+    \\
+    \bar{E}(t) &= \int_0^{+\infty} E(t, a) \md a,
+    \\
+    \bar{I}(t) &= \int_0^{+\infty} I(t, a) \md a,
+    \\
+    \bar{R}(t) &= \int_0^{+\infty} R(t, a) \md a,
+    \\
+    \bar{\mu}_X(t)
+    &= \frac{\int_0^{+\infty} \mu(a) X(t, a) \md a}
+    {\int_0^{+\infty} X(t, a) \md a},
+    \\
+    \bar{\nu}_X(t)
+    &= \frac{\int_0^{+\infty} \nu(a) X(t, a) \md a}
+    {\int_0^{+\infty} X(t, a) \md a}.
+  \end{align}
+\end{subequations}
+Then integrating model \eqref{model_age_structured} over age gives
+\begin{subequations}
+  \label{model_age_structured_agg_age}
+  \begin{align}
+    \frac{\md}{\md t} \bar{M}(t)
+    &= b(t) \bar{\nu}_R(t) \bar{R}(t)
+    - \left[\omega + \bar{\mu}_M(t)\right] \bar{M}(t),
+    \\
+    \frac{\md}{\md t} \bar{S}(t)
+    &= b(t) \left[
+      \bar{\nu}_N(t) \bar{N}(t)
+      - \bar{\nu}_R(t) \bar{R}(t)
+    \right]
+    + \omega \bar{M}(t)
+    - \left[\lambda(t) + \bar{\mu}_S(t)\right] \bar{S}(t),
+    \\
+    \frac{\md}{\md t} \bar{E}(t)
+    &= \lambda(t) \bar{S}(t)
+    - \left[\rho + \bar{\mu}_E(t)\right] \bar{E}(t),
+    \\
+    \frac{\md}{\md t} \bar{I}(t)
+    &= \rho \bar{E}(t)
+    - \left[\gamma + \bar{\mu}_I(t)\right] \bar{I}(t),
+    \\
+    \frac{\md}{\md t} \bar{R}(t)
+    &= \gamma \bar{I}(t)
+    - \bar{\mu}_R(t) \bar{R}(t).
+  \end{align}
+\end{subequations}
+
+Let
+\begin{subequations}
+  \begin{align}
+    \bar{M}^{\ell}
+    &= \sum_{j = 0}^{J - 1} M_j^{\ell} \Delta t,
+    \\
+    \bar{S}^{\ell}
+    &= \sum_{j = 0}^{J - 1} S_j^{\ell} \Delta t,
+    \\
+    \bar{E}^{\ell}
+    &= \sum_{j = 0}^{J - 1} E_j^{\ell} \Delta t,
+    \\
+    \bar{I}^{\ell}
+    &= \sum_{j = 0}^{J - 1} I_j^{\ell} \Delta t,
+    \\
+    \bar{R}^{\ell}
+    &= \sum_{j = 0}^{J - 1} R_j^{\ell} \Delta t,
+    \\
+    \bar{\mu}_X^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \mu_j X_j^{\ell} \Delta t}
+      {\sum_{j = 0}^{J - 1} X_j^{\ell} \Delta t},
+    \\
+    \bar{\nu}_X^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \nu_j X_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} X_j^{\ell} \Delta t}.
+  \end{align}
+\end{subequations}
+Then summing numerical method
+\eqref{numerics_age_structured} over age gives
+\begin{subequations}
+  \label{numerics_age_structured_agg_age}
+  \begin{align}
+    \begin{split}
+      \frac{\bar{M}^{\ell} - \bar{M}^{\ell - 1}}{\Delta t}
+      &= - \frac{(\omega + \bar{\mu}_M^{\ell}) \bar{M}^{\ell}
+        + (\omega + \bar{\mu}_M^{\ell - 1}) \bar{M}^{\ell - 1}}{2}
+      \\ & \quad {}
+      + b^{\ell - 1 / 2}
+      \frac{\bar{\nu}_R^{\ell} \bar{R}^{\ell}
+        + \bar{\nu}_R^{\ell - 1} \bar{R}^{\ell - 1}}{2},
+    \end{split}
+    \\
+    \begin{split}
+      \frac{\bar{S}^{\ell} - \bar{S}^{\ell - 1}}{\Delta t}
+      &= \omega \frac{\bar{M}^{\ell} + \bar{M}^{\ell - 1}}{2}
+      \\ & \quad {}
+      - \frac{(\lambda^{\ell} + \bar{\mu}_S^{\ell}) \bar{S}^{\ell}
+        + (\lambda^{\ell - 1} + \bar{\mu}_S^{\ell - 1}) \bar{S}^{\ell - 1}}{2}
+      \\ & \quad {}
+      + b^{\ell - 1 / 2}
+      \frac{\bar{\nu}_N^{\ell} \bar{N}^{\ell}
+        - \bar{\nu}_R^{\ell} \bar{R}^{\ell}
+        + \bar{\nu}_N^{\ell - 1} \bar{N}^{\ell - 1}
+        - \bar{\nu}_N^{\ell - 1} \bar{R}^{\ell - 1}}{2},
+    \end{split}
+    \\
+    \frac{\bar{E}^{\ell} - \bar{E}^{\ell - 1}}{\Delta t}
+    &= \frac{\lambda^{\ell} \bar{S}^{\ell}
+      + \lambda^{\ell - 1} \bar{S}^{\ell - 1}}{2}
+    - \frac{(\rho + \bar{\mu}_E^{\ell}) \bar{E}^{\ell}
+      + (\rho + \bar{\mu}_E^{\ell - 1}) \bar{E}^{\ell - 1}}{2},
+    \\
+    \frac{\bar{I}^{\ell} - \bar{I}^{\ell - 1}}{\Delta t}
+    &= \rho \frac{\bar{E}^{\ell} + \bar{E}^{\ell - 1}}{2}
+    - \frac{(\gamma + \bar{\mu}_I^{\ell}) \bar{I}^{\ell}
+      + (\gamma + \bar{\mu}_I^{\ell - 1}) \bar{I}^{\ell - 1}}{2},
+    \\
+    \frac{\bar{R}^{\ell} - \bar{R}^{\ell - 1}}{\Delta t}
+    &= \gamma \frac{\bar{I}^{\ell} + \bar{I}^{\ell - 1}}{2}
+    - \frac{\bar{\mu}_R^{\ell} \bar{R}^{\ell}
+      + \bar{\mu}_R^{\ell - 1} \bar{R}^{\ell - 1}}{2},
+  \end{align}
+\end{subequations}
+which is identical to our Crank--Nicolson scheme applied to aggregated
+model \eqref{model_age_structured_agg_age}.
+
+
+\paragraph{Aggregating over immune state}
+
+Let
+\begin{equation}
+  \bar{N}(t)
+  = \bar{M}(t) + \bar{S}(t) + \bar{E}(t) + \bar{I}(t) + \bar{R}(t).
+\end{equation}
+Then summing model \eqref{model_age_structured_agg_age} over immune
+state gives
+\begin{equation}
+  \label{model_age_structured_agg_age_state}
+  \frac{\md}{\md t} \bar{N}(t)
+  = b(t) \bar{\nu}_N(t) \bar{N}(t)
+  - \bar{\mu}_N(t) \bar{N}(t).
+\end{equation}
+
+
+Let
+\begin{equation}
+  \bar{N}^{\ell}
+  = \bar{M}^{\ell} + \bar{S}^{\ell} + \bar{E}^{\ell}
+ + \bar{I}^{\ell} + \bar{R}^{\ell}.
+\end{equation}
+Then summing numerical method
+\eqref{numerics_age_structured_agg_age} over immune state gives
+\begin{equation}
+  \label{numerics_age_structured_agg_age_state}
+  \frac{\bar{N}^{\ell} - \bar{N}^{\ell - 1}}{\Delta t}
+  = b^{\ell - 1 / 2}
+  \frac{\bar{\nu}_N^{\ell} \bar{N}^{\ell}
+  + \bar{\nu}_N^{\ell - 1} \bar{N}^{\ell - 1}}{2}
+  - \frac{\bar{\mu}_N^{\ell} \bar{N}^{\ell}
+  + \bar{\mu}_N^{\ell - 1} \bar{N}^{\ell - 1}}{2},
+\end{equation}
+which is identical to our Crank--Nicolson scheme applied to aggregated
+model \eqref{model_age_structured_agg_age_state}.
+
+
+\subsection{Time-since-entry-structured model}
+
+
 \subsubsection{Aggregating over time since entry}
+
+Let
+\begin{subequations}
+  \begin{align}
+    M(t)
+    &= \int_0^{+\infty} m(t, z) \md z,
+    \\
+    E(t)
+    &= \int_0^{+\infty} e(t, z) \md z,
+    \\
+    I(t)
+    &= \int_0^{+\infty} i(t, z) \md z,
+    \\
+    \bar{\omega}(t)
+    &= \frac{\int_0^{+\infty} \omega(z) m(t, z) \md z}
+      {\int_0^{+\infty} m(t, z) \md z},
+    \\
+    \bar{\rho}(t)
+    &= \frac{\int_0^{+\infty} \rho(z) e(t, z) \md z}
+      {\int_0^{+\infty} e(t, z) \md z},
+    \\
+    \bar{\gamma}(t)
+    &= \frac{\int_0^{+\infty} \gamma(z) i(t, z) \md z}
+      {\int_0^{+\infty} i(t, z) \md z}.
+  \end{align}
+\end{subequations}
+Then integrating model \eqref{model_time_since_entry_structured} over
+time since entry gives
+\begin{subequations}
+  \label{model_time_since_entry_structured_agg_tse}
+  \begin{align}
+    \frac{\md}{\md t} M(t)
+    &= b(t) R(t)
+    - \left[\bar{\omega}(t) + \mu\right] M(t),
+    \\
+    \frac{\md}{\md t} S(t)
+    &= b(t) \left[N(t) - R(t)\right]
+    + \bar{\omega}(t) M(t)
+    - [\lambda(t) + \mu] S(t),
+    \\
+    \frac{\md}{\md t} E(t)
+    &= \lambda(t) S(t)
+    - \left[\bar{\rho}(t) + \mu\right] E(t),
+    \\
+    \frac{\md}{\md t} I(t)
+    &= \bar{\rho}(t) E(t)
+    - \left[\bar{\gamma}(t) + \mu\right] I(t),
+    \\
+    \frac{\md}{\md t} R(t)
+    &= \bar{\gamma}(t) I(t)
+    - \mu R(t).
+  \end{align}
+\end{subequations}
+
+Let
+\begin{subequations}
+  \begin{align}
+    M^{\ell}
+    &= \sum_{k = 0}^{K - 1} m_k^{\ell} \Delta t,
+    \\
+    E^{\ell}
+    &= \sum_{k = 0}^{K - 1} e_k^{\ell} \Delta t,
+    \\
+    I^{\ell}
+    &= \sum_{k = 0}^{K - 1} i_k^{\ell} \Delta t,
+    \\
+    \bar{\omega}^{\ell}
+    &= \frac{\sum_{k = 0}^{K - 1} \omega_k m_k^{\ell} \Delta t}
+      {\sum_{k = 0}^{K - 1} m_k^{\ell} \Delta t},
+    \\
+    \bar{\rho}^{\ell}
+    &= \frac{\sum_{k = 0}^{K - 1} \rho_k e_k^{\ell} \Delta t}
+      {\sum_{k = 0}^{K - 1} e_k^{\ell} \Delta t},
+    \\
+    \bar{\gamma}^{\ell}
+    &= \frac{\sum_{k = 0}^{K - 1} \gamma_k i_k^{\ell} \Delta t}
+      {\sum_{k = 0}^{K - 1} i_k^{\ell} \Delta t}.
+  \end{align}
+\end{subequations}
+Then summing numerical method
+\eqref{numerics_time_since_entry_structured} over time since entry
+gives
+\begin{subequations}
+  \label{numerics_time_since_entry_structured_agg_tse}
+  \begin{align}
+    \frac{M^{\ell}  - M^{\ell - 1}}{\Delta t}
+    &= - \frac{(\bar{\omega}^{\ell} + \mu) M^{\ell}
+      + (\bar{\omega}^{\ell - 1} + \mu) M^{\ell - 1}}{2}
+      + b^{\ell - 1 / 2} \frac{R^{\ell} + R^{\ell - 1}}{2},
+    \\
+    \begin{split}
+      \frac{S^{\ell} - S^{\ell - 1}}{\Delta t}
+      &= b^{\ell - 1 / 2}
+      \frac{N^{\ell} - R^{\ell} + N^{\ell - 1} - R^{\ell - 1}}{2}
+      + \frac{\bar{\omega}^{\ell} M^{\ell}
+        + \bar{\omega}^{\ell - 1} M^{\ell - 1}}{2}
+      \\ & \quad {}
+      - \frac{(\lambda^{\ell} + \mu) S^{\ell}
+        + (\lambda^{\ell - 1} + \mu) S^{\ell - 1}}{2},
+    \end{split}
+    \\
+    \frac{E^{\ell}  - E^{\ell - 1}}{\Delta t}
+    &= - \frac{(\bar{\rho}^{\ell} + \mu) E^{\ell}
+      + (\bar{\rho}^{\ell - 1} + \mu) E^{\ell - 1}}{2}
+      + \frac{\lambda^{\ell} S^{\ell}
+      + \lambda^{\ell - 1} S^{\ell - 1}}{2},
+    \\
+    \frac{I^{\ell}  - I^{\ell - 1}}{\Delta t}
+    &= - \frac{(\bar{\gamma}^{\ell} + \mu) I^{\ell}
+      + (\bar{\gamma}^{\ell - 1} + \mu) I^{\ell - 1}}{2}
+      + \frac{\bar{\rho}^{\ell} E^{\ell}
+      + \bar{\rho}^{\ell - 1} E^{\ell - 1}}{2},
+    \\
+    \frac{R^{\ell} - R^{\ell - 1}}{\Delta t}
+    &= \frac{\bar{\gamma}^{\ell} I^{\ell}
+      + \bar{\gamma}^{\ell - 1} I^{\ell - 1}}{2}
+      - \mu \frac{R^{\ell} + R^{\ell - 1}}{2},
+  \end{align}
+\end{subequations}
+which is identical to our Crank--Nicolson scheme applied to aggregated
+model \eqref{model_time_since_entry_structured_agg_tse}.
+
+
+\paragraph{Aggregating over immune state}
+
+Let
+\begin{equation}
+  N(t)
+  = M(t) + S(t) + E(t) + I(t) + R(t).
+\end{equation}
+Then summing model \eqref{model_time_since_entry_structured_agg_tse}
+over immune state gives
+\begin{equation}
+  \label{model_time_since_entry_structured_agg_tse_state}
+  \frac{\md}{\md t} N(t)
+  = b(t) N(t) - \mu N(t).
+\end{equation}
+
+Let
+\begin{equation}
+  N^{\ell}
+  = M^{\ell} + S^{\ell} + E^{\ell} + I^{\ell} + R^{\ell}.
+\end{equation}
+Then summing numerical method
+\eqref{numerics_time_since_entry_structured_agg_tse} over immune state
+gives
+\begin{equation}
+  \label{numerics_time_since_entry_structured_agg_tse_state}
+  \frac{N^{\ell} - N^{\ell - 1}}{\Delta t}
+  = b^{\ell - 1 / 2} \frac{N^{\ell} + N^{\ell - 1}}{2}
+  - \mu \frac{N^{\ell} + N^{\ell - 1}}{2},
+\end{equation}
+which is identical to our Crank--Nicolson scheme applied to aggregated
+model \eqref{model_time_since_entry_structured_agg_tse_state}.
+
+
+
+\subsection{Age- and time-since-entry-structured model}
+
+
+\subsubsection{Aggregating over time since entry}
+
+Let
+\begin{subequations}
+  \begin{align}
+    E(t, a)
+    &= \int_0^{+\infty} e(t, a, z) \md z,
+    \\
+    I(t, a)
+    &= \int_0^{+\infty} i(t, a, z) \md z,
+    \\
+    \bar{\rho}(t, a)
+    &= \frac{\int_0^{+\infty} \rho(z) e(t, a, z) \md z}
+      {\int_0^{+\infty} e(t, a, z) \md z},
+    \\
+    \bar{\gamma}(t, a)
+    &= \frac{\int_0^{+\infty} \gamma(z) i(t, a, z) \md z}
+      {\int_0^{+\infty} i(t, a, z) \md z}.
+  \end{align}
+\end{subequations}
+Then integrating model
+\eqref{model_age_and_time_since_entry_structured} over time since
+entry gives
+\begin{subequations}
+  \label{model_age_and_time_since_entry_structured_agg_tse}
+  \begin{align}
+    M(t, 0) &=
+    b(t) \int_0^{+\infty} \nu(a) R(t, a) \md a,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    M(t, a) &=
+    - \omega(a) M(t, a) - \mu(a) M(t, a),
+    \\
+    S(t, 0) &=
+    b(t) \int_0^{+\infty} \nu(a) \left[N(t, a) - R(t, a)\right] \md a,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    S(t, a) &=
+    \omega(a) M(t, a) - \lambda(t) S(t, a) - \mu(a) S(t, a),
+    \\
+    E(t, 0) &= 0,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    E(t, a)
+    &= \lambda(t) S(t, a)
+    - \bar{\rho}(t, a) E(t, a) - \mu(a) E(t, a),
+    \\
+    I(t, 0) &= 0,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    I(t, a)
+    &= \bar{\rho}(t, a) E(t, a)
+    - \bar{\gamma}(t, a) I(t, a) - \mu(a) I(t, a),
+    \\
+    R(t, 0) &= 0,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    R(t, a)
+    &= \bar{\gamma}(t, a) I(t, a) - \mu(a) R(t, a).
+  \end{align}
+\end{subequations}
 
 Let
 \begin{subequations}
@@ -2542,11 +2588,32 @@ entry gives
     \end{split}
   \end{align}
 \end{subequations}
-which is identical to our Crank--Nicolson scheme applied to model
-\eqref{model_age_and_time_since_entry_structured_agg_tse}.
+which is identical to our Crank--Nicolson scheme applied to aggregated
+model \eqref{model_age_and_time_since_entry_structured_agg_tse}.
 
 
 \paragraph{Aggregating over immune state}
+
+Let
+\begin{equation}
+  N(t, a)
+  = M(t, a) + S(t, a) + E(t, a) + I(t, a) + R(t, a).
+\end{equation}
+Then summing model
+\eqref{model_age_and_time_since_entry_structured_agg_tse} over immune
+state gives
+\begin{subequations}
+  \label{model_age_and_time_since_entry_structured_agg_tse_state}
+  \begin{align}
+    N(t, 0)
+    &= b(t) \int_0^{+\infty} \nu(a) N(t, a) \md a,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial a}\right)
+    N(t, a)
+    &= - \mu(a) N(t, a).
+  \end{align}
+\end{subequations}
 
 Let
 \begin{equation}
@@ -2578,11 +2645,36 @@ immune state gives
     \end{split}
   \end{align}
 \end{subequations}
-which is identical to our Crank--Nicolson scheme applied to model
-\eqref{model_age_and_time_since_entry_structured_agg_tse_state}.
+which is identical to our Crank--Nicolson scheme applied to aggregated
+model \eqref{model_age_and_time_since_entry_structured_agg_tse_state}.
 
 
 \subparagraph{Aggregating over age}
+
+Let
+\begin{subequations}
+  \begin{align}
+    \bar{N}(t)
+    &= \int_0^{+\infty} N(t, a) \md a,
+    \\
+    \bar{\mu}_N(t)
+    &= \frac{\int_0^{+\infty} \mu(a) N(t, a) \md a}
+    {\int_0^{+\infty} N(t, a) \md a},
+    \\
+    \bar{\nu}_N(t)
+    &= \frac{\int_0^{+\infty} \nu(a) N(t, a) \md a}
+    {\int_0^{+\infty} N(t, a) \md a}.
+  \end{align}
+\end{subequations}
+Then integrating model
+\eqref{model_age_and_time_since_entry_structured_agg_tse_state} over
+age gives
+\begin{equation}
+  \label{model_age_and_time_since_entry_structured_agg_tse_state_age}
+  \frac{\md}{\md t} \bar{N}(t)
+  = b(t) \bar{\nu}_N(t) \bar{N}(t)
+  - \bar{\mu}_N(t) \bar{N}(t).
+\end{equation}
 
 Let
 \begin{subequations}
@@ -2610,11 +2702,83 @@ over age gives
   - \frac{\bar{\mu}_N^{\ell} \bar{N}^{\ell}
     + \bar{\mu}_N^{\ell - 1} \bar{N}^{\ell - 1}}{2},
 \end{equation}
-which is identical to our Crank--Nicolson scheme applied to model
+which is identical to our Crank--Nicolson scheme applied to aggregated
+model
 \eqref{model_age_and_time_since_entry_structured_agg_tse_state_age}.
 
 
 \paragraph{Aggregating over age}
+
+Let
+\begin{subequations}
+  \begin{align}
+    \bar{M}(t) &= \int_0^{+\infty} M(t, a) \md a,
+    \\
+    \bar{S}(t) &= \int_0^{+\infty} S(t, a) \md a,
+    \\
+    \bar{E}(t) &= \int_0^{+\infty} E(t, a) \md a,
+    \\
+    \bar{I}(t) &= \int_0^{+\infty} I(t, a) \md a,
+    \\
+    \bar{R}(t) &= \int_0^{+\infty} R(t, a) \md a,
+    \\
+    \bar{\mu}_X(t)
+    &= \frac{\int_0^{+\infty} \mu(a) X(t, a) \md a}
+    {\int_0^{+\infty} X(t, a) \md a},
+    \\
+    \bar{\nu}_X(t)
+    &= \frac{\int_0^{+\infty} \nu(a) X(t, a) \md a}
+    {\int_0^{+\infty} X(t, a) \md a},
+    \\
+    \bar{\omega}(t)
+    &= \frac{\int_0^{+\infty} \omega(a) M(t, a) \md a}
+    {\int_0^{+\infty} M(t, a) \md a},
+    \\
+    \bar{\bar{\rho}}(t)
+    &= \frac{\int_0^{+\infty} \bar{\rho}(t, a) E(t, a) \md a}
+    {\int_0^{+\infty} E(t, a) \md a},
+    \\
+    \bar{\bar{\gamma}}(t)
+    &= \frac{\int_0^{+\infty} \bar{\gamma}(t, a) I(t, a) \md a}
+    {\int_0^{+\infty} I(t, a) \md a}.
+  \end{align}
+\end{subequations}
+Then integrating model
+\eqref{model_age_and_time_since_entry_structured_agg_tse} over age
+gives
+\begin{subequations}
+  \label{model_age_and_time_since_entry_structured_agg_tse_age}
+  \begin{align}
+    \frac{\md}{\md t} \bar{M}(t)
+    &= b(t) \bar{\nu}_R(t) \bar{R}(t)
+    - \left[\bar{\omega}(t) + \bar{\mu}_M(t)\right]
+    \bar{M}(t),
+    \\
+    \begin{split}
+      \frac{\md}{\md t} \bar{S}(t)
+      &= b(t) \left[\bar{\nu}_N(t) \bar{N}(t)
+        - \bar{\nu}_R(t) \bar{R}(t)\right]
+      \\ & \quad {}
+      + \bar{\omega}(t) \bar{M}(t)
+      - \lambda(t) \bar{S}(t)
+      - \bar{\mu}_S(t) \bar{S}(t),
+    \end{split}
+    \\
+    \frac{\md}{\md t} \bar{E}(t)
+    &= \lambda(t) \bar{S}(t)
+    - \bar{\bar{\rho}}(t) \bar{E}(t)
+    - \bar{\mu}_E(t) \bar{E}(t),
+    \\
+    \frac{\md}{\md t} \bar{I}(t)
+    &= \bar{\bar{\rho}}(t) \bar{E}(t)
+      - \bar{\bar{\gamma}}(t) \bar{I}(t)
+      - \bar{\mu}_I(t) \bar{I}(t),
+    \\
+    \frac{\md}{\md t} \bar{R}(t)
+    &= \bar{\bar{\gamma}}(t) \bar{I}(t)
+    - \bar{\mu}_R(t) \bar{R}(t).
+  \end{align}
+\end{subequations}
 
 Let
 \begin{subequations}
@@ -2705,11 +2869,27 @@ age gives
     {2},
   \end{align}
 \end{subequations}
-which is identical to our Crank--Nicolson scheme applied to model
-\eqref{model_age_and_time_since_entry_structured_agg_tse_age}.
+which is identical to our Crank--Nicolson scheme applied to aggregated
+model \eqref{model_age_and_time_since_entry_structured_agg_tse_age}.
 
 
 \subparagraph{Aggregating over immune state}
+
+Let
+\begin{equation}
+  \bar{N}(t)
+  = \bar{M}(t) + \bar{S}(t) + \bar{E}(t)
+  + \bar{I}(t) + \bar{R}(t).
+\end{equation}
+Then summing model
+\eqref{model_age_and_time_since_entry_structured_agg_tse_age} over
+immune state gives
+\begin{equation}
+  \label{model_age_and_time_since_entry_structured_agg_tse_age_state}
+  \frac{\md}{\md t} \bar{N}(t)
+  = b(t) \bar{\nu}_N(t) \bar{N}(t)
+  - \bar{\mu}_N(t) \bar{N}(t).
+\end{equation}
 
 Let
 \begin{equation}
@@ -2729,247 +2909,418 @@ immune state gives
   - \frac{\bar{\mu}_N^{\ell} \bar{N}^{\ell}
     + \bar{\mu}_N^{\ell - 1} \bar{N}^{\ell - 1}}{2},
 \end{equation}
-which is identical to our Crank--Nicolson scheme applied to model
+which is identical to our Crank--Nicolson scheme applied to aggregated
+model
 \eqref{model_age_and_time_since_entry_structured_agg_tse_age_state}.
 
 
-\subsubsection{Linear algebra}
+\subsubsection{Aggregating over age}
 
-For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
+Let
 \begin{subequations}
   \begin{align}
-    \vec{x}^{\ell} &=
-    \begin{bmatrix}
-      M_0^{\ell} \\ \vdots \\ M_{J - 1}^{\ell} \\
-      S_0^{\ell} \\ \vdots \\ S_{J - 1}^{\ell} \\
-      e_{0, 0}^{\ell} \\ \vdots \\ e_{0, K - 1}^{\ell} \\ \vdots
-      \\ e_{J - 1, 0}^{\ell} \\ \vdots \\ e_{J - 1, K - 1}^{\ell} \\
-      i_{0, 0}^{\ell} \\ \vdots \\ i_{0, K - 1}^{\ell} \\ \vdots
-      \\ i_{J - 1, 0}^{\ell} \\ \vdots \\ i_{J - 1, K - 1}^{\ell} \\
-      R_0^{\ell} \\ \vdots \\ R_{J - 1}^{\ell}
-    \end{bmatrix},
+    \bar{M}(t) &= \int_0^{+\infty} M(t, a) \md a,
     \\
-    \vec{b}_a &=
-    \frac{1}{\Delta t}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix}_{J \times 1},
+    \bar{S}(t) &= \int_0^{+\infty} S(t, a) \md a,
     \\
-    \vec{\zeta}_z &=
-    \frac{1}{\Delta t}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix}_{K \times 1},
+    \bar{e}(t, z) &= \int_0^{+\infty} e(t, a, z) \md a,
     \\
-    \vec{\iota}_a &=
-    \Delta t
-    \begin{bmatrix}
-      1 & \cdots & 1
-    \end{bmatrix}_{1 \times J},
+    \bar{i}(t, z) &= \int_0^{+\infty} i(t, a, z) \md a,
     \\
-    \vec{\iota}_z &=
-    \Delta t
-    \begin{bmatrix}
-      1 & \cdots & 1
-    \end{bmatrix}_{1 \times K},
+    \bar{R}(t) &= \int_0^{+\infty} R(t, a) \md a,
     \\
-    \vec{\iota}_{\mathrm{y}} &=
-    \vec{\iota}_a \otimes \vec{\iota}_z,
+    \bar{\mu}_X(t)
+    &= \frac{\int_0^{+\infty} \mu(a) X(t, a) \md a}
+    {\int_0^{+\infty} X(t, a) \md a},
     \\
-    \vec{\sigma}_z(\vec{\xi}) &=
-    \Delta t
-    \begin{bmatrix}
-      \xi_0 & \cdots & \xi_{K - 1}
-    \end{bmatrix},
+    \bar{\mu}_y(t, z)
+    &= \frac{\int_0^{+\infty} \mu(a) y(t, a, z) \md a}
+    {\int_0^{+\infty} y(t, a, z) \md a},
     \\
-    \vec{\tau}_a &=
-    \Delta t
-    \begin{bmatrix}
-      \nu_0 & \cdots & \nu_{J - 1}
-    \end{bmatrix},
+    \bar{\nu}_X(t)
+    &= \frac{\int_0^{+\infty} \nu(a) X(t, a) \md a}
+    {\int_0^{+\infty} X(t, a) \md a},
     \\
-    \vec{\tau}_{\mathrm{X}} &= \vec{\tau}_a,
-    \\
-    \vec{\tau}_{\mathrm{y}} &=
-    \vec{\tau}_a \otimes \vec{\iota}_z,
-    \\
-    \vec{\beta} &=
-    \beta
-    \begin{bmatrix}
-      \vec{0}_{\mathrm{X}} & \vec{0}_{\mathrm{X}}
-      & \vec{0}_{\mathrm{y}} & \vec{\iota}_{\mathrm{y}}
-      & \vec{0}_{\mathrm{X}}
-    \end{bmatrix},
-    \\
-    \lambda^{\ell} &=
-    \vec{\beta} \vec{x}^{\ell},
-    \\
-    \mat{L}_a &=
-    \begin{bmatrix}
-      0 & \cdots & \cdots & 0 & 0 \\
-      1 & \ddots & & \vdots & \vdots \\
-      0 & \ddots & \ddots & \vdots & \vdots \\
-      \vdots & \ddots & \ddots & 0 & 0 \\
-      0 & \cdots & 0 & 1 & 1
-    \end{bmatrix}_{J \times J},
-    \\
-    \mat{L}_z &=
-    \begin{bmatrix}
-      0 & \cdots & \cdots & 0 & 0 \\
-      1 & \ddots & & \vdots & \vdots \\
-      0 & \ddots & \ddots & \vdots & \vdots \\
-      \vdots & \ddots & \ddots & 0 & 0 \\
-      0 & \cdots & 0 & 1 & 1
-    \end{bmatrix}_{K \times K},
-    \\
-    \mat{H}_{a, \mathrm{new}} &= \mat{I}_{J \times J},
-    \\
-    \mat{H}_{a, \mathrm{cur}} &= \mat{L}_a,
-    \\
-    \mat{H}_{z, \mathrm{new}} &= \mat{I}_{K \times K},
-    \\
-    \mat{H}_{z, \mathrm{cur}} &= \mat{L}_z,
-    \\
-    \mat{H}_{\mathrm{XX}, q} &= \mat{H}_{a, q},
-    \\
-    \mat{H}_{\mathrm{yy}, q} &= \mat{H}_{a, q} \otimes \mat{H}_{z, q},
-    \\
-    \mat{H}_q &=
-    \begin{bmatrix}
-      \mat{H}_{\mathrm{XX}, q} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{H}_{\mathrm{XX}, q} & \mat{0} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{0} & \mat{H}_{\mathrm{yy}, q} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{\mathrm{yy}, q} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{\mathrm{XX}, q}
-    \end{bmatrix},
-    \\
-    \mat{F}_{a, \mathrm{new}}(\vec{\pi}) &=
-    \begin{bmatrix}
-      \pi_0 & 0 & \cdots & 0 \\
-      0 & \pi_1 & \ddots & \vdots \\
-      \vdots & \ddots & \ddots & 0 \\
-      0 & \cdots & 0 & \pi_{J - 1}
-    \end{bmatrix},
-    \\
-    \mat{F}_{a, \mathrm{cur}}(\vec{\pi}) &=
-    \mat{L}_a \mat{F}_{a, \mathrm{new}}(\vec{\pi}),
-    \\
-    \mat{F}_{z, \mathrm{new}}(\vec{\xi}) &=
-    \begin{bmatrix}
-      \xi_0 & 0 & \cdots & 0 \\
-      0 & \xi_1 & \ddots & \vdots \\
-      \vdots & \ddots & \ddots & 0 \\
-      0 & \cdots & 0 & \xi_{K - 1}
-    \end{bmatrix},
-    \\
-    \mat{F}_{z, \mathrm{cur}}(\vec{\xi}) &=
-    \mat{L}_z \mat{F}_{z, \mathrm{new}}(\vec{\xi}),
-    \\
-    \mat{F}_{\mathrm{XW}, q}(\vec{\pi}) &=
-    \mat{F}_{a, q}(\vec{\pi}),
-    \\
-    \mat{F}_{\mathrm{yy}, q}(\vec{\pi}, \vec{\xi}) &=
-    \mat{F}_{a, q} (\vec{\pi}) \otimes \mat{H}_{z, q}
-    + \mat{H}_{a, q} \otimes \mat{F}_{z, q}(\vec{\xi}),
-    \\
-    \mat{F}_{\mathrm{Xy}, q}(\vec{\gamma}) &=
-    \mat{H}_{a, q} \otimes \vec{\sigma}_z(\vec{\gamma}),
-    \\
-    \mat{F}_{\mathrm{yw}, q}(\vec{\rho}) &=
-    \mat{H}_{a, q} \otimes \left[
-      \vec{\zeta}_z \vec{\sigma}_z(\vec{\rho})
-    \right],
-    \\
-    \mat{F}_q &=
-    \begin{bmatrix}
-      \mat{F}_{\mathrm{XW}, q}(- \vec{\omega} - \vec{\mu}) & \mat{0} & \mat{0}
-      & \mat{0} & \mat{0}
-      \\
-      \mat{F}_{\mathrm{XW}, q}(\vec{\omega})
-      & \mat{F}_{\mathrm{XW}, q}(- \vec{\mu})
-      & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{F}_{\mathrm{yy}, q}(- \vec{\mu}, - \vec{\rho})
-      & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{F}_{\mathrm{yw}, q}(\vec{\rho})
-      & \mat{F}_{\mathrm{yy}, q}(- \vec{\mu}, - \vec{\gamma}) & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0}
-      & \mat{F}_{\mathrm{Xy}, q}(\vec{\gamma})
-      & \mat{F}_{\mathrm{XW}, q}(- \vec{\mu})
-    \end{bmatrix},
-    \\
-    \mat{T}_{a, q} &= \mat{H}_{a, q},
-    \\
-    \mat{T}_{\mathrm{XX}, q} &= \mat{T}_{a, q},
-    \\
-    \mat{T}_{\mathrm{yX}, q} &=
-    \mat{T}_{a, q} \otimes \vec{\zeta}_z,
-    \\
-    \mat{T}_q &=
-    \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & - \mat{T}_{\mathrm{XX}, q} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{T}_{\mathrm{yX}, q} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-    \end{bmatrix},
-    \\
-    \mat{B}_{\mathrm{XW}} &= \vec{b}_a \vec{\tau}_{\mathrm{X}},
-    \\
-    \mat{B}_{\mathrm{Xy}} &= \vec{b}_a \vec{\tau}_{\mathrm{y}},
-    \\
-    \mat{B} &=
-    \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{\mathrm{XW}}
-      \\
-      \mat{B}_{\mathrm{XW}} & \mat{B}_{\mathrm{XW}} & \mat{B}_{\mathrm{Xy}}
-      & \mat{B}_{\mathrm{Xy}} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-    \end{bmatrix},
+    \bar{\omega}(t)
+    &= \frac{\int_0^{+\infty} \omega(a) M(t, a) \md a}
+    {\int_0^{+\infty} M(t, a) \md a}.
   \end{align}
-  where $\otimes$ is the Kronecker product.
-  Then, for each $\ell \in \{1, 2, \ldots, L - 1\}$,
-  we use a nonlinear solver to find $\vec{x}^{\ell}$ that satisfies
-  \begin{multline}
-    \label{step_age_and_time_since_entry_structured}
-    \left[
-      \mat{H}_{\mathrm{new}}
-      - \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{new}}
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
-        + b^{\ell - 1 / 2} \mat{B}
-      \right)
-    \right] \vec{x}^{\ell}
+\end{subequations}
+Then integrating model
+\eqref{model_age_and_time_since_entry_structured} over age gives
+\begin{subequations}
+  \label{model_age_and_time_since_entry_structured_agg_age}
+  \begin{align}
+    \frac{\md}{\md t} \bar{M}(t)
+    &= b(t) \bar{\nu}_R(t) \bar{R}(t)
+    - \left[\bar{\omega}(t) + \bar{\mu}_M(t)\right] \bar{M}(t),
     \\
-    = \left[
-      \mat{H}_{\mathrm{cur}}
-      + \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{cur}}
-        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
-        + b^{\ell - 1 / 2} \mat{B}
-      \right)
-    \right] \vec{x}^{\ell - 1}.
-  \end{multline}
+    \begin{split}
+      \frac{\md}{\md t} \bar{S}(t)
+      &= b(t) \left[
+        \bar{\nu}_N(t) \bar{N}(t)
+        - \bar{\nu}_R(t) \bar{R}(t)
+        \right]
+      \\ & \quad {}
+      + \bar{\omega}(t) \bar{M}(t)
+      - \left[\lambda(t) + \bar{\mu}_S(t)\right] \bar{S}(t),
+    \end{split}
+    \\
+    \bar{e}(t, 0) &=
+    \lambda(t) \bar{S}(t),
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial z}\right)
+    \bar{e}(t, z) &=
+    - \rho(z) \bar{e}(t, z) - \bar{\mu}_e(t, z) \bar{e}(t, z),
+    \\
+    \bar{i}(t, 0) &=
+    \int_0^{+\infty} \rho(z) \bar{e}(t, z) \md z,
+    \\
+    \left(\frac{\partial}{\partial t}
+      + \frac{\partial}{\partial z}\right)
+    \bar{i}(t, z) &=
+    - \gamma(z) \bar{i}(t, z) - \bar{\mu}_i(t, z) \bar{i}(t, z),
+    \\
+    \frac{\md}{\md t} \bar{R}(t)
+    &= \int_0^{+\infty} \gamma(z) \bar{i}(t, z) \md z
+    - \bar{\mu}_R(t) \bar{R}(t).
+  \end{align}
 \end{subequations}
 
+Let
+\begin{subequations}
+  \begin{align}
+    \bar{M}^{\ell} &= \sum_{j = 0}^{J - 1} M_j^{\ell} \Delta t,
+    \\
+    \bar{S}^{\ell} &= \sum_{j = 0}^{J - 1} S_j^{\ell} \Delta t,
+    \\
+    \bar{e}_k^{\ell} &= \sum_{j = 0}^{J - 1} e_{j, k}^{\ell} \Delta t,
+    \\
+    \bar{i}_k^{\ell} &= \sum_{j = 0}^{J - 1} i_{j, k}^{\ell} \Delta t,
+    \\
+    \bar{R}^{\ell} &= \sum_{j = 0}^{J - 1} R_j^{\ell} \Delta t,
+    \\
+    \bar{\mu}_X^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \mu_j X_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} X_j^{\ell} \Delta t},
+    \\
+    \bar{\mu}_{y, k}^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \mu_j y_{j, k}^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} y_{j, k}^{\ell} \Delta t},
+    \\
+    \bar{\nu}_X^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \nu_j X_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} X_j^{\ell} \Delta t},
+    \\
+    \bar{\omega}^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \omega_j M_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} M_j^{\ell} \Delta t}.
+  \end{align}
+\end{subequations}
+Then summing numerical method
+\eqref{numerics_age_and_time_since_entry_structured} over age gives
+\begin{subequations}
+  \label{numerics_age_and_time_since_entry_structured_agg_age}
+  \begin{align}
+    \begin{split}
+      \frac{\bar{M}^{\ell} - \bar{M}^{\ell - 1}}{\Delta t}
+      &=
+      b^{\ell - 1 / 2}
+      \frac{\bar{\nu}_R^{\ell} \bar{R}^{\ell}
+        + \bar{\nu}_R^{\ell - 1} \bar{R}^{\ell - 1}}{2}
+      \\ & \quad {}
+      - \frac{(\bar{\omega}^{\ell} + \bar{\mu}_M^{\ell}) \bar{M}^{\ell}
+        + (\bar{\omega}^{\ell - 1} + \bar{\mu}_M^{\ell - 1}) \bar{M}^{\ell - 1}}
+      {2},
+    \end{split}
+    \\
+    \begin{split}
+      \frac{\bar{S}^{\ell} - \bar{S}^{\ell - 1}}{\Delta t}
+      &= b^{\ell - 1 / 2}
+      \frac{\bar{\nu}_N^{\ell} \bar{N}^{\ell}
+        - \bar{\nu}_R^{\ell} \bar{R}^{\ell}
+        + \bar{\nu}_N^{\ell - 1} \bar{N}^{\ell - 1}
+        - \bar{\nu}_N^{\ell - 1} \bar{R}^{\ell - 1}}{2}
+      \\ & \quad {}
+      + \frac{\bar{\omega}^{\ell} \bar{M}^{\ell}
+        + \bar{\omega}^{\ell - 1} \bar{M}^{\ell - 1}}{2}
+      \\ & \quad {}
+      - \frac{(\lambda^{\ell} + \bar{\mu}_S^{\ell}) \bar{S}^{\ell}
+        + (\lambda^{\ell - 1} + \bar{\mu}_S^{\ell - 1}) \bar{S}^{\ell - 1}}{2},
+    \end{split}
+    \\
+    \left[1 + \frac{\Delta t}{2} (\rho_0 + \bar{\mu}_{e, 0}^{\ell})\right]
+    \bar{e}_0^{\ell}
+      &= \frac{
+        \lambda^{\ell} \bar{S}^{\ell}
+        + \lambda^{\ell - 1} \bar{S}^{\ell - 1}
+      }{2},
+    \\
+    \frac{\bar{e}_k^{\ell} - \bar{e}_{k - 1}^{\ell - 1}}{\Delta t}
+    &= - \frac{
+      (\rho_k + \bar{\mu}_{e, k}^{\ell}) \bar{e}_k^{\ell}
+      + (\rho_{k - 1} + \bar{\mu}_{e, k - 1}^{\ell - 1})
+      \bar{e}_{k - 1}^{\ell - 1}
+    }{2},
+    \\
+    \begin{split}
+      \frac{\bar{e}_{K - 1}^{\ell} - \bar{e}_{K - 2}^{\ell - 1}}{\Delta t}
+      &= - \frac{
+        (\rho_{K - 1} + \bar{\mu}_{e, K - 1}^{\ell})
+        \bar{e}_{K - 1}^{\ell}
+        + (\rho_{K - 2} + \bar{\mu}_{e, K - 2}^{\ell - 1})
+        \bar{e}_{K - 2}^{\ell - 1}
+      }{2}
+      \\ & \quad {}
+      + \left[
+        \frac{1}{\Delta t}
+        - \frac{1}{2} (\rho_{K - 1} + \bar{\mu}_{e, K - 1}^{\ell - 1})
+      \right] \bar{e}_{K - 1}^{\ell - 1},
+    \end{split}
+    \\
+    \left[1 + \frac{\Delta t}{2} (\gamma_0 + \bar{\mu}_{i, 0}^{\ell})\right]
+    \bar{i}_0^{\ell}
+    &= \sum_{k = 0}^{K - 1}
+    \rho_k \frac{\bar{e}_k^{\ell} + \bar{e}_k^{\ell - 1}}{2} \Delta t,
+    \\
+    \frac{\bar{i}_k^{\ell} - \bar{i}_{k - 1}^{\ell - 1}}{\Delta t}
+    &= - \frac{
+      (\gamma_k + \bar{\mu}_{i, k}^{\ell})
+      \bar{i}_k^{\ell}
+      + (\gamma_{k - 1} + \bar{\mu}_{i, k - 1}^{\ell - 1})
+      \bar{i}_{k - 1}^{\ell - 1}
+    }{2},
+    \\
+    \begin{split}
+      \frac{\bar{i}_{K - 1}^{\ell} - \bar{i}_{K - 2}^{\ell - 1}}{\Delta t}
+      &= - \frac{
+        (\gamma_{K - 1} + \bar{\mu}_{i, K - 1}^{\ell})
+        \bar{i}_{K - 1}^{\ell}
+        + (\gamma_{K - 2} + \bar{\mu}_{i, K - 2}^{\ell - 1})
+        \bar{i}_{K - 2}^{\ell - 1}
+      }{2}
+      \\ & \quad {}
+      + \left[
+        \frac{1}{\Delta t}
+        - \frac{1}{2} (\gamma_{K - 1} + \bar{\mu}_{i, K - 1}^{\ell - 1})
+      \right] \bar{i}_{K - 1}^{\ell - 1},
+    \end{split}
+    \\
+    \frac{\bar{R}^{\ell} - \bar{R}^{\ell - 1}}{\Delta t}
+    &= \sum_{k = 0}^{K - 1} \gamma_k
+    \frac{\bar{i}_k^{\ell} + \bar{i}_k^{\ell - 1}}{2} \Delta t
+    - \frac{
+      \bar{\mu}_R^{\ell} \bar{R}^{\ell}
+      + \bar{\mu}_R^{\ell - 1} \bar{R}^{\ell - 1}
+    }{2},
+  \end{align}
+\end{subequations}
+which is identical to our Crank--Nicolson scheme applied to aggregated
+model \eqref{model_age_and_time_since_entry_structured_agg_age}.
 
-\paragraph{Jacobian}
 
-The Jacobian is calculated using \eqref{jacobian}.
+\paragraph{Aggregating over time since entry}
+
+Let
+\begin{subequations}
+  \begin{align}
+    \bar{E}(t)
+    &= \int_0^{+\infty} \bar{e}(t, z) \md z,
+    \\
+    \bar{I}(t)
+    &= \int_0^{+\infty} \bar{i}(t, z) \md z,
+    \\
+    \bar{\bar{\mu}}_y(t)
+    &= \frac{\int_0^{+\infty} \bar{\mu}_y(t, z) \bar{y}(t, z) \md z}
+    {\int_0^{+\infty} \bar{y}(t, z) \md z},
+    \\
+    \bar{\bar{\rho}}(t)
+    &= \frac{\int_0^{+\infty} \rho(z) \bar{e}(t, z) \md z}
+    {\int_0^{+\infty} \bar{e}(t, z) \md z},
+    \\
+    \bar{\bar{\gamma}}(t)
+    &= \frac{\int_0^{+\infty} \gamma(z) \bar{i}(t, z) \md z}
+    {\int_0^{+\infty} \bar{i}(t, z) \md z}.
+  \end{align}
+\end{subequations}
+Then integrating model
+\eqref{model_age_and_time_since_entry_structured_agg_age} over time
+since entry gives
+\begin{subequations}
+  \label{model_age_and_time_since_entry_structured_agg_age_tse}
+  \begin{align}
+    \frac{\md}{\md t} \bar{M}(t)
+    &= b(t) \bar{\nu}_R(t) \bar{R}(t)
+    - \left[\bar{\omega}(t) + \bar{\mu}_M(t)\right] \bar{M}(t),
+    \\
+    \begin{split}
+      \frac{\md}{\md t} \bar{S}(t)
+      &= b(t) \left[
+        \bar{\nu}_N(t) \bar{N}(t)
+        - \bar{\nu}_R(t) \bar{R}(t)
+        \right]
+      \\ & \quad {}
+      + \bar{\omega}(t) \bar{M}(t)
+      - \left[\lambda(t) + \bar{\mu}_S(t)\right] \bar{S}(t),
+    \end{split}
+    \\
+    \frac{\md}{\md t} \bar{E}(t)
+    &= \lambda(t) \bar{S}(t)
+    - \bar{\bar{\rho}}(t) \bar{E}(t)
+    - \bar{\bar{\mu}}_e(t) \bar{E}(t),
+    \\
+    \frac{\md}{\md t} \bar{I}(t)
+    &= \bar{\bar{\rho}}(t) \bar{E}(t)
+    - \bar{\bar{\gamma}}(t) \bar{I}(t)
+    - \bar{\bar{\mu}}_i(t) \bar{I}(t),
+    \\
+    \frac{\md}{\md t} \bar{R}(t)
+    &= \bar{\bar{\gamma}}(t) \bar{I}(t)
+    - \bar{\mu}_R(t) \bar{R}(t).
+  \end{align}
+\end{subequations}
+
+Let
+\begin{subequations}
+  \begin{align}
+    \bar{E}^{\ell}
+    &= \sum_{k = 0}^{K - 1} \bar{e}_k^{\ell} \Delta t,
+    \\
+    \bar{I}^{\ell}
+    &= \sum_{k = 0}^{K - 1} \bar{i}_k^{\ell} \Delta t,
+    \\
+    \bar{\bar{\mu}}_y^{\ell}
+    &= \frac{
+      \sum_{k = 0}^{K - 1} \bar{\mu}_{y, k}^{\ell} \bar{y}_k^{\ell} \Delta t
+    }{
+      \sum_{k = 0}^{K - 1} \bar{y}_k^{\ell} \Delta t
+    },
+    \\
+    \bar{\bar{\rho}}^{\ell}
+    &= \frac{\sum_{k = 0}^{K - 1} \rho_k \bar{e}_k^{\ell} \Delta t}
+    {\sum_{k = 0}^{K - 1} \bar{e}_k^{\ell} \Delta t},
+    \\
+    \bar{\bar{\gamma}}^{\ell}
+    &= \frac{\sum_{k = 0}^{K - 1} \gamma_k \bar{i}_k^{\ell} \Delta t}
+    {\sum_{k = 0}^{K - 1} \bar{i}_k^{\ell} \Delta t}.
+  \end{align}
+\end{subequations}
+Then summing numerical method
+\eqref{numerics_age_and_time_since_entry_structured_agg_age} over
+time since entry gives
+\begin{subequations}
+  \label{numerics_age_and_time_since_entry_structured_agg_age_tse}
+  \begin{align}
+    \begin{split}
+      \frac{\bar{M}^{\ell} - \bar{M}^{\ell - 1}}{\Delta t}
+      &=
+      b^{\ell - 1 / 2}
+      \frac{\bar{\nu}_R^{\ell} \bar{R}^{\ell}
+        + \bar{\nu}_R^{\ell - 1} \bar{R}^{\ell - 1}}{2}
+      \\ & \quad {}
+      - \frac{(\bar{\omega}^{\ell} + \bar{\mu}_M^{\ell}) \bar{M}^{\ell}
+        + (\bar{\omega}^{\ell - 1} + \bar{\mu}_M^{\ell - 1}) \bar{M}^{\ell - 1}}
+      {2},
+    \end{split}
+    \\
+    \begin{split}
+      \frac{\bar{S}^{\ell} - \bar{S}^{\ell - 1}}{\Delta t}
+      &= b^{\ell - 1 / 2}
+      \frac{\bar{\nu}_N^{\ell} \bar{N}^{\ell}
+        - \bar{\nu}_R^{\ell} \bar{R}^{\ell}
+        + \bar{\nu}_N^{\ell - 1} \bar{N}^{\ell - 1}
+        - \bar{\nu}_N^{\ell - 1} \bar{R}^{\ell - 1}}{2}
+      \\ & \quad {}
+      + \frac{\bar{\omega}^{\ell} \bar{M}^{\ell}
+        + \bar{\omega}^{\ell - 1} \bar{M}^{\ell - 1}}{2}
+      \\ & \quad {}
+      - \frac{(\lambda^{\ell} + \bar{\mu}_S^{\ell}) \bar{S}^{\ell}
+        + (\lambda^{\ell - 1} + \bar{\mu}_S^{\ell - 1}) \bar{S}^{\ell - 1}}{2},
+    \end{split}
+    \\
+    \begin{split}
+      \frac{\bar{E}^{\ell} - \bar{E}^{\ell - 1}}{\Delta t}
+      &= \frac{
+        \lambda^{\ell} \bar{S}^{\ell}
+        + \lambda^{\ell - 1} \bar{S}^{\ell - 1}
+      }{2}
+      \\ & \quad {}
+      - \frac{
+        (\bar{\bar{\rho}}^{\ell} + \bar{\bar{\mu}}_e^{\ell})
+        \bar{E}^{\ell}
+        + (\bar{\bar{\rho}}^{\ell - 1} + \bar{\bar{\mu}}_e^{\ell - 1})
+        \bar{E}^{\ell - 1}
+      }{2}
+    \end{split}
+    \\
+    \begin{split}
+      \frac{\bar{I}^{\ell} - \bar{I}^{\ell - 1}}{\Delta t}
+      &= \frac{
+        \bar{\bar{\rho}}^{\ell} \bar{E}^{\ell}
+        + \bar{\bar{\rho}}^{\ell} \bar{E}^{\ell - 1}
+      }{2}
+      \\ & \quad {}
+      - \frac{
+        (\bar{\bar{\gamma}}^{\ell} + \bar{\bar{\mu}}_i^{\ell})
+        \bar{I}^{\ell}
+        + (\bar{\bar{\gamma}}^{\ell - 1} + \bar{\bar{\mu}}_i^{\ell - 1})
+        \bar{I}^{\ell - 1}
+      }{2},
+    \end{split}
+    \\
+    \frac{\bar{R}^{\ell} - \bar{R}^{\ell - 1}}{\Delta t}
+    &= \sum_{k = 0}^{K - 1} \gamma_k
+    \frac{\bar{i}_k^{\ell} + \bar{i}_k^{\ell - 1}}{2} \Delta t
+    - \frac{
+      \bar{\mu}_R^{\ell} \bar{R}^{\ell}
+      + \bar{\mu}_R^{\ell - 1} \bar{R}^{\ell - 1}
+    }{2},
+  \end{align}
+\end{subequations}
+which is identical to our Crank--Nicolson scheme applied to aggregated
+model \eqref{model_age_and_time_since_entry_structured_agg_age_tse}.
+
+
+\subparagraph{Aggregating over state}
+
+Let
+\begin{equation}
+  \bar{N}(t)
+  = \bar{M}(t) + \bar{S}(t) + \bar{E}(t)
+  + \bar{I}(t) + \bar{R}(t).
+\end{equation}
+Then summing model
+\eqref{model_age_and_time_since_entry_structured_agg_age_tse} over
+immune state gives
+\begin{equation}
+  \label{model_age_and_time_since_entry_structured_agg_age_tse_state}
+  \frac{\md}{\md t} \bar{N}(t)
+  = b(t) \bar{\nu}_N(t) \bar{N}(t)
+  - \bar{\mu}_N(t) \bar{N}(t).
+\end{equation}
+
+Let
+\begin{equation}
+  \bar{N}^{\ell}
+  = \bar{M}^{\ell} + \bar{S}^{\ell} + \bar{E}^{\ell}
+  + \bar{I}^{\ell} + \bar{R}^{\ell}.
+\end{equation}
+Then summing numerical method
+\eqref{numerics_age_and_time_since_entry_structured_agg_age_tse} over
+immune state gives
+\begin{equation}
+  \label{numerics_age_and_time_since_entry_structured_agg_age_tse_state}
+  \frac{\bar{N}^{\ell} - \bar{N}^{\ell - 1}}{\Delta t}
+  = b^{\ell - 1 / 2}
+  \frac{\bar{\nu}_N^{\ell} \bar{N}^{\ell}
+    + \bar{\nu}_N^{\ell - 1} \bar{N}^{\ell - 1}}{2}
+  - \frac{\bar{\mu}_N^{\ell} \bar{N}^{\ell}
+    + \bar{\mu}_N^{\ell - 1} \bar{N}^{\ell - 1}}{2},
+\end{equation}
+which is identical to our Crank--Nicolson scheme applied to aggregated
+model
+\eqref{model_age_and_time_since_entry_structured_agg_age_tse_state}.
 
 
 \printbibliography
