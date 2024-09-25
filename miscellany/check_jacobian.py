@@ -23,11 +23,11 @@ if __name__ == '__main__':
     b = model.parameters.birth.mean
     (m, s, e, i, r) = eql
     jac = numpy.array([
-        [-omega-mu, 0, 0, 0, b],
-        [b+omega, b-beta*i-mu, b, b-beta*s, 0],
-        [0, beta*i, -rho-mu, beta*s, 0],
-        [0, 0, rho, -gamma-mu, 0],
-        [0, 0, 0, gamma, -mu]
+        [- omega - mu, 0, 0, 0, b],
+        [b + omega, b - beta * i - mu, b, b - beta * s, 0],
+        [0, beta * i, - rho - mu, beta * s, 0],
+        [0, 0, rho, - gamma - mu, 0],
+        [0, 0, 0, gamma, - mu]
     ])
 
     t_step = model.t_step
@@ -35,12 +35,13 @@ if __name__ == '__main__':
     # J = F + beta x T + b B
     # M_new = I - t_step / 2 * J
     # M_cur = I + t_step / 2 * J
-    M = {}
-    for q in ('cur', 'new'):
-        M[q] = model._solver._jacobian._M(q, eql, b)
+    M = {
+        q: model._solver._jacobian._M(q, eql, b)
+        for q in ('cur', 'new')
+    }
     assert numpy.allclose(I - M['new'],
                           M['cur'] - I)
-    J = (numpy.eye(len(eql)) - M['new']) / (t_step / 2)
+    J = (I - M['new']) / (t_step / 2)
     assert numpy.allclose(J, jac)
     # M_new @ D = M_cur
     D = scipy.linalg.solve(M['new'], M['cur'])
