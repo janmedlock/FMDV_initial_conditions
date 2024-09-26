@@ -35,7 +35,7 @@ class Logarithm:
     def inverse(self, x):
         z = numpy.exp(x) / self.weights
         y = z + self.a
-        return z
+        return y
 
 
 class Logit:
