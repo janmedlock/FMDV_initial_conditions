@@ -1,9 +1,17 @@
 '''Helpers for scipy.optimize().'''
 
+import inspect
+
+import numpy
 import scipy.optimize
 
 
-_METHOD_DEFAULT = 'hybr'
+# Get the default `method` used in `scipy.optimize.root()`.
+_METHOD_DEFAULT = inspect.signature(scipy.optimize.root) \
+                         .parameters['method'] \
+                         .default
+
+# These methods do not use `options['disp']`.
 _METHODS_WITHOUT_DISP_OPTION = {'hybr', 'lm'}
 
 
@@ -11,11 +19,13 @@ def root(*args, sparse=False, display=False, **kwds):
     '''`scipy.optimize.root()` with improved default values for its
     'method' and 'options' arguments.'''
     if sparse:
-        # Default to `root(..., method='krylov', ...)' if not set in `kwds`.
+        # Default to `method = 'krylov'`.
         kwds = {'method': 'krylov'} | kwds
     # Set the 'disp' option from `display` for some methods.
     method = kwds.get('method', _METHOD_DEFAULT)
     if method not in _METHODS_WITHOUT_DISP_OPTION:
-        # Set `kwds['options']['disp'] = display` if not set in `kwds.`
-        kwds = {'options': {'disp': display}} | kwds
-    return scipy.optimize.root(*args, **kwds)
+        # Default to `options['disp'] = display`.
+        kwds['options'] = {'disp': display} | kwds.get('options', {})
+    # Ignore some spurious warnings.
+    with numpy.errstate(invalid='ignore'):
+        return scipy.optimize.root(*args, **kwds)
