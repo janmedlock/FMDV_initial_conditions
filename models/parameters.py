@@ -81,8 +81,8 @@ def Parameters(SAT=1, **kwds):
     klass_name = f'ParametersSAT{SAT}'
     try:
         klass = globals()[klass_name]
-    except KeyError:
-        raise ValueError(f'{SAT=}')
+    except KeyError as exc:
+        raise ValueError(f'{SAT=}') from exc
     return klass(**kwds)
 
 
