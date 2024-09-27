@@ -377,8 +377,8 @@ Crank--Nicolson method on characteristics is
       - \frac{(\omega + \mu_{J - 1}) M_{J - 1}^{\ell}
         + (\omega + \mu_{J - 2}) M_{J - 2}^{\ell - 1}}{2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\omega + \mu_{J - 1})
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\omega + \mu_{J - 1})
       \right] M_{J - 1}^{\ell - 1},
     \end{split}
     \\
@@ -411,8 +411,8 @@ Crank--Nicolson method on characteristics is
       \\ & \quad {}
       + \frac{1}{2} \omega M_{J - 1}^{\ell - 1}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\lambda^{\ell - 1} + \mu_{J - 1})
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\lambda^{\ell - 1} + \mu_{J - 1})
       \right] S_{J - 1}^{\ell - 1},
     \end{split}
     \\
@@ -437,8 +437,8 @@ Crank--Nicolson method on characteristics is
       \\ & \quad {}
       + \frac{1}{2} \lambda^{\ell - 1} S_{J - 1}^{\ell - 1}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\rho + \mu_{J - 1})
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\rho + \mu_{J - 1})
       \right] E_{J - 1}^{\ell - 1},
     \end{split}
     \\
@@ -459,8 +459,8 @@ Crank--Nicolson method on characteristics is
       \\ & \quad {}
       + \frac{1}{2} \rho E_{J - 1}^{\ell - 1}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\gamma + \mu_{J - 1})
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\gamma + \mu_{J - 1})
       \right] I_{J - 1}^{\ell - 1},
     \end{split}
     \\
@@ -479,8 +479,8 @@ Crank--Nicolson method on characteristics is
       \\ & \quad {}
       + \frac{1}{2}
       \gamma I_{J - 1}^{\ell - 1}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} \mu_{J - 1}
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} \mu_{J - 1}
       \right] R_{J - 1}^{\ell - 1},
     \end{split}
   \end{align}
@@ -752,8 +752,8 @@ the Crank--Nicolson method on characteristics is
       - \frac{(\omega_{K - 1} + \mu) m_{K - 1}^{\ell}
         + (\omega_{K - 2} + \mu) m_{K - 2}^{\ell - 1}}{2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\omega_{K - 1} + \mu)
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\omega_{K - 1} + \mu)
       \right] m_{K - 1}^{\ell - 1},
     \end{split}
     \\
@@ -782,8 +782,8 @@ the Crank--Nicolson method on characteristics is
       - \frac{(\rho_{K - 1} + \mu) e_{K - 1}^{\ell}
         + (\rho_{K - 2} + \mu) e_{K - 2}^{\ell - 1}}{2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\rho_{K - 1} + \mu)
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\rho_{K - 1} + \mu)
       \right] e_{K - 1}^{\ell - 1},
     \end{split}
     \\
@@ -801,8 +801,8 @@ the Crank--Nicolson method on characteristics is
       - \frac{(\gamma_{K - 1} + \mu) i_{K - 1}^{\ell}
         + (\gamma_{K - 2} + \mu) i_{K - 2}^{\ell - 1}}{2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\gamma_{K - 1} + \mu)
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\gamma_{K - 1} + \mu)
       \right] i_{K - 1}^{\ell - 1},
     \end{split}
     \\
@@ -1127,9 +1127,9 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
         + (\omega_{J - 2} + \mu_{J - 2}) M_{J - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
-      +  \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\omega_{J - 1} + \mu_{J - 1})
-      \right] M_{J - 1}^{\ell - 1},
+      +  \left[\frac{1}{\Delta t}
+        - \frac{1}{2} (\omega_{J - 1} + \mu_{J - 1})\right]
+      M_{J - 1}^{\ell - 1},
     \end{split}
     \\
     \begin{split}
@@ -1169,9 +1169,9 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
       \\ & \quad {}
       + \frac{\omega_{J - 1} M_{J - 1}^{\ell - 1}}{2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\lambda^{\ell - 1} + \mu_{J - 1})
-      \right] S_{J - 1}^{\ell - 1},
+      + \left[\frac{1}{\Delta t}
+        - \frac{1}{2} (\lambda^{\ell - 1} + \mu_{J - 1})\right]
+      S_{J - 1}^{\ell - 1},
     \end{split}
     \\
     \left[1 + \frac{\Delta t}{2} (\rho_0 + \mu_0)\right] e_{0, 0}^{\ell}
@@ -1201,8 +1201,8 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
         + (\rho_{K - 2} + \mu_{j - 1}) e_{j - 1, K - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\rho_{K - 1} + \mu_{j - 1})
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\rho_{K - 1} + \mu_{j - 1})
       \right] e_{j - 1, K - 1}^{\ell - 1},
     \end{split}
     \\
@@ -1219,8 +1219,8 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
         + (\rho_{k - 1} + \mu_{J - 2}) e_{J - 2, k - 1}^{\ell - 1}}
       {2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\rho_{k - 1} + \mu_{J - 1})
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\rho_{k - 1} + \mu_{J - 1})
       \right] e_{J - 1, k - 1}^{\ell - 1},
     \end{split}
     \\
@@ -1230,16 +1230,16 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
         + (\rho_{K - 2} + \mu_{J - 2}) e_{J - 2, K - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\rho_{K - 1} + \mu_{J - 2})
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\rho_{K - 1} + \mu_{J - 2})
       \right] e_{J - 2, K - 1}^{\ell - 1}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\rho_{K - 2} + \mu_{J - 1})
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\rho_{K - 2} + \mu_{J - 1})
       \right] e_{J - 1, K - 2}^{\ell - 1}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\rho_{K - 1} + \mu_{J - 1})
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\rho_{K - 1} + \mu_{J - 1})
       \right] e_{J - 1, K - 1}^{\ell - 1},
     \end{split}
     \\
@@ -1270,8 +1270,8 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
         + (\gamma_{K - 2} + \mu_{j - 1}) i_{j - 1, K - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\gamma_{K - 1} + \mu_{j - 1})
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\gamma_{K - 1} + \mu_{j - 1})
       \right] i_{j - 1, K - 1}^{\ell - 1},
     \end{split}
     \\
@@ -1293,8 +1293,8 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
         + (\gamma_{k - 1} + \mu_{J - 2}) i_{J - 2, k - 1}^{\ell - 1}}
       {2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\gamma_{k - 1} + \mu_{J - 1})
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\gamma_{k - 1} + \mu_{J - 1})
       \right] i_{J - 1, k - 1}^{\ell - 1},
     \end{split}
     \\
@@ -1304,16 +1304,16 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
         + (\gamma_{K - 2} + \mu_{J - 2}) i_{J - 2, K - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\gamma_{K - 2} + \mu_{J - 1})
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\gamma_{K - 2} + \mu_{J - 1})
       \right] i_{J - 1, K - 2}^{\ell - 1}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\gamma_{K - 1} + \mu_{J - 2})
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\gamma_{K - 1} + \mu_{J - 2})
       \right] i_{J - 2, K - 1}^{\ell - 1}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\gamma_{K - 1} + \mu_{J - 1})
+      + \left[
+        \frac{1}{\Delta t} - \frac{1}{2} (\gamma_{K - 1} + \mu_{J - 1})
       \right] i_{J - 1, K - 1}^{\ell - 1},
     \end{split}
     \\
@@ -1349,8 +1349,9 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
       {2}
       \Delta t
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} \mu_{J - 1}
+      + \left[
+        \frac{1}{\Delta t}
+        - \frac{1}{2} \mu_{J - 1}
       \right] R_{J - 1}^{\ell - 1},
     \end{split}
   \end{align}
@@ -1689,9 +1690,8 @@ For each $j$ and $k$ the initial condition is
         + \mu_{J - 2} \Phi_{J - 2, k}^{\ell - 1}}{2}
       \\
       & \quad {}
-      + \frac{1}{\Delta t} \left(
-        1 - \frac{\Delta t}{2} \mu_{J - 1}
-      \right) \Phi_{J - 1, k}^{\ell - 1}.
+      + \left(\frac{1}{\Delta t} - \frac{1}{2} \mu_{J - 1}\right)
+      \Phi_{J - 1, k}^{\ell - 1}.
     \end{split}
     \label{age_structured_pop_last}
   \end{align}
@@ -1944,9 +1944,8 @@ state gives
       \frac{N_{J - 1}^{\ell} - N_{J - 2}^{\ell - 1}}{\Delta t}
       &= - \frac{\mu_{J - 1} N_{J - 1}^{\ell} + \mu_{J - 2} N_{J - 2}^{\ell - 1}}{2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} \mu_{J - 1}
-      \right] N_{J - 1}^{\ell - 1},
+      + \left[\frac{1}{\Delta t} - \frac{1}{2} \mu_{J - 1}\right]
+      N_{J - 1}^{\ell - 1},
     \end{split}
   \end{align}
 \end{subequations}
@@ -2451,9 +2450,9 @@ entry gives
         + (\omega_{J - 2} + \mu_{J - 2}) M_{J - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
-      +  \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\omega_{J - 1} + \mu_{J - 1})
-      \right] M_{J - 1}^{\ell - 1},
+      +  \left[\frac{1}{\Delta t}
+        - \frac{1}{2} (\omega_{J - 1} + \mu_{J - 1})\right]
+      M_{J - 1}^{\ell - 1},
     \end{split}
     \\
     \begin{split}
@@ -2490,9 +2489,9 @@ entry gives
       \\ & \quad {}
       + \frac{1}{2} \omega_{J - 1} M_{J - 1}^{\ell - 1}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\lambda^{\ell - 1} + \mu_{J - 1})
-      \right] S_{J - 1}^{\ell - 1},
+      + \left[\frac{1}{\Delta t}
+        - \frac{1}{2} (\lambda^{\ell - 1} + \mu_{J - 1})\right]
+      S_{J - 1}^{\ell - 1},
     \end{split}
     \\
     \left[1 + \frac{\Delta t}{2} (\bar{\rho}_0^{\ell} + \mu_0)\right]
@@ -2522,8 +2521,9 @@ entry gives
       \\ & \quad {}
       + \frac{\lambda^{\ell - 1} S_{J - 1}^{\ell - 1}}{2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\bar{\rho}_{J - 1}^{\ell - 1} + \mu_{J - 1})
+      + \left[
+        \frac{1}{\Delta t}
+        - \frac{1}{2} (\bar{\rho}_{J - 1}^{\ell - 1} + \mu_{J - 1})
       \right] E_{J - 1}^{\ell - 1},
     \end{split}
     \\
@@ -2552,8 +2552,9 @@ entry gives
       \\ & \quad {}
       + \frac{\bar{\rho}_{J - 1}^{\ell - 1} E_{J - 1}^{\ell - 1}} {2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\bar{\gamma}_{J - 1}^{\ell - 1} + \mu_{J - 1})
+      + \left[
+        \frac{1}{\Delta t}
+        - \frac{1}{2} (\bar{\gamma}_{J - 1}^{\ell - 1} + \mu_{J - 1})
       \right] I_{J - 1}^{\ell - 1},
     \end{split}
     \\
@@ -2580,8 +2581,9 @@ entry gives
       \\ & \quad {}
       + \frac{\bar{\gamma}_{J - 1}^{\ell - 1} I_{J - 1}^{\ell - 1}}{2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} \mu_{J - 1}
+      + \left[
+        \frac{1}{\Delta t}
+        - \frac{1}{2} \mu_{J - 1}
       \right] R_{J - 1}^{\ell - 1},
     \end{split}
   \end{align}
@@ -2638,9 +2640,8 @@ immune state gives
         + \mu_{J - 2} N_{J - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} \mu_{J - 1}
-      \right] N_{J - 1}^{\ell - 1},
+      + \left[\frac{1}{\Delta t} - \frac{1}{2} \mu_{J - 1}\right]
+      N_{J - 1}^{\ell - 1},
     \end{split}
   \end{align}
 \end{subequations}
@@ -3072,8 +3073,9 @@ Then summing numerical method
         \bar{e}_{K - 2}^{\ell - 1}
       }{2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\rho_{K - 1} + \bar{\mu}_{e, K - 1}^{\ell - 1})
+      + \left[
+        \frac{1}{\Delta t}
+        - \frac{1}{2} (\rho_{K - 1} + \bar{\mu}_{e, K - 1}^{\ell - 1})
       \right] \bar{e}_{K - 1}^{\ell - 1},
     \end{split}
     \\
@@ -3099,8 +3101,9 @@ Then summing numerical method
         \bar{i}_{K - 2}^{\ell - 1}
       }{2}
       \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\gamma_{K - 1} + \bar{\mu}_{i, K - 1}^{\ell - 1})
+      + \left[
+        \frac{1}{\Delta t}
+        - \frac{1}{2} (\gamma_{K - 1} + \bar{\mu}_{i, K - 1}^{\ell - 1})
       \right] \bar{i}_{K - 1}^{\ell - 1},
     \end{split}
     \\

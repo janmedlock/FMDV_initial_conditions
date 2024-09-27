@@ -7,6 +7,14 @@ from .. import _utility
 from .._utility import _transform
 
 
+def check(y, weights=1, **kwds):
+    '''Check whether `(t, y)` is a limit cycle.'''
+    assert y.ndim == 2
+    return numpy.allclose(y[0] * weights,
+                          y[-1] * weights,
+                          **kwds)
+
+
 def _objective(x_0_cur, poincaré_map, weights, transform, display):
     '''Helper for `find_with_period`.'''
     y_0_cur = transform.inverse(x_0_cur)
@@ -47,7 +55,9 @@ def find_with_period(model, period, t_0, y_0_guess,
             / _utility.numerical.weighted_sum(y_0, weights))
     if solution:
         # Return the solution at the `t` values, not just at the end time.
-        return poincaré_map.solve(y_0, display=display)
+        (t, y) = poincaré_map.solve(y_0, display=display)
+        assert check(y, weights=weights)
+        return (t, y)
     else:
         return y_0
 
