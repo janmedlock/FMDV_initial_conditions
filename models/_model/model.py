@@ -145,6 +145,13 @@ class Model(metaclass=abc.ABCMeta):
             _utility.numerical.check_nonnegative(soln)
         return soln
 
+    def check_limit_cycle(self, sol, **kwds):
+        '''Check whether `sol` is a limit cycle.'''
+        y = sol.to_numpy()
+        return _limit_cycle.check(y,
+                                  weights=self._weights,
+                                  **kwds)
+
     def get_characteristic_multipliers(self, lcy, k=5, display=False):
         '''Get the characteristic multipliers.'''
         return _limit_cycle.characteristic_multipliers(self, lcy, k=k,
