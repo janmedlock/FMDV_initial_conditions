@@ -6,16 +6,23 @@ import matplotlib.pyplot
 import matplotlib.rcsetup
 
 
-_linestyles = matplotlib.rcsetup.cycler(
+_cmap = matplotlib.pyplot.get_cmap('tab10')
+
+colors = matplotlib.rcsetup.cycler(
+    color=_cmap.colors
+)
+
+linestyles = matplotlib.rcsetup.cycler(
     linestyle=['solid', 'dotted', 'dashed']
 )
 
-_markers = matplotlib.rcsetup.cycler(
+
+markers = matplotlib.rcsetup.cycler(
     marker=['o', '^', 's', '*', '+', 'x']
 )
 
 
-def _cycler_inner_product(*cyclers):
+def cycler_inner_product(*cyclers):
     '''Get the inner product of the cyclers, reducing their length to
     that of the smallest one.'''
     # Make them all the same length.
@@ -39,14 +46,13 @@ def _get_states(states, obj):
     return states
 
 
-def _state_prop_cycle():
+def state_prop_cycle():
     '''Build a prop_cycle for the state plot.'''
-    orig = matplotlib.pyplot.rcParams['axes.prop_cycle']
-    prop_cycle = _cycler_inner_product(orig, _markers, _linestyles)
+    prop_cycle = cycler_inner_product(colors, markers, linestyles)
     return prop_cycle
 
 
-def _state_make_axes(states):
+def state_make_axes(states, fig=None, prop_cycle=None):
     '''Make state axes.'''
     if len(states) == 2:
         projection = 'rectilinear'
@@ -54,9 +60,13 @@ def _state_make_axes(states):
         projection = '3d'
     else:
         raise ValueError(f'{len(states)=}')
-    fig = matplotlib.pyplot.figure()
+    if fig is None:
+        fig = matplotlib.pyplot.figure()
+    if prop_cycle is None:
+        prop_cycle = state_prop_cycle()
     axis_labels = dict(zip(('xlabel', 'ylabel', 'zlabel'), states))
     return fig.add_subplot(projection=projection,
+                           prop_cycle=prop_cycle,
                            **axis_labels)
 
 
@@ -71,63 +81,69 @@ def _get_states_from_axes(ax):
     return states
 
 
-def state(obj, states=None, ax=None, **kwds):
+def state(obj, states=None, ax=None, fig=None, legend=True, **kwds):
     '''Make a phase plot.'''
     if ax is None:
-        ax = _state_make_axes(_get_states(states, obj))
+        ax = state_make_axes(_get_states(states, obj), fig=fig)
     if states is None:
         states = _get_states_from_axes(ax)
     if obj.ndim == 1:
-        ax.scatter(*obj[states], **kwds)
+        ax.plot(*obj[states], **kwds)
     elif obj.ndim == 2:
         # Not `col = obj[states]` because the result must iterate over
         # columns, not rows.
         cols = (obj[col] for col in states)
-        ax.plot(*cols, **kwds)
+        ax.plot(*cols, marker='none', **kwds)
     else:
         raise ValueError(f'{obj.ndim=}')
+    if legend:
+        ax.legend()
     return ax
 
 
-def _solution_prop_cycle(states):
+def solution_prop_cycle(states):
     '''Build a prop_cycle for the solution plot.'''
-    orig = matplotlib.pyplot.rcParams['axes.prop_cycle']
-    inner = orig[:len(states)]
-    outer = _linestyles
+    inner = colors[:len(states)]
+    outer = linestyles
     prop_cycle = outer * inner
     return prop_cycle
 
 
-def _solution_make_axes(states):
+def solution_make_axes(states, ax=None, fig=None):
     '''Make solution axes.'''
-    fig = matplotlib.pyplot.figure()
-    return fig.add_subplot(
-        prop_cycle=_solution_prop_cycle(states),
-    )
+    if ax is None:
+        if fig is None:
+            fig = matplotlib.pyplot.figure()
+        ax = fig.add_subplot()
+    ax.set_prop_cycle(solution_prop_cycle(states))
+    return ax
 
 
-def solution(obj, states=None, ax=None, **kwds):
+def solution(obj, states=None, ax=None, fig=None, **kwds):
     '''Plot the solution vs time.'''
     states = _get_states(states, obj)
     if ax is None:
-        ax = _solution_make_axes(states)
+        ax = solution_make_axes(states, fig=fig)
     return obj[states].plot(ax=ax, **kwds)
 
 
 def _complex_prop_cycle():
     '''Build a prop_cycle for the eigenvalue plot.'''
-    orig = matplotlib.pyplot.rcParams['axes.prop_cycle']
-    prop_cycle = _cycler_inner_product(orig, _markers)
+    linestyle = matplotlib.rcsetup.cycler(linestyle=['none'])
+    prop_cycle = cycler_inner_product(colors, markers) * linestyle
     return prop_cycle
 
 
-def _complex_make_axes(title):
-    fig = matplotlib.pyplot.figure()
+def _complex_make_axes(title, fig=None, prop_cycle=None):
+    if fig is None:
+        fig = matplotlib.pyplot.figure()
+    if prop_cycle is None:
+        prop_cycle = _complex_prop_cycle()
     return fig.add_subplot(
         title=title,
         xlabel='$\\Re$',
         ylabel='$\\Im$',
-        prop_cycle=_complex_prop_cycle(),
+        prop_cycle=prop_cycle,
     )
 
 
@@ -138,13 +154,23 @@ def _complex(vals, ax, legend, **kwds):
     return ax
 
 
-def multipliers(mults, ax=None, legend=False, **kwds):
+def multipliers_make_axes(fig=None, prop_cycle=None):
+    title = 'Floquet multipliers'
+    return _complex_make_axes(title, fig=fig, prop_cycle=prop_cycle)
+
+
+def multipliers(mults, ax=None, fig=None, legend=True, **kwds):
     if ax is None:
-        ax = _complex_make_axes('Floquet multipliers')
+        ax = multipliers_make_axes(fig=fig)
     return _complex(mults, ax, legend, **kwds)
 
 
-def exponents(exps, ax=None, legend=False, **kwds):
+def exponents_make_axes(fig=None, prop_cycle=None):
+    title = 'Floquet exponents'
+    return _complex_make_axes(title, fig=fig, prop_cycle=prop_cycle)
+
+
+def exponents(exps, ax=None, fig=None, legend=True, **kwds):
     if ax is None:
-        ax = _complex_make_axes('Floquent exponents')
+        ax = exponents_make_axes(fig=fig)
     return _complex(exps, ax, legend, **kwds)
