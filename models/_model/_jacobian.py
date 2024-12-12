@@ -32,7 +32,7 @@ class Base:
 
     # Attributes of `solver` that a subclass might convert to a
     # different format.
-    _array_attrs = ('I', 'beta', 'H', 'F', 'T', 'B')
+    _array_attrs = ('I', 'beta', 'A', 'T', 'B')
 
     def __init__(self, solver):
         self.model = solver.model
@@ -70,21 +70,20 @@ class Base:
 
     def _M(self, q, y_q, b_mid):
         '''Calculate the M_q matrices.'''
+        A = self.A[q]
         # The linear algebra is easier if `y_q` has shape (n, 1)
         # instead of just (n, ).
         y_q = self._make_column_vector(y_q)
         # For models with age structure, `T @ y @ beta` is *much* less
         # sparse.
-        F_T_B = self.t_step / 2 * (self.F[q]
-                                   + self.beta @ y_q * self.T[q]
-                                   + self.T[q] @ y_q @ self.beta
-                                   + b_mid * self.B)
-        H = self.H[q]
-        # M = H ± F_T_B
+        T_B = self.t_step / 2 * (self.beta @ y_q * self.T[q]
+                                 + self.T[q] @ y_q @ self.beta
+                                 + b_mid * self.B)
+        # M = A ± T_B
         if q == 'cur':
-            M = H + F_T_B
+            M = A + T_B
         elif q == 'new':
-            M = H - F_T_B
+            M = A - T_B
         else:
             raise ValueError(f'{q=}')
         return M
@@ -140,10 +139,9 @@ class Dense(Base):
     def _M(self, q, y_q, b_mid):
         '''Calculate the M_q matrices.'''
         # Use temporary storage to calculate
-        # F_T_B = self.t_step / 2 * (self.F[q]
-        #                            + self.beta @ y_q * self.T[q]
-        #                            + self.T[q] @ y_q @ self.beta
-        #                            + b_mid * self.B)
+        # T_B = self.t_step / 2 * (self.beta @ y_q * self.T[q]
+        #                          + self.T[q] @ y_q @ self.beta
+        #                          + b_mid * self.B)
         #
         # T_y_beta = (T @ y) @ beta
         T_y = numpy.dot(self.T[q], y_q,
@@ -152,9 +150,6 @@ class Dense(Base):
         # sparse.
         T_y_beta = numpy.outer(T_y, self.beta,
                                out=self.temp[1])
-        # F_T_B = F + T_y_beta
-        F_T_B = numpy.add(self.F[q], T_y_beta,
-                          out=self.temp[0])
         # beta_y_T = (beta @ y) * T
         beta_y = numpy.inner(self.beta[0], y_q)
         beta_y_T = numpy.multiply(beta_y, self.T[q],
@@ -163,17 +158,19 @@ class Dense(Base):
         # b_B = b_mid * B
         b_B = numpy.multiply(b_mid, self.B,
                              out=self.temp[1])
-        F_T_B += b_B
-        F_T_B *= self.t_step / 2
-        H = self.H[q]
-        # M = H ± F_T_B
+        # T_B = T_y_beta
+        T_B = numpy.add(T_y_beta, b_B,
+                        out=self.temp[0])
+        T_B *= self.t_step / 2
+        A = self.A[q]
+        # M = A ± T_B
         if q == 'cur':
             opp = numpy.add
         elif q == 'new':
             opp = numpy.subtract
         else:
             raise ValueError(f'{q=}')
-        M = opp(self.H[q], F_T_B,
+        M = opp(self.A[q], T_B,
                 out=self.temp[1])
         return M
 

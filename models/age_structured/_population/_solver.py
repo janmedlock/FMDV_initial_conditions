@@ -69,13 +69,15 @@ class Solver(_base.Solver):
         self.__dict__.update(state)
         self._init_finalize()
 
-    def _I(self):
+    @functools.cached_property
+    def I(self):
         '''Build the identity matrix.'''
         J = len(self.a)
         I = _utility.sparse.identity(J)
         return I
 
-    def _L(self):
+    @functools.cached_property
+    def L(self):
         '''Build the lag matrix.'''
         J = len(self.a)
         diags = {
@@ -105,6 +107,18 @@ class Solver(_base.Solver):
             F = self.L @ F
         return F
 
+    def _A(self, q):
+        '''Build the matrix A(q).'''
+        H = self._H(q)
+        F = self.t_step / 2 * self._F(q)
+        if q == 'cur':
+            A = H + F
+        elif q == 'new':
+            A = H - F
+        else:
+            raise ValueError(f'{q=}')
+        return A
+
     def _B(self):
         '''Build matrices needed by the solver.'''
         J = len(self.a)
@@ -120,29 +134,26 @@ class Solver(_base.Solver):
     def _build_matrices(self):
         '''Build the matrices used for stepping forward in time.'''
         q_vals = ('new', 'cur')
-        self.I = self._I()
-        self.L = self._L()
-        self.H = {q: self._H(q) for q in q_vals}
-        self.F = {q: self._F(q) for q in q_vals}
+        self.A = {q: self._A(q) for q in q_vals}
         self.B = self._B()
 
     def _check_matrices(self):
         '''Check the solver matrices.'''
-        assert _utility.linalg.is_Z_matrix(self.H['new'])
-        assert _utility.linalg.is_nonnegative(self.H['cur'])
-        assert _utility.linalg.is_Metzler_matrix(self.F['new'])
+        assert _utility.linalg.is_Z_matrix(self.A['new'])
+        assert _utility.linalg.is_nonnegative(self.A['cur'])
         assert _utility.linalg.is_Metzler_matrix(self.B)
         assert _utility.linalg.is_nonnegative(self.B)
-        b_max = self.parameters.birth.rate_max
-        HFB_new = (self.H['new']
-                   - self.t_step / 2 * (self.F['new']
-                                        + b_max * self.B))
-        assert _utility.linalg.is_M_matrix(HFB_new)
-        b_min = self.parameters.birth.rate_min
-        HFB_cur = (self.H['cur']
-                   + self.t_step / 2 * (self.F['cur']
-                                        + b_min * self.B))
-        assert _utility.linalg.is_nonnegative(HFB_cur)
+        birth = self.parameters.birth
+        AB_new = (
+            self.A['new']
+            - self.t_step / 2 * birth.rate_max * self.B
+        )
+        assert _utility.linalg.is_M_matrix(AB_new)
+        AB_cur = (
+            self.A['cur']
+            + self.t_step / 2 * birth.rate_min * self.B
+        )
+        assert _utility.linalg.is_nonnegative(AB_cur)
 
     def step(self, t_cur, Phi_cur, birth_scaling, display=False):
         '''Do a step.'''
@@ -151,13 +162,15 @@ class Solver(_base.Solver):
             print(f'{t_new=}')
         t_mid = t_cur + self.t_step / 2
         b_mid = birth_scaling * self.parameters.birth.rate(t_mid)
-        HFB_new = (self.H['new']
-                   - self.t_step / 2 * (self.F['new']
-                                        + b_mid * self.B))
-        HFB_cur = (self.H['cur']
-                   + self.t_step / 2 * (self.F['cur']
-                                        + b_mid * self.B))
-        return _utility.linalg.solve(HFB_new, HFB_cur @ Phi_cur)
+        AB_new = (
+            self.A['new']
+            - self.t_step / 2 * b_mid * self.B
+        )
+        AB_cur = (
+            self.A['cur']
+            + self.t_step / 2 * b_mid * self.B
+        )
+        return _utility.linalg.solve(AB_new, AB_cur @ Phi_cur)
 
     def _monodromy_init(self):
         '''Initialize matrices etc needed by `monodromy`.'''

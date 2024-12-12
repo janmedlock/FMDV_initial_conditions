@@ -198,9 +198,9 @@ Let
       0 & 0 & 0 & 1 & 0
     \end{bmatrix},
     \\
-    \lambda^{\ell} &=
-    \vec{\beta} \vec{x}^{\ell},
-    \\
+    % \lambda^{\ell} &=
+    % \vec{\beta} \vec{x}^{\ell},
+    % \\
     \mat{H}_{\mathrm{new}} =
     \mat{H}_{\mathrm{cur}} &=
     \mat{I}_{5 \times 5},
@@ -215,6 +215,15 @@ Let
       0 & 0 & 0 & \gamma & - \mu
     \end{bmatrix},
     \\
+    \mat{B} &=
+    \begin{bmatrix}
+      0 & 0 & 0 & 0 & 1 \\
+      1 & 1 & 1 & 1 & 0 \\
+      0 & 0 & 0 & 0 & 0 \\
+      0 & 0 & 0 & 0 & 0 \\
+      0 & 0 & 0 & 0 & 0
+    \end{bmatrix},
+    \\
     \mat{T}_{\mathrm{new}} =
     \mat{T}_{\mathrm{cur}} &=
     \begin{bmatrix}
@@ -225,37 +234,32 @@ Let
       0 & 0 & 0 & 0 & 0
     \end{bmatrix},
     \\
-    \mat{B} &=
-    \begin{bmatrix}
-      0 & 0 & 0 & 0 & 1 \\
-      1 & 1 & 1 & 1 & 0 \\
-      0 & 0 & 0 & 0 & 0 \\
-      0 & 0 & 0 & 0 & 0 \\
-      0 & 0 & 0 & 0 & 0
-    \end{bmatrix}.
+    \mat{A}_{\mathrm{new}} &=
+    \mat{H}_{\mathrm{new}}
+    - \frac{\Delta t}{2} \mat{F}_{\mathrm{new}},
+    \\
+    \mat{A}_{\mathrm{cur}} &=
+    \mat{H}_{\mathrm{cur}}
+    + \frac{\Delta t}{2} \mat{F}_{\mathrm{cur}}.
   \end{align}
   System \eqref{numerics_unstructured} is then
   \begin{multline}
     \label{step_unstructured}
     \left[
-      \mat{H}_{\mathrm{new}}
-      - \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{new}}
+      \mat{A}_{\mathrm{new}}
+      - \frac{\Delta t}{2} \left(
+        b^{\ell - 1 / 2} \mat{B}
         + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
-        + b^{\ell - 1 / 2} \mat{B}
       \right)
     \right]
     \vec{x}^{\ell}
     \\
     =
     \left[
-      \mat{H}_{\mathrm{cur}}
-      + \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{cur}}
-        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
-        + b^{\ell - 1 / 2} \mat{B}
+      \mat{A}_{\mathrm{cur}}
+      + \frac{\Delta t}{2} \left(
+        b^{\ell - 1 / 2} \mat{B}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
       \right)
     \right]
     \vec{x}^{\ell - 1}.
@@ -510,12 +514,6 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       R_0^{\ell} \\ \vdots \\ R_{J - 1}^{\ell}
     \end{bmatrix},
     \\
-    \vec{b} &=
-    \frac{1}{\Delta t}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix}_{J \times 1},
-    \\
     \vec{\iota} &=
     \Delta t
     \begin{bmatrix}
@@ -528,16 +526,24 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \nu_0 & \cdots & \nu_{J - 1}
     \end{bmatrix},
     \\
+    \vec{\zeta} &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}_{J \times 1},
+    \\
     \vec{\beta} &=
     \beta
     \begin{bmatrix}
       \vec{0} & \vec{0} & \vec{0} & \vec{\iota} & \vec{0}
     \end{bmatrix},
     \\
-    \lambda^{\ell} &=
-    \vec{\beta} \vec{x}^{\ell},
+    % \lambda^{\ell} &=
+    % \vec{\beta} \vec{x}^{\ell},
+    % \\
+    \mat{H}_{XX, \mathrm{new}} &= \mat{I}_{J \times J},
     \\
-    \mat{L}_{XW} &=
+    \mat{H}_{XX, \mathrm{cur}} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0 \\
       1 & \ddots & & \vdots & \vdots \\
@@ -545,10 +551,6 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \vdots & \ddots & \ddots & 0 & 0 \\
       0 & \cdots & 0 & 1 & 1
     \end{bmatrix}_{J \times J},
-    \\
-    \mat{H}_{XX, \mathrm{new}} &= \mat{I}_{J \times J},
-    \\
-    \mat{H}_{XX, \mathrm{cur}} &= \mat{L}_{XW},
     \\
     \mat{H}_{q} &=
     \begin{bmatrix}
@@ -569,7 +571,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \end{bmatrix},
     \\
     \mat{F}_{XW, \mathrm{cur}}(\vec{\pi}) &=
-    \mat{L}_{XW} \mat{F}_{XW, \mathrm{new}}(\vec{\pi}),
+    \mat{H}_{XX, \mathrm{cur}} \mat{F}_{XW, \mathrm{new}}(\vec{\pi}),
     \\
     \mat{F}_q &=
     \begin{bmatrix}
@@ -590,6 +592,22 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       & \mat{F}_{XW, q}(- \vec{\mu})
     \end{bmatrix},
     \\
+    \mat{B}_{XW} &= \vec{\zeta} \vec{\tau},
+    \\
+    \mat{B} &=
+    \begin{bmatrix}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{XW}
+      \\
+      \mat{B}_{XW} & \mat{B}_{XW} & \mat{B}_{XW}
+      & \mat{B}_{XW} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+    \end{bmatrix},
+    \\
     \mat{T}_{XW, q} &= \mat{H}_{XX, q},
     \\
     \mat{T}_q &=
@@ -605,44 +623,35 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
     \end{bmatrix},
     \\
-    \mat{B}_{XW} &= \vec{b} \vec{\tau},
+    \mat{A}_{\mathrm{new}} &=
+    \mat{H}_{\mathrm{new}}
+    - \frac{\Delta t}{2} \mat{F}_{\mathrm{new}},
     \\
-    \mat{B} &=
-    \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{XW}
-      \\
-      \mat{B}_{XW} & \mat{B}_{XW} & \mat{B}_{XW}
-      & \mat{B}_{XW} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-    \end{bmatrix}.
+    \mat{A}_{\mathrm{cur}} &=
+    \mat{H}_{\mathrm{cur}}
+    + \frac{\Delta t}{2} \mat{F}_{\mathrm{cur}}.
   \end{align}
   System \eqref{numerics_age_structured} is then
   \begin{multline}
     \label{step_age_structured}
     \left[
-      \mat{H}_{\mathrm{new}}
-      - \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{new}}
+      \mat{A}_{\mathrm{new}}
+      - \frac{\Delta t}{2} \left(
+        b^{\ell - 1 / 2} \mat{B}
         + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
-        + b^{\ell - 1 / 2} \mat{B}
       \right)
-    \right] \vec{x}^{\ell}
+    \right]
+    \vec{x}^{\ell}
     \\
-    = \left[
-      \mat{H}_{\mathrm{cur}}
-      + \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{cur}}
-        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
-        + b^{\ell - 1 / 2} \mat{B}
+    =
+    \left[
+      \mat{A}_{\mathrm{cur}}
+      + \frac{\Delta t}{2} \left(
+        b^{\ell - 1 / 2} \mat{B}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
       \right)
-    \right] \vec{x}^{\ell - 1}.
+    \right]
+    \vec{x}^{\ell - 1}.
   \end{multline}
   For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
   solver to find $\vec{x}^{\ell}$.
@@ -842,12 +851,6 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       R^{\ell}
     \end{bmatrix},
     \\
-    \vec{\zeta} &=
-    \frac{1}{\Delta t}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix}_{K \times 1},
-    \\
     \vec{\iota} &=
     \Delta t
     \begin{bmatrix}
@@ -860,16 +863,24 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \xi_0 & \cdots & \xi_{K - 1}
     \end{bmatrix},
     \\
+    \vec{\zeta} &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}_{K \times 1},
+    \\
     \vec{\beta} &=
     \beta
     \begin{bmatrix}
       \vec{0} & 0 & \vec{0} & \vec{\iota} & 0
     \end{bmatrix},
     \\
-    \lambda^{\ell} &=
-    \vec{\beta} \vec{x}^{\ell},
+    % \lambda^{\ell} &=
+    % \vec{\beta} \vec{x}^{\ell},
+    % \\
+    \mat{H}_{yy, \mathrm{new}} &= \mat{I}_{K \times K},
     \\
-    \mat{L}_{yy} &=
+    \mat{H}_{yy, \mathrm{cur}} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0 \\
       1 & \ddots & & \vdots & \vdots \\
@@ -877,10 +888,6 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \vdots & \ddots & \ddots & 0 & 0 \\
       0 & \cdots & 0 & 1 & 1
     \end{bmatrix}_{K \times K},
-    \\
-    \mat{H}_{yy, \mathrm{new}} &= \mat{I}_{K \times K},
-    \\
-    \mat{H}_{yy, \mathrm{cur}} &= \mat{L}_{yy},
     \\
     \mat{H}_{q} &=
     \begin{bmatrix}
@@ -901,7 +908,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \end{bmatrix},
     \\
     \mat{F}_{yy, \mathrm{cur}}(\vec{\xi}) &=
-    \mat{L}_{yy} \mat{F}_{yy, \mathrm{new}}(\vec{\xi}),
+    \mat{H}_{yy, \mathrm{cur}} \mat{F}_{yy, \mathrm{new}}(\vec{\xi}),
     \\
     \vec{f}_{Xy}(\vec{\xi}) &=
     \vec{\sigma}(\vec{\xi}),
@@ -925,6 +932,23 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \vec{0} & 0 & \vec{0} & \vec{f}_{Xy}(\vec{\gamma}) & - \mu
     \end{bmatrix},
     \\
+    \vec{b}_{Xy} &= \vec{\iota},
+    \\
+    \vec{b}_{yX} &= \vec{\zeta},
+    \\
+    \mat{B} &=
+    \begin{bmatrix}
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{b}_{yX}
+      \\
+      \vec{b}_{Xy} & 1 & \vec{b}_{Xy} & \vec{b}_{Xy} & 0
+      \\
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \\
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \\
+      \mat{0} & 0 & \mat{0} & \mat{0} & 0
+    \end{bmatrix},
+    \\
     \vec{t}_{yX} &= \vec{\zeta},
     \\
     \mat{T}_{\mathrm{new}} =
@@ -941,45 +965,35 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \vec{0} & 0 & \vec{0} & \vec{0} & 0
     \end{bmatrix},
     \\
-    \vec{b}_{Xy} &= \vec{\iota},
+    \mat{A}_{\mathrm{new}} &=
+    \mat{H}_{\mathrm{new}}
+    - \frac{\Delta t}{2} \mat{F}_{\mathrm{new}},
     \\
-    \vec{b}_{yX} &= \vec{\zeta},
-    \\
-    \mat{B} &=
-    \begin{bmatrix}
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{b}_{yX}
-      \\
-      \vec{b}_{Xy} & 1 & \vec{b}_{Xy} & \vec{b}_{Xy} & 0
-      \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
-      \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
-      \\
-      \mat{0} & 0 & \mat{0} & \mat{0} & 0
-    \end{bmatrix}.
+    \mat{A}_{\mathrm{cur}} &=
+    \mat{H}_{\mathrm{cur}}
+    + \frac{\Delta t}{2} \mat{F}_{\mathrm{cur}}.
   \end{align}
   System \eqref{numerics_time_since_entry_structured} is then
   \begin{multline}
     \label{step_time_since_entry_structured}
     \left[
-      \mat{H}_{\mathrm{new}}
-      - \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{new}}
+      \mat{A}_{\mathrm{new}}
+      - \frac{\Delta t}{2} \left(
+        b^{\ell - 1 / 2} \mat{B}
         + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
-        + b^{\ell - 1 / 2} \mat{B}
       \right)
-    \right] \vec{x}^{\ell}
+    \right]
+    \vec{x}^{\ell}
     \\
-    = \left[
-      \mat{H}_{\mathrm{cur}}
-      + \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{cur}}
-        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
-        + b^{\ell - 1 / 2} \mat{B}
+    =
+    \left[
+      \mat{A}_{\mathrm{cur}}
+      + \frac{\Delta t}{2} \left(
+        b^{\ell - 1 / 2} \mat{B}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
       \right)
-    \right] \vec{x}^{\ell - 1}.
+    \right]
+    \vec{x}^{\ell - 1}.
   \end{multline}
   For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
   solver to find $\vec{x}^{\ell}$.
@@ -1387,18 +1401,6 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       R_0^{\ell} \\ \vdots \\ R_{J - 1}^{\ell}
     \end{bmatrix},
     \\
-    \vec{b}_a &=
-    \frac{1}{\Delta t}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix}_{J \times 1},
-    \\
-    \vec{\zeta}_z &=
-    \frac{1}{\Delta t}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix}_{K \times 1},
-    \\
     \vec{\iota}_a &=
     \Delta t
     \begin{bmatrix}
@@ -1414,12 +1416,6 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \vec{\iota}_{y} &=
     \vec{\iota}_a \otimes \vec{\iota}_z,
     \\
-    \vec{\sigma}_z(\vec{\xi}) &=
-    \Delta t
-    \begin{bmatrix}
-      \xi_0 & \cdots & \xi_{K - 1}
-    \end{bmatrix},
-    \\
     \vec{\tau}_a &=
     \Delta t
     \begin{bmatrix}
@@ -1431,6 +1427,24 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \vec{\tau}_{y} &=
     \vec{\tau}_a \otimes \vec{\iota}_z,
     \\
+    \vec{\sigma}_z(\vec{\xi}) &=
+    \Delta t
+    \begin{bmatrix}
+      \xi_0 & \cdots & \xi_{K - 1}
+    \end{bmatrix},
+    \\
+    \vec{\zeta}_a &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}_{J \times 1},
+    \\
+    \vec{\zeta}_z &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}_{K \times 1},
+    \\
     \vec{\beta} &=
     \beta
     \begin{bmatrix}
@@ -1439,10 +1453,12 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       & \vec{0}_{X}
     \end{bmatrix},
     \\
-    \lambda^{\ell} &=
-    \vec{\beta} \vec{x}^{\ell},
+    % \lambda^{\ell} &=
+    % \vec{\beta} \vec{x}^{\ell},
+    % \\
+    \mat{H}_{a, \mathrm{new}} &= \mat{I}_{J \times J},
     \\
-    \mat{L}_a &=
+    \mat{H}_{a, \mathrm{cur}} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0 \\
       1 & \ddots & & \vdots & \vdots \\
@@ -1451,7 +1467,9 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       0 & \cdots & 0 & 1 & 1
     \end{bmatrix}_{J \times J},
     \\
-    \mat{L}_z &=
+    \mat{H}_{z, \mathrm{new}} &= \mat{I}_{K \times K},
+    \\
+    \mat{H}_{z, \mathrm{cur}} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0 \\
       1 & \ddots & & \vdots & \vdots \\
@@ -1459,14 +1477,6 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \vdots & \ddots & \ddots & 0 & 0 \\
       0 & \cdots & 0 & 1 & 1
     \end{bmatrix}_{K \times K},
-    \\
-    \mat{H}_{a, \mathrm{new}} &= \mat{I}_{J \times J},
-    \\
-    \mat{H}_{a, \mathrm{cur}} &= \mat{L}_a,
-    \\
-    \mat{H}_{z, \mathrm{new}} &= \mat{I}_{K \times K},
-    \\
-    \mat{H}_{z, \mathrm{cur}} &= \mat{L}_z,
     \\
     \mat{H}_{XX, q} &= \mat{H}_{a, q},
     \\
@@ -1491,7 +1501,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \end{bmatrix},
     \\
     \mat{F}_{a, \mathrm{cur}}(\vec{\pi}) &=
-    \mat{L}_a \mat{F}_{a, \mathrm{new}}(\vec{\pi}),
+    \mat{H}_{a, \mathrm{cur}} \mat{F}_{a, \mathrm{new}}(\vec{\pi}),
     \\
     \mat{F}_{z, \mathrm{new}}(\vec{\xi}) &=
     \begin{bmatrix}
@@ -1502,7 +1512,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \end{bmatrix},
     \\
     \mat{F}_{z, \mathrm{cur}}(\vec{\xi}) &=
-    \mat{L}_z \mat{F}_{z, \mathrm{new}}(\vec{\xi}),
+    \mat{H}_{z, \mathrm{cur}} \mat{F}_{z, \mathrm{new}}(\vec{\xi}),
     \\
     \mat{F}_{XW, q}(\vec{\pi}) &=
     \mat{F}_{a, q}(\vec{\pi}),
@@ -1539,6 +1549,24 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       & \mat{F}_{XW, q}(- \vec{\mu})
     \end{bmatrix},
     \\
+    \mat{B}_{XW} &= \vec{\zeta}_a \vec{\tau}_{X},
+    \\
+    \mat{B}_{Xy} &= \vec{\zeta}_a \vec{\tau}_{y},
+    \\
+    \mat{B} &=
+    \begin{bmatrix}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{XW}
+      \\
+      \mat{B}_{XW} & \mat{B}_{XW} & \mat{B}_{Xy}
+      & \mat{B}_{Xy} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+    \end{bmatrix},
+    \\
     \mat{T}_{a, q} &= \mat{H}_{a, q},
     \\
     \mat{T}_{XX, q} &= \mat{T}_{a, q},
@@ -1559,47 +1587,36 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
     \end{bmatrix},
     \\
-    \mat{B}_{XW} &= \vec{b}_a \vec{\tau}_{X},
+    \mat{A}_{\mathrm{new}} &=
+    \mat{H}_{\mathrm{new}}
+    - \frac{\Delta t}{2} \mat{F}_{\mathrm{new}},
     \\
-    \mat{B}_{Xy} &= \vec{b}_a \vec{\tau}_{y},
-    \\
-    \mat{B} &=
-    \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{XW}
-      \\
-      \mat{B}_{XW} & \mat{B}_{XW} & \mat{B}_{Xy}
-      & \mat{B}_{Xy} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-    \end{bmatrix},
+    \mat{A}_{\mathrm{cur}} &=
+    \mat{H}_{\mathrm{cur}}
+    + \frac{\Delta t}{2} \mat{F}_{\mathrm{cur}},
   \end{align}
   where $\otimes$ is the Kronecker product.
   System \eqref{numerics_age_and_time_since_entry_structured} is then
   \begin{multline}
     \label{step_age_and_time_since_entry_structured}
     \left[
-      \mat{H}_{\mathrm{new}}
-      - \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{new}}
+      \mat{A}_{\mathrm{new}}
+      - \frac{\Delta t}{2} \left(
+        b^{\ell - 1 / 2} \mat{B}
         + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
-        + b^{\ell - 1 / 2} \mat{B}
       \right)
-    \right] \vec{x}^{\ell}
+    \right]
+    \vec{x}^{\ell}
     \\
-    = \left[
-      \mat{H}_{\mathrm{cur}}
-      + \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{cur}}
-        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
-        + b^{\ell - 1 / 2} \mat{B}
+    =
+    \left[
+      \mat{A}_{\mathrm{cur}}
+      + \frac{\Delta t}{2} \left(
+        b^{\ell - 1 / 2} \mat{B}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
       \right)
-    \right] \vec{x}^{\ell - 1}.
+    \right]
+    \vec{x}^{\ell - 1}.
   \end{multline}
   For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
   solver to find $\vec{x}^{\ell}$.
@@ -1706,13 +1723,12 @@ Let
 \begin{subequations}
   \begin{align}
     \mat{\Phi}^{\ell}
-    &= \left[\Phi_{j, k}^{\ell}\right],
-    \\
-    \vec{b} &=
-    \frac{1}{\Delta t}
+    &=
     \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix}_{J \times 1},
+      \Phi_{0, 0}^{\ell} & \cdots & \Phi_{0, K - 1}^{\ell} \\
+      \vdots & & \vdots \\
+      \Phi_{J - 1, 0}^{\ell} & \cdots & \Phi_{J - 1, K - 1}^{\ell}
+    \end{bmatrix},
     \\
     \vec{\tau} &=
     \Delta t
@@ -1720,7 +1736,15 @@ Let
       \nu_0 & \cdots & \nu_{J - 1}
     \end{bmatrix},
     \\
-    \mat{L} &=
+    \vec{\zeta} &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}_{J \times 1},
+    \\
+    \mat{H}_{\mathrm{new}} &= \mat{I}_{J \times J},
+    \\
+    \mat{H}_{\mathrm{cur}} &=
     \begin{bmatrix}
       0 & \cdots & \cdots & 0 & 0
       \\
@@ -1733,10 +1757,6 @@ Let
       0 & \cdots & 0 & 1 & 1
     \end{bmatrix}_{J \times J},
     \\
-    \mat{H}_{\mathrm{new}} &= \mat{I}_{J \times J},
-    \\
-    \mat{H}_{\mathrm{cur}} &= \mat{L},
-    \\
     \mat{F}_{\mathrm{new}} &=
     \begin{bmatrix}
       - \mu_0 & 0 & \cdots & 0
@@ -1748,33 +1768,33 @@ Let
       0 & \cdots & 0 & - \mu_{J - 1}
     \end{bmatrix},
     \\
-    \mat{F}_{\mathrm{cur}} &= \mat{L} \mat{F}_{\mathrm{new}},
+    \mat{F}_{\mathrm{cur}} &=
+    \mat{H}_{\mathrm{cur}} \mat{F}_{\mathrm{new}},
     \\
-    \mat{B} &= \vec{b} \vec{\tau}.
+    \mat{B} &= \vec{\zeta} \vec{\tau},
+    \\
+    \mat{A}_{\mathrm{new}} &=
+    \mat{H}_{\mathrm{new}}
+    - \frac{\Delta t}{2} \mat{F}_{\mathrm{new}},
+    \\
+    \mat{A}_{\mathrm{cur}} &=
+    \mat{H}_{\mathrm{cur}}
+    + \frac{\Delta t}{2} \mat{F}_{\mathrm{cur}}.
   \end{align}
   System \eqref{numerics_age_structured_fundamental} is then
-  \begin{multline}
-    \left[
-      \mat{H}_{\mathrm{new}}
-      - \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{new}}
-        + b^{\ell - 1 / 2} \mat{B}
-      \right)
-    \right]
+  \begin{equation}
+    \left(
+      \mat{A}_{\mathrm{new}}
+      - \frac{\Delta t}{2} b^{\ell - 1 / 2} \mat{B}
+    \right)
     \mat{\Phi}^{\ell}
-    \\
     =
-    \left[
-      \mat{H}_{\mathrm{cur}}
-      + \frac{\Delta t}{2}
-      \left(
-        \mat{F}_{\mathrm{cur}}
-        + b^{\ell - 1 / 2} \mat{B}
-      \right)
-    \right]
+    \left(
+      \mat{A}_{\mathrm{cur}}
+      + \frac{\Delta t}{2} b^{\ell - 1 / 2} \mat{B}
+    \right)
     \mat{\Phi}^{\ell - 1}.
-  \end{multline}
+  \end{equation}
   For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a linear
   solver to find $\mat{\Phi}^{\ell}$.
 \end{subequations}
@@ -1816,51 +1836,45 @@ The numerical methods for the MSEIR models require solving
 \begin{multline}
   \label{step}
   \left[
-    \mat{H}_{\mathrm{new}}
-    - \frac{\Delta t}{2}
-    \left(
-      \mat{F}_{\mathrm{new}}
+    \mat{A}_{\mathrm{new}}
+    - \frac{\Delta t}{2} \left(
+      b^{\ell - 1 / 2} \mat{B}
       + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
-      + b^{\ell - 1 / 2} \mat{B}
     \right)
   \right]
   \vec{x}^{\ell}
   \\
   =
   \left[
-    \mat{H}_{\mathrm{cur}}
-    + \frac{\Delta t}{2}
-    \left(
-      \mat{F}_{\mathrm{cur}}
-      + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
-      + b^{\ell - 1 / 2} \mat{B}
+    \mat{A}_{\mathrm{cur}}
+    + \frac{\Delta t}{2} \left(
+      b^{\ell - 1 / 2} \mat{B}
+      + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
     \right)
   \right]
-  \vec{x}^{\ell - 1},
+  \vec{x}^{\ell - 1}.
 \end{multline}
 for $\vec{x}^{\ell}$ given $\vec{x}^{\ell - 1}$.
 Taking the derivative of this equation with respect to
 $\vec{x}^{\ell - 1}$ gives
 \begin{multline}
   \left[
-    \mat{H}_{\mathrm{new}}
+    \mat{A}_{\mathrm{new}}
     - \frac{\Delta t}{2}
     \left(
-      \mat{F}_{\mathrm{new}}
+      b^{\ell - 1 / 2} \mat{B}
       + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
       + \mat{T}_{\mathrm{new}} \vec{x}^{\ell} \vec{\beta}
-      + b^{\ell - 1 / 2} \mat{B}
     \right)
   \right]
   \frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}
   \\
-  = \mat{H}_{\mathrm{cur}}
+  = \mat{A}_{\mathrm{cur}}
   + \frac{\Delta t}{2}
   \left(
-    \mat{F}_{\mathrm{cur}}
+    b^{\ell - 1 / 2} \mat{B}
     + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
     + \mat{T}_{\mathrm{cur}} \vec{x}^{\ell - 1} \vec{\beta}
-    + b^{\ell - 1 / 2} \mat{B}
   \right),
 \end{multline}
 which, given $\vec{x}^{\ell}$ and $\vec{x}^{\ell - 1}$,

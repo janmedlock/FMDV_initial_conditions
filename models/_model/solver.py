@@ -36,7 +36,7 @@ class Solver(metaclass=abc.ABCMeta):
             self._root_kwds = {
                 'options': {
                     'jac_options': {
-                        'inner_M': self._preconditioner(),
+                        'inner_M': self._preconditioner,
                     },
                 },
             }
@@ -44,12 +44,12 @@ class Solver(metaclass=abc.ABCMeta):
             self._root_kwds = {}
 
     @abc.abstractmethod
-    def _I(self):
-        '''Build the identity matrix.'''
-
-    @abc.abstractmethod
     def _beta(self):
         '''Build the transmission rate vector beta.'''
+
+    @abc.abstractmethod
+    def _I(self):
+        '''Build the identity matrix.'''
 
     @abc.abstractmethod
     def _H(self, q):
@@ -60,54 +60,67 @@ class Solver(metaclass=abc.ABCMeta):
         '''Build the transition matrix F(q).'''
 
     @abc.abstractmethod
-    def _T(self, q):
-        '''Build the transition matrix F(q).'''
-
-    @abc.abstractmethod
     def _B(self):
         '''Build the birth matrix B.'''
 
+    @abc.abstractmethod
+    def _T(self, q):
+        '''Build the transition matrix F(q).'''
+
+    def _A(self, q):
+        '''Build the matrix A(q).'''
+        H = self._H(q)
+        F = self.t_step / 2 * self._F(q)
+        if q == 'cur':
+            A = H + F
+        elif q == 'new':
+            A = H - F
+        else:
+            raise ValueError(f'{q=}')
+        return A
+
     def _build_matrices(self):
         '''Build matrices needed by the solver.'''
-        self.I = self._I()
-        self.beta = self._beta()
         q_vals = ('new', 'cur')
-        self.H = {q: self._H(q) for q in q_vals}
-        self.F = {q: self._F(q) for q in q_vals}
-        self.T = {q: self._T(q) for q in q_vals}
+        self.beta = self._beta()
+        self.I = self._I()
+        self.A = {q: self._A(q) for q in q_vals}
         self.B = self._B()
+        self.T = {q: self._T(q) for q in q_vals}
 
     def _check_matrices(self, is_M_matrix=True):
         '''Check the solver matrices.'''
         assert _utility.linalg.is_nonnegative(self.beta)
-        assert _utility.linalg.is_Z_matrix(self.H['new'])
-        assert _utility.linalg.is_nonnegative(self.H['cur'])
-        assert _utility.linalg.is_Metzler_matrix(self.F['new'])
-        assert _utility.linalg.is_Metzler_matrix(self.T['new'])
+        assert _utility.linalg.is_Z_matrix(self.A['new'])
+        assert _utility.linalg.is_nonnegative(self.A['cur'])
         assert _utility.linalg.is_Metzler_matrix(self.B)
         assert _utility.linalg.is_nonnegative(self.B)
+        assert _utility.linalg.is_Metzler_matrix(self.T['new'])
         birth = self.model.parameters.birth
         if is_M_matrix:
-            HFB_new = (self.H['new']
-                       - self.t_step / 2 * (self.F['new']
-                                            + birth.rate_max * self.B))
-            assert _utility.linalg.is_M_matrix(HFB_new)
-        HFB_cur = (self.H['cur']
-                   + self.t_step / 2 * (self.F['cur']
-                                        + birth.rate_min * self.B))
-        assert _utility.linalg.is_nonnegative(HFB_cur)
+            AB_new = (
+                self.A['new']
+                - self.t_step / 2 * birth.rate_max * self.B
+            )
+            assert _utility.linalg.is_M_matrix(AB_new)
+        AB_cur = (
+            self.A['cur']
+            + self.t_step / 2 * birth.rate_min * self.B
+        )
+        assert _utility.linalg.is_nonnegative(AB_cur)
 
+    @property
     def _preconditioner(self):
-        '''For sparse solvers, build the Krylov preconditioner.'''
-        M = (self.H['new']
-             + self.t_step / 2 * self.F['new'])
-        return M
+        '''For sparse solvers, the Krylov preconditioner.'''
+        return self.A['new']
 
-    def _objective(self, y_new, HFB_new, HFTBy_cur):
+    def _objective(self, y_new, AB_new, ABTy_cur):
         '''Helper for `.step()`.'''
-        HFTB_new = (HFB_new
-                    - self.t_step / 2 * self.beta @ y_new * self.T['new'])
-        return HFTB_new @ y_new - HFTBy_cur
+        ABT_new = (
+            AB_new
+            - self.t_step / 2 * self.beta @ y_new * self.T['new']
+        )
+        return ABT_new @ y_new - ABTy_cur
 
     def step(self, t_cur, y_cur, display=False):
         '''Do a step.'''
@@ -116,17 +129,19 @@ class Solver(metaclass=abc.ABCMeta):
             print(f'{t_new=}')
         t_mid = t_cur + 0.5 * self.t_step
         b_mid = self.model.parameters.birth.rate(t_mid)
-        HFB_new = (self.H['new']
-                   - self.t_step / 2 * (self.F['new']
-                                        + b_mid * self.B))
-        HFTB_cur = (self.H['cur']
-                    + self.t_step / 2 * (self.F['cur']
-                                         + self.beta @ y_cur * self.T['cur']
-                                         + b_mid * self.B))
-        HFTBy_cur = HFTB_cur @ y_cur
+        AB_new = (
+            self.A['new']
+            - self.t_step / 2 * b_mid * self.B
+        )
+        ABT_cur = (
+            self.A['cur']
+            + self.t_step / 2 * (b_mid * self.B
+                                 + self.beta @ y_cur * self.T['cur'])
+        )
+        ABTy_cur = ABT_cur @ y_cur
         y_new_guess = y_cur
         result = _utility.optimize.root(self._objective, y_new_guess,
-                                        args=(HFB_new, HFTBy_cur),
+                                        args=(AB_new, ABTy_cur),
                                         sparse=self._sparse,
                                         **self._root_kwds)
         assert result.success, f'{t_cur=}\n{result=}'
