@@ -39,6 +39,23 @@ class Solver(_model.solver.Solver):
     def z_step(self):
         return self._get_z_step(self.t_step)
 
+    def _beta(self):
+        '''Build the transmission rate vector beta.'''
+        J = len(self.a)
+        K = len(self.z)
+        zeros_X = _utility.sparse.Array((1, J))
+        zeros_y = _utility.sparse.Array((1, J * K))
+        blocks = [
+            zeros_y if state in self.model.states_with_z else zeros_X
+            for state in self.model.states
+        ]
+        infectious = self.model.states.index('infectious')
+        assert 'infectious' in self.model.states_with_z
+        blocks[infectious] = self._iota_y()
+        beta = (self.model.parameters.transmission.rate
+                * _utility.sparse.hstack(blocks))
+        return beta
+
     @functools.cached_property
     def Zeros(self):
         '''Zero matrices used in constructing the other matrices.'''
@@ -185,23 +202,6 @@ class Solver(_model.solver.Solver):
         I = _utility.sparse.block_diag(blocks)
         return I
 
-    def _beta(self):
-        '''Build the transmission rate vector beta.'''
-        J = len(self.a)
-        K = len(self.z)
-        zeros_X = _utility.sparse.Array((1, J))
-        zeros_y = _utility.sparse.Array((1, J * K))
-        blocks = [
-            zeros_y if state in self.model.states_with_z else zeros_X
-            for state in self.model.states
-        ]
-        infectious = self.model.states.index('infectious')
-        assert 'infectious' in self.model.states_with_z
-        blocks[infectious] = self._iota_y()
-        beta = (self.model.parameters.transmission.rate
-                * _utility.sparse.hstack(blocks))
-        return beta
-
     def _H_a(self, q):
         '''Build an age block of H(q).'''
         if q == 'new':
@@ -332,6 +332,35 @@ class Solver(_model.solver.Solver):
         ])
         return F
 
+    def _B_XW(self):
+        '''Build a block between X states of B.'''
+        b_a = self.b_a
+        tau_X = self._tau_X()
+        B_XW = b_a @ tau_X
+        return B_XW
+
+    def _B_Xy(self):
+        '''Build a block to an X state from a y state of B.'''
+        b_a = self.b_a
+        tau_y = self._tau_y()
+        B_Xy = b_a @ tau_y
+        return B_Xy
+
+    def _B(self):
+        '''Build the birth matrix B.'''
+        B_XW = self._B_XW()
+        B_Xy = self._B_Xy()
+        Zeros_XW = self.Zeros['XW']
+        Zeros_yX = self.Zeros['yX']
+        B = _utility.sparse.bmat([
+            [    None, None, None, None, B_XW],
+            [    B_XW, B_XW, B_Xy, B_Xy, None],
+            [Zeros_yX, None, None, None, None],
+            [Zeros_yX, None, None, None, None],
+            [Zeros_XW, None, None, None, None]
+        ])
+        return B
+
     def _T_a(self, q):
         '''Build an age block of T(q).'''
         T_a = self._H_a(q)
@@ -364,35 +393,6 @@ class Solver(_model.solver.Solver):
             [    None,   None,     None,     None, Zeros_XW]
         ])
         return T
-
-    def _B_XW(self):
-        '''Build a block between X states of B.'''
-        b_a = self.b_a
-        tau_X = self._tau_X()
-        B_XW = b_a @ tau_X
-        return B_XW
-
-    def _B_Xy(self):
-        '''Build a block to an X state from a y state of B.'''
-        b_a = self.b_a
-        tau_y = self._tau_y()
-        B_Xy = b_a @ tau_y
-        return B_Xy
-
-    def _B(self):
-        '''Build the birth matrix B.'''
-        B_XW = self._B_XW()
-        B_Xy = self._B_Xy()
-        Zeros_XW = self.Zeros['XW']
-        Zeros_yX = self.Zeros['yX']
-        B = _utility.sparse.bmat([
-            [    None, None, None, None, B_XW],
-            [    B_XW, B_XW, B_Xy, B_Xy, None],
-            [Zeros_yX, None, None, None, None],
-            [Zeros_yX, None, None, None, None],
-            [Zeros_XW, None, None, None, None]
-        ])
-        return B
 
     def _check_matrices(self, is_M_matrix=False):
         '''Check the solver matrices. Checking the M matrix requires

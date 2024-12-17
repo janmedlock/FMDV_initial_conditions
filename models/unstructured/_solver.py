@@ -14,12 +14,6 @@ class Solver(_model.solver.Solver):
 
     _jacobian_method_default = 'base'
 
-    def _I(self):
-        '''Build the identity matrix.'''
-        n = len(self.model.states)
-        I = numpy.identity(n)
-        return I
-
     def _beta(self):
         '''Build the transmission rate vector beta.'''
         n = len(self.model.states)
@@ -29,6 +23,12 @@ class Solver(_model.solver.Solver):
         beta = (self.model.parameters.transmission.rate
                 * numpy.array(blocks).reshape((1, n)))
         return beta
+
+    def _I(self):
+        '''Build the identity matrix.'''
+        n = len(self.model.states)
+        I = numpy.identity(n)
+        return I
 
     def _H(self, q):
         '''Build the time-step matrix H(q).'''
@@ -56,6 +56,18 @@ class Solver(_model.solver.Solver):
         F = self._F_
         return F
 
+    @staticmethod
+    def _B():
+        '''Build the birth matrix B.'''
+        B = numpy.array([
+            [0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0]
+        ])
+        return B
+
     @functools.cached_property
     def _T_(self):
         '''T is independent of q, so build it once and reuse.'''
@@ -72,15 +84,3 @@ class Solver(_model.solver.Solver):
         '''Build the transmission matrix T(q).'''
         T = self._T_
         return T
-
-    @staticmethod
-    def _B():
-        '''Build the birth matrix B.'''
-        B = numpy.array([
-            [0, 0, 0, 0, 1],
-            [1, 1, 1, 1, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0]
-        ])
-        return B

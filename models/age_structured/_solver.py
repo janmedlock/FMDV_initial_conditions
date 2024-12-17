@@ -19,6 +19,24 @@ class Solver(_base.Solver, _model.solver.Solver):
         self.a = model.a
         super().__init__(model, **kwds)
 
+    def _iota(self):
+        '''Build a block for integrating over age.'''
+        J = len(self.a)
+        iota = self.a_step * numpy.ones((1, J))
+        return iota
+
+    def _beta(self):
+        '''Build the transmission rate vector beta.'''
+        n = len(self.model.states)
+        J = len(self.a)
+        zeros = _utility.sparse.Array((1, J))
+        blocks = [zeros] * n
+        infectious = self.model.states.index('infectious')
+        blocks[infectious] = self._iota()
+        beta = (self.model.parameters.transmission.rate
+                * _utility.sparse.hstack(blocks))
+        return beta
+
     @functools.cached_property
     def Zeros(self):
         '''Zero matrix used in constructing the other matrices.'''
@@ -44,12 +62,6 @@ class Solver(_base.Solver, _model.solver.Solver):
         L_XW = _utility.sparse.diags_from_dict(diags)
         return L_XW
 
-    def _iota(self):
-        '''Build a block for integrating over age.'''
-        J = len(self.a)
-        iota = self.a_step * numpy.ones((1, J))
-        return iota
-
     def _I(self):
         '''Build the identity matrix.'''
         n = len(self.model.states)
@@ -65,18 +77,6 @@ class Solver(_base.Solver, _model.solver.Solver):
         else:
             raise ValueError(f'{q=}!')
         return M_XW
-
-    def _beta(self):
-        '''Build the transmission rate vector beta.'''
-        n = len(self.model.states)
-        J = len(self.a)
-        zeros = _utility.sparse.Array((1, J))
-        blocks = [zeros] * n
-        infectious = self.model.states.index('infectious')
-        blocks[infectious] = self._iota()
-        beta = (self.model.parameters.transmission.rate
-                * _utility.sparse.hstack(blocks))
-        return beta
 
     def _H_XX(self, q):
         '''Build a diagonal block of H(q).'''
@@ -118,24 +118,6 @@ class Solver(_base.Solver, _model.solver.Solver):
         ])
         return F
 
-    def _T_XW(self, q):
-        '''Build a block of T(q).'''
-        T_XW = self._M_XW(q)
-        return T_XW
-
-    def _T(self, q):
-        '''Build the transmission matrix T(q).'''
-        T_XW = self._T_XW(q)
-        Zeros = self.Zeros
-        T = _utility.sparse.bmat([
-            [Zeros,   None, Zeros,  None,  None],
-            [ None, - T_XW,  None,  None,  None],
-            [ None,   T_XW,  None,  None,  None],
-            [ None,   None,  None, Zeros,  None],
-            [ None,   None,  None,  None, Zeros]
-        ])
-        return T
-
     def _B_XW(self):
         '''Build a block of B.'''
         J = len(self.a)
@@ -160,3 +142,21 @@ class Solver(_base.Solver, _model.solver.Solver):
             [Zeros, None, None, None, None]
         ])
         return B
+
+    def _T_XW(self, q):
+        '''Build a block of T(q).'''
+        T_XW = self._M_XW(q)
+        return T_XW
+
+    def _T(self, q):
+        '''Build the transmission matrix T(q).'''
+        T_XW = self._T_XW(q)
+        Zeros = self.Zeros
+        T = _utility.sparse.bmat([
+            [Zeros,   None, Zeros,  None,  None],
+            [ None, - T_XW,  None,  None,  None],
+            [ None,   T_XW,  None,  None,  None],
+            [ None,   None,  None, Zeros,  None],
+            [ None,   None,  None,  None, Zeros]
+        ])
+        return T

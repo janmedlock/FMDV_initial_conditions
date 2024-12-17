@@ -20,24 +20,20 @@ class Tester:
         pass
 
     @abc.abstractmethod
-    def H(self, q):
-        pass
-
-    @abc.abstractmethod
-    def F(self, q):
-        pass
-
-    @abc.abstractmethod
-    def T(self, q):
+    def A(self, q):
         pass
 
     @abc.abstractmethod
     def B(self):
         pass
 
+    @abc.abstractmethod
+    def T(self, q):
+        pass
+
     def test(self):
         solver = self.model._solver
-        names = ('beta', 'H', 'F', 'T', 'B')
+        names = ('beta', 'A', 'B', 'T')
         for name in names:
             matrix = getattr(solver, name)
             test_fcn = getattr(self, name)

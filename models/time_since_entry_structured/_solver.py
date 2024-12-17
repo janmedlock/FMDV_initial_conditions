@@ -31,6 +31,46 @@ class Solver(_model.solver.Solver):
         z_step = self._get_z_step(self.t_step)
         return z_step
 
+    def _iota_y(self):
+        '''Build a block for integrating a y state over time since
+        infection.'''
+        K = len(self.z)
+        iota_y = self.z_step * numpy.ones((1, K))
+        return iota_y
+
+    def _sigma(self, xi):
+        '''Build the vector to integrate a y state over `xi`.'''
+        if numpy.isscalar(xi):
+            K = len(self.z)
+            xi *= numpy.ones(K)
+        sigma = _utility.sparse.Array(self.z_step * xi)
+        return sigma
+
+    @functools.cached_property
+    def zeta_y(self):
+        '''Build the vector for entering a y state.'''
+        K = len(self.z)
+        zeta_y = _utility.sparse.array_from_dict(
+            {(0, 0): 1 / self.z_step},
+            shape=(K, 1)
+        )
+        return zeta_y
+
+    def _beta(self):
+        '''Build the transmission rate vector beta.'''
+        zeros_X = self.Zeros['XW']
+        zeros_y = self.Zeros['Xy']
+        blocks = [
+            zeros_y if state in self.model.states_with_z else zeros_X
+            for state in self.model.states
+        ]
+        infectious = self.model.states.index('infectious')
+        assert 'infectious' in self.model.states_with_z
+        blocks[infectious] = self._iota_y()
+        beta = (self.model.parameters.transmission.rate
+                * _utility.sparse.hstack(blocks))
+        return beta
+
     @functools.cached_property
     def Zeros(self):
         '''Zero matrices used in constructing the other matrices.'''
@@ -66,31 +106,6 @@ class Solver(_model.solver.Solver):
         L_yy = _utility.sparse.diags_from_dict(diags)
         return L_yy
 
-    @functools.cached_property
-    def zeta(self):
-        '''Build the vector for entering a y state.'''
-        K = len(self.z)
-        zeta = _utility.sparse.array_from_dict(
-            {(0, 0): 1 / self.z_step},
-            shape=(K, 1)
-        )
-        return zeta
-
-    def _iota_y(self):
-        '''Build a block for integrating a y state over time since
-        infection.'''
-        K = len(self.z)
-        iota_y = self.z_step * numpy.ones((1, K))
-        return iota_y
-
-    def _sigma(self, xi):
-        '''Build the vector to integrate a y state over `xi`.'''
-        if numpy.isscalar(xi):
-            K = len(self.z)
-            xi *= numpy.ones(K)
-        sigma = _utility.sparse.Array(self.z_step * xi)
-        return sigma
-
     def _I(self):
         '''Build the identity matrix.'''
         I_XX = self.I_XX
@@ -101,21 +116,6 @@ class Solver(_model.solver.Solver):
         ]
         I = _utility.sparse.block_diag(blocks)
         return I
-
-    def _beta(self):
-        '''Build the transmission rate vector beta.'''
-        zeros_X = self.Zeros['XW']
-        zeros_y = self.Zeros['Xy']
-        blocks = [
-            zeros_y if state in self.model.states_with_z else zeros_X
-            for state in self.model.states
-        ]
-        infectious = self.model.states.index('infectious')
-        assert 'infectious' in self.model.states_with_z
-        blocks[infectious] = self._iota_y()
-        beta = (self.model.parameters.transmission.rate
-                * _utility.sparse.hstack(blocks))
-        return beta
 
     def _h_XX(self):
         '''Build a diagonal block for an X state of H(q).'''
@@ -167,7 +167,7 @@ class Solver(_model.solver.Solver):
 
     def _F_yw(self, xi):
         '''Build an off-diagonal block between y states of F(q).'''
-        F_yw = self.zeta @ self._sigma(xi)
+        F_yw = self.zeta_y @ self._sigma(xi)
         return F_yw
 
     def _get_rate(self, which):
@@ -195,37 +195,6 @@ class Solver(_model.solver.Solver):
         ])
         return F
 
-    def _t_XX(self):
-        '''Build a diagonal block for an X state of T(q).'''
-        t_XX = self.I_XX
-        return t_XX
-
-    def _t_yX(self):
-        '''Build a block to a y state from an X state of T(q).'''
-        t_yX = self.zeta
-        return t_yX
-
-    @functools.cached_property
-    def _T_(self):
-        '''T is independent of q, so built once and reuse it.'''
-        t_XX = self._t_XX()
-        t_yX = self._t_yX()
-        zeros_XW = self.Zeros['XW']
-        Zeros_yw = self.Zeros['yw']
-        T = _utility.sparse.bmat([
-            [Zeros_yw,   None, Zeros_yw,     None,     None],
-            [     None, - t_XX,    None,     None,     None],
-            [     None,   t_yX,    None,     None,     None],
-            [     None,   None,    None, Zeros_yw,     None],
-            [     None,   None,    None,     None, zeros_XW]
-        ])
-        return T
-
-    def _T(self, q):
-        '''Build the transmission matrix T(q).'''
-        T = self._T_
-        return T
-
     def _b_XX(self):
         '''Build a diagonal block for an X state of B.'''
         b_XX = self.I_XX
@@ -240,7 +209,7 @@ class Solver(_model.solver.Solver):
 
     def _b_yX(self):
         '''Build a block to a y state from an X state of B.'''
-        b_yX = self.zeta
+        b_yX = self.zeta_y
         return b_yX
 
     def _B(self):
@@ -258,3 +227,34 @@ class Solver(_model.solver.Solver):
             [zeros_Xy, None, None, None, None]
         ])
         return B
+
+    def _t_XX(self):
+        '''Build a diagonal block for an X state of T(q).'''
+        t_XX = self.I_XX
+        return t_XX
+
+    def _t_yX(self):
+        '''Build a block to a y state from an X state of T(q).'''
+        t_yX = self.zeta_y
+        return t_yX
+
+    @functools.cached_property
+    def _T_(self):
+        '''T is independent of q, so build once and reuse it.'''
+        t_XX = self._t_XX()
+        t_yX = self._t_yX()
+        zeros_XW = self.Zeros['XW']
+        Zeros_yw = self.Zeros['yw']
+        T = _utility.sparse.bmat([
+            [Zeros_yw,   None, Zeros_yw,     None,     None],
+            [     None, - t_XX,    None,     None,     None],
+            [     None,   t_yX,    None,     None,     None],
+            [     None,   None,    None, Zeros_yw,     None],
+            [     None,   None,    None,     None, zeros_XW]
+        ])
+        return T
+
+    def _T(self, q):
+        '''Build the transmission matrix T(q).'''
+        T = self._T_
+        return T
