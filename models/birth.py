@@ -62,7 +62,8 @@ class _Birth(metaclass=abc.ABCMeta):
                             & (age < self.age_menopause)),
                            1, 0)
 
-    def _age_max(self):
+    @property
+    def age_max(self):
         '''Get the last age where `.maternity()` changes.'''
         if numpy.isfinite(self.age_menopause):
             age_max = self.age_menopause

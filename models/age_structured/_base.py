@@ -45,8 +45,8 @@ class Model(metaclass=abc.ABCMeta):
 
     def _check_a_max(self):
         '''Check that `a_max` is large enough.'''
-        assert self.a_max >= self.parameters.birth._age_max()
-        assert self.a_max >= self.parameters.death._age_max()
+        assert self.a_max >= self.parameters.birth.age_max
+        assert self.a_max >= self.parameters.death.age_max
 
     @functools.cached_property
     def a_step(self):

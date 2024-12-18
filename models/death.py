@@ -63,7 +63,8 @@ class Death:
         density_total = population_model.integral_over_a(density)
         return rate_total / density_total
 
-    def _age_max(self):
+    @property
+    def age_max(self):
         '''Get the last age where `._annual_survival` changes.'''
         age_max = self._left.max()
         return age_max
