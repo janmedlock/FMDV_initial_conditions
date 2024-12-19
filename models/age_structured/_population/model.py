@@ -1,15 +1,36 @@
 '''Age-structured population model.'''
 
-from . import _solver
-from .. import _base
+import abc
+
+from . import solver
+from ... import _model
 
 
-class Model(_base.Model):
+class Base(_model.model.Population, metaclass=abc.ABCMeta):
+    '''Base for age-structured models.'''
+
+    @property
+    def a_max(self):
+        '''The maximum age.'''
+        return self._solver.a_max
+
+    @property
+    def a_step(self):
+        '''The step size in age.'''
+        return self._solver.a_step
+
+    @property
+    def a(self):
+        '''The solution ages.'''
+        return self._solver.a
+
+
+class Model(Base):
     '''The linear age-structured model for the population size with
     age-dependent death rate, age-dependent maternity, and periodic
     time-dependent birth rate.'''
 
-    _Solver = _solver.Solver
+    _Solver = solver.Solver
 
     # The default time step `t_step`.
     # `t_step` = 1e-2 gives a relative error in `.stable_age_density()`

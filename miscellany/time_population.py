@@ -32,7 +32,7 @@ models._utility.sparse.Array = scipy.sparse.csr_array
 
 
 # pylint: disable-next=protected-access,too-few-public-methods
-class TestSolver(_population._solver.Solver):
+class TestSolver(_population.solver.Solver):
     '''Test the solver.'''
 
     _methods_timed = ('population_growth_rate',
