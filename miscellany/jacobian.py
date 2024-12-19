@@ -31,8 +31,8 @@ from context import models
 def time_jac(Model, t_step, method, t_solve=10, **kwds):
     model = Model(t_step=t_step,
                   birth_variation=0,
-                  _solver_options={'_check_matrices': False,
-                                   '_jacobian_method': method},
+                  solver_kwds={'_check_matrices': False,
+                               '_jacobian_method': method},
                   **kwds)
     t0_eql = time.perf_counter()
     eql = model.find_equilibrium(model.build_initial_conditions(),

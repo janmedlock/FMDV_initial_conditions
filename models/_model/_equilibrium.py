@@ -33,7 +33,7 @@ def find(model, y_guess, t=0, t_solve=0, weights=1,
                                           display=display)
     result = _utility.optimize.root(_objective, y_guess,
                                     args=(model._solver, t, weights),
-                                    sparse=model._solver._sparse,
+                                    sparse=model._solver.sparse,
                                     display=display,
                                     **root_kwds)
     assert result.success, result

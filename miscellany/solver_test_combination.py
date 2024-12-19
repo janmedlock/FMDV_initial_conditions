@@ -12,85 +12,95 @@ import solver_test
 class Tester(solver_test.Tester):
     '''Test the age– and time-since-entry–structured solver.'''
 
-    def beta(self):
-        J = len(self.model.a)
-        K = len(self.model.z)
-        zeros_X = solver_test.SparseArray((1, J))
-        zeros_y = solver_test.SparseArray((1, J * K))
-        iota_y = (self.model.a_step
-                  * self.model.z_step
-                  * numpy.ones((1, J * K)))
-        return (self.model.parameters.transmission.rate
-                * scipy.sparse.hstack(
-                    [zeros_X, zeros_X, zeros_y, iota_y, zeros_X]
-                ))
+    @property
+    def J(self):
+        return len(self.model.a)
+
+    @property
+    def K(self):
+        return len(self.model.z)
+
+    @property
+    def iota_a(self):
+        return (self.model.a_step
+                * numpy.ones((1, self.J)))
+
+    @property
+    def iota_z(self):
+        return (self.model.z_step
+                * numpy.ones((1, self.K)))
+
+    @property
+    def zeta_a(self):
+        zeta_a = scipy.sparse.dok_array((self.J, 1))
+        zeta_a[0, 0] = 1 / self.model.a_step
+        return zeta_a
+
+    @property
+    def zeta_z(self):
+        zeta_z = scipy.sparse.dok_array((self.K, 1))
+        zeta_z[0, 0] = 1 / self.model.z_step
+        return zeta_z
+
+    @property
+    def L_a(self):
+        return models._utility.sparse.diags_from_dict({
+            -1: numpy.ones(self.J - 1),
+            0: numpy.hstack([numpy.zeros(self.J - 1), 1]),
+        })
+
+    @property
+    def L_z(self):
+        return models._utility.sparse.diags_from_dict({
+            -1: numpy.ones(self.K - 1),
+            0: numpy.hstack([numpy.zeros(self.K - 1), 1]),
+        })
+
+    def H_a(self, q):
+        H_a = scipy.sparse.identity(self.J)
+        if q == 'cur':
+            H_a = self.L_a @ H_a
+        return H_a
+
+    def H_z(self, q):
+        H_z = scipy.sparse.identity(self.K)
+        if q == 'cur':
+            H_z = self.L_z @ H_z
+        return H_z
 
     def H(self, q):
-        J = len(self.model.a)
-        K = len(self.model.z)
-        if q == 'new':
-            H_a = scipy.sparse.identity(J)
-            H_z = scipy.sparse.identity(K)
-        elif q == 'cur':
-            H_a = models._utility.sparse.diags_from_dict({
-                -1: numpy.ones(J - 1),
-                0: numpy.hstack([numpy.zeros(J - 1), 1])
-            })
-            H_z = models._utility.sparse.diags_from_dict({
-                -1: numpy.ones(K - 1),
-                0: numpy.hstack([numpy.zeros(K - 1), 1])
-            })
-        else:
-            return ValueError
+        H_a = self.H_a(q)
+        H_z = self.H_z(q)
         H_XX = H_a
         H_yy = scipy.sparse.kron(H_a, H_z)
         return scipy.sparse.block_diag([H_XX, H_XX, H_yy, H_yy, H_XX])
 
+    def sigma_z(self, xi):
+        if numpy.isscalar(xi):
+            xi = xi * numpy.ones(self.K)
+        sigma_z = scipy.sparse.dok_array((1, self.K))
+        sigma_z[0] = self.model.z_step * xi
+        return sigma_z
+
     def F(self, q):
-        J = len(self.model.a)
-        K = len(self.model.z)
-        if q == 'new':
-            H_a = scipy.sparse.identity(J)
-            H_z = scipy.sparse.identity(K)
-        elif q == 'cur':
-            H_a = models._utility.sparse.diags_from_dict({
-                -1: numpy.ones(J - 1),
-                0: numpy.hstack([numpy.zeros(J - 1), 1])
-            })
-            H_z = models._utility.sparse.diags_from_dict({
-                -1: numpy.ones(K - 1),
-                0: numpy.hstack([numpy.zeros(K - 1), 1])
-            })
-        else:
-            return ValueError
-        zeta_z = scipy.sparse.dok_array((K, 1))
-        zeta_z[0, 0] = 1 / self.model.z_step
+        H_a = self.H_a(q)
+        H_z = self.H_z(q)
 
         def F_a(pi):
             if numpy.isscalar(pi):
-                pi = pi * numpy.ones(J)
-            if q == 'new':
-                return scipy.sparse.diags(pi)
-            elif q == 'cur':
-                return models._utility.sparse.diags_from_dict({
-                    -1: pi[:-1],
-                    0: numpy.hstack([numpy.zeros(J - 1), pi[-1]])
-                })
-            else:
-                raise ValueError
+                pi = pi * numpy.ones(self.J)
+            F_a = scipy.sparse.diags(pi)
+            if q == 'cur':
+                F_a = self.L_a @ F_a
+            return F_a
 
         def F_z(xi):
             if numpy.isscalar(xi):
-                xi = xi * numpy.ones(K)
-            if q == 'new':
-                return scipy.sparse.diags(xi)
-            elif q == 'cur':
-                return models._utility.sparse.diags_from_dict({
-                    -1: xi[:-1],
-                    0: numpy.hstack([numpy.zeros(K - 1), xi[-1]])
-                })
-            else:
-                raise ValueError
+                xi = xi * numpy.ones(self.K)
+            F_z = scipy.sparse.diags(xi)
+            if q == 'cur':
+                F_z = self.L_z @ F_z
+            return F_z
 
         def F_XW(pi):
             return F_a(pi)
@@ -99,16 +109,11 @@ class Tester(solver_test.Tester):
             return (scipy.sparse.kron(F_a(pi), H_z)
                     + scipy.sparse.kron(H_a, F_z(xi)))
 
-        def sigma_z(xi):
-            if numpy.isscalar(xi):
-                xi = xi * numpy.ones(K)
-            return (self.model.z_step * xi.reshape((1, K)))
-
         def F_Xy(xi):
-            return scipy.sparse.kron(H_a, sigma_z(xi))
+            return scipy.sparse.kron(H_a, self.sigma_z(xi))
 
         def F_yw(xi):
-            return scipy.sparse.kron(H_a, zeta_z @ sigma_z(xi))
+            return scipy.sparse.kron(H_a, self.zeta_z @ self.sigma_z(xi))
 
         def get_rate_a(which):
             waiting_time = getattr(self.model.parameters, which)
@@ -132,55 +137,47 @@ class Tester(solver_test.Tester):
             [None, None, None, F_Xy(gamma), F_XW(- mu)]
         ])
 
-    def T(self, q):
-        J = len(self.model.a)
-        K = len(self.model.z)
-        if q == 'new':
-            T_a = scipy.sparse.identity(J)
-        elif q == 'cur':
-            T_a = models._utility.sparse.diags_from_dict({
-                -1: numpy.ones(J - 1),
-                0: numpy.hstack([numpy.zeros(J - 1), 1])
-            })
-        else:
-            return ValueError
-        zeta_z = scipy.sparse.dok_array((K, 1))
-        zeta_z[0, 0] = 1 / self.model.z_step
-        T_XX = T_a
-        T_yX = scipy.sparse.kron(T_a, zeta_z)
-        Zeros_yw = solver_test.SparseArray((J * K, J * K))
-        Zeros_yX = solver_test.SparseArray((J * K, J))
-        Zeros_Xy = solver_test.SparseArray((J, J * K))
-        Zeros_XW = solver_test.SparseArray((J, J))
+    @property
+    def tau_a(self):
+        nu = self.model.parameters.birth.maternity(self.model.a)
+        return (self.model.a_step * nu).reshape((1, -1))
+
+    def B(self):
+        B_XW = self.zeta_a @ self.tau_a
+        B_Xy = self.zeta_a @ scipy.sparse.kron(self.tau_a, self.iota_z)
+        Zeros_yw = solver_test.Zeros((self.J * self.K, self.J * self.K))
+        Zeros_yX = solver_test.Zeros((self.J * self.K, self.J))
+        Zeros_Xy = solver_test.Zeros((self.J, self.J * self.K))
+        Zeros_XW = solver_test.Zeros((self.J, self.J))
         return scipy.sparse.bmat([
-            [Zeros_XW, Zeros_XW, Zeros_Xy, Zeros_Xy, Zeros_XW],
-            [Zeros_XW, - T_XX, Zeros_Xy, Zeros_Xy, Zeros_XW],
-            [Zeros_yX, T_yX, Zeros_yw, Zeros_yw, Zeros_yX],
+            [Zeros_XW, Zeros_XW, Zeros_Xy, Zeros_Xy, B_XW],
+            [B_XW,     B_XW,     B_Xy,     B_Xy,     Zeros_XW],
+            [Zeros_yX, Zeros_yX, Zeros_yw, Zeros_yw, Zeros_yX],
             [Zeros_yX, Zeros_yX, Zeros_yw, Zeros_yw, Zeros_yX],
             [Zeros_XW, Zeros_XW, Zeros_Xy, Zeros_Xy, Zeros_XW]
         ])
 
-    def B(self):
-        J = len(self.model.a)
-        K = len(self.model.z)
-        b_a = scipy.sparse.dok_array((J, 1))
-        b_a[0, 0] = 1 / self.model.a_step
-        nu = self.model.parameters.birth.maternity(self.model.a)
-        tau_a = solver_test.SparseArray(self.model.a_step
-                                        * nu.reshape((1, J)))
-        tau_z = solver_test.SparseArray(self.model.z_step
-                                        * numpy.ones((1, K)))
-        tau_y = scipy.sparse.kron(tau_a, tau_z)
-        B_XW = b_a @ tau_a
-        B_Xy = b_a @ tau_y
-        Zeros_yw = solver_test.SparseArray((J * K, J * K))
-        Zeros_yX = solver_test.SparseArray((J * K, J))
-        Zeros_Xy = solver_test.SparseArray((J, J * K))
-        Zeros_XW = solver_test.SparseArray((J, J))
+    def beta(self):
+        iota_y = scipy.sparse.kron(self.iota_a, self.iota_z)
+        zeros_X = solver_test.Zeros((1, self.J))
+        zeros_y = solver_test.Zeros((1, self.J * self.K))
+        return (self.model.parameters.transmission.rate
+                * scipy.sparse.hstack(
+                    [zeros_X, zeros_X, zeros_y, iota_y, zeros_X]
+                ))
+
+    def T(self, q):
+        T_a = self.H_a(q)
+        T_XX = T_a
+        T_yX = scipy.sparse.kron(T_a, self.zeta_z)
+        Zeros_yw = solver_test.Zeros((self.J * self.K, self.J * self.K))
+        Zeros_yX = solver_test.Zeros((self.J * self.K, self.J))
+        Zeros_Xy = solver_test.Zeros((self.J, self.J * self.K))
+        Zeros_XW = solver_test.Zeros((self.J, self.J))
         return scipy.sparse.bmat([
-            [Zeros_XW, Zeros_XW, Zeros_Xy, Zeros_Xy, B_XW],
-            [B_XW, B_XW, B_Xy, B_Xy, Zeros_XW],
-            [Zeros_yX, Zeros_yX, Zeros_yw, Zeros_yw, Zeros_yX],
+            [Zeros_XW, Zeros_XW, Zeros_Xy, Zeros_Xy, Zeros_XW],
+            [Zeros_XW, - T_XX,   Zeros_Xy, Zeros_Xy, Zeros_XW],
+            [Zeros_yX, T_yX,     Zeros_yw, Zeros_yw, Zeros_yX],
             [Zeros_yX, Zeros_yX, Zeros_yw, Zeros_yw, Zeros_yX],
             [Zeros_XW, Zeros_XW, Zeros_Xy, Zeros_Xy, Zeros_XW]
         ])

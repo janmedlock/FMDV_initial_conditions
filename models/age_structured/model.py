@@ -6,7 +6,7 @@ import numpy
 import pandas
 
 from . import _base, _solver
-from .. import parameters, unstructured, _model, _utility
+from .. import parameters, unstructured, _model
 
 
 class Model(_base.Model, unstructured.Model):
@@ -16,19 +16,12 @@ class Model(_base.Model, unstructured.Model):
 
     _Solver = _solver.Solver
 
-    @functools.cached_property
-    def a(self):
-        '''The age vector.'''
-        a = _utility.numerical.build_t(0, self.a_max, self.a_step)
-        return a
-
     def _build_index(self):
         '''Extend the `pandas.Index()` for solutions with the 'age'
         level.'''
         idx_other = super()._build_index()
         idx_age = pandas.Index(self.a, name='age')
-        idx = pandas.MultiIndex.from_product([idx_other, idx_age])
-        return idx
+        return pandas.MultiIndex.from_product([idx_other, idx_age])
 
     @functools.cached_property
     def _weights(self):
@@ -36,8 +29,7 @@ class Model(_base.Model, unstructured.Model):
         weights_other = super()._weights
         # Each 'age' has weight `self.a_step`.
         weights_age = self.a_step
-        weights = weights_other * weights_age
-        return weights
+        return weights_other * weights_age
 
     def _integral_over_a_group(self, obj, axis):
         '''Integrate one group over age.'''
@@ -49,16 +41,17 @@ class Model(_base.Model, unstructured.Model):
         '''Integrate `obj` over 'age'.'''
         if isinstance(obj, numpy.ndarray):
             assert len(obj) == len(self.a)
-            return obj.sum(*args, **kwds) * self.a_step
+            val = obj.sum(*args, **kwds) * self.a_step
         elif isinstance(obj, (pandas.Series, pandas.DataFrame)):
-            return _model.integral.integral(obj, 'age',
-                                            self._integral_over_a_group)
+            val = _model.integral.integral(obj, 'age',
+                                           self._integral_over_a_group)
         else:
             raise NotImplementedError
+        return val
 
     def stable_age_density(self, **kwds):
         '''Get the stable age density.'''
-        (a, v_dom) = self.parameters._stable_age_density(**kwds)
+        (a, v_dom) = self.parameters.stable_age_density(**kwds)
         # Interpolate the logarithm of `v_dom` to `self.a`.
         assert numpy.all(v_dom > 0)
         logn = numpy.interp(self.a, a, numpy.log(v_dom))
@@ -66,12 +59,11 @@ class Model(_base.Model, unstructured.Model):
         # Normalize to integrate to 1.
         n /= self.integral_over_a(n)
         idx_age = self._get_index_level('age')
-        dens = pandas.Series(n, index=idx_age)
-        return dens
+        return pandas.Series(n, index=idx_age)
 
     def build_initial_conditions(self, **kwds):
         '''Adjust the initial conditions for the 'age' level.'''
+        # pylint: disable-next=invalid-name
         Y_other = super().build_initial_conditions()
         n_age = self.stable_age_density(**kwds)
-        y = Y_other * n_age
-        return y
+        return Y_other * n_age

@@ -43,7 +43,7 @@ def find_with_period(model, period, t_0, y_0_guess,
     result = _utility.optimize.root(
         _objective, x_0_guess,
         args=(poincaré_map, weights, transform, display),
-        sparse=model._solver._sparse,
+        sparse=model._solver.sparse,
         display=display,
         **root_kwds
     )

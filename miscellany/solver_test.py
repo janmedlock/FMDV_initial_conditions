@@ -9,6 +9,11 @@ import models._utility
 SparseArray = models._utility.sparse.Array
 
 
+def Zeros(shape):
+    '''Zeros.'''
+    return SparseArray(shape)
+
+
 class Tester:
     '''Base tester for solver matrices.'''
 
@@ -16,11 +21,11 @@ class Tester:
         self.model = model
 
     @abc.abstractmethod
-    def beta(self):
+    def H(self, q):
         pass
 
     @abc.abstractmethod
-    def A(self, q):
+    def F(self, q):
         pass
 
     @abc.abstractmethod
@@ -28,12 +33,25 @@ class Tester:
         pass
 
     @abc.abstractmethod
+    def beta(self):
+        pass
+
+    @abc.abstractmethod
     def T(self, q):
         pass
 
+    def A(self, q):
+        if q == 'new':
+            A_ = self.H(q) - self.model.t_step / 2 * self.F(q)
+        elif q == 'cur':
+            A_ = self.H(q) + self.model.t_step / 2 * self.F(q)
+        else:
+            raise ValueError(f'{q=}')
+        return A_
+
     def test(self):
         solver = self.model._solver
-        names = ('beta', 'A', 'B', 'T')
+        names = ('A', 'B', 'beta', 'T')
         for name in names:
             matrix = getattr(solver, name)
             test_fcn = getattr(self, name)

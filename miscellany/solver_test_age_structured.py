@@ -12,44 +12,48 @@ import solver_test
 class Tester(solver_test.Tester):
     '''Test the age-structured solver.'''
 
-    def beta(self):
-        J = len(self.model.a)
-        zeros = solver_test.SparseArray((1, J))
-        iota = (self.model.a_step
-                * numpy.ones((1, J)))
-        return (self.model.parameters.transmission.rate
-                * scipy.sparse.hstack(
-                    [zeros, zeros, zeros, iota, zeros]
-                ))
+    @property
+    def J(self):
+        return len(self.model.a)
 
-    def H(self, q):
-        J = len(self.model.a)
+    @property
+    def iota(self):
+        return (self.model.a_step
+                * numpy.ones((1, self.J)))
+
+    @property
+    def zeta(self):
+        zeta = scipy.sparse.dok_array((self.J, 1))
+        zeta[0, 0] = 1 / self.model.a_step
+        return zeta
+
+    @property
+    def L_XX(self):
+        return models._utility.sparse.diags_from_dict({
+            -1: numpy.ones(self.J - 1),
+            0: numpy.hstack([numpy.zeros(self.J - 1), 1]),
+        })
+
+    def H_XX(self, q):
         if q == 'new':
-            H_XX = scipy.sparse.identity(J)
+            H_XX = scipy.sparse.identity(self.J)
         elif q == 'cur':
-            H_XX = models._utility.sparse.diags_from_dict({
-                -1: numpy.ones(J - 1),
-                0: numpy.hstack([numpy.zeros(J - 1), 1])
-            })
+            H_XX = self.L_XX
         else:
             return ValueError
-        return scipy.sparse.block_diag([H_XX] * 5)
+        return H_XX
+
+    def H(self, q):
+        return scipy.sparse.block_diag([self.H_XX(q)] * 5)
 
     def F(self, q):
-        J = len(self.model.a)
-
         def F_XW(pi):
             if numpy.isscalar(pi):
-                pi = pi * numpy.ones(J)
-            if q == 'new':
-                return scipy.sparse.diags(pi)
-            elif q == 'cur':
-                return models._utility.sparse.diags_from_dict({
-                    -1: pi[:-1],
-                    0: numpy.hstack([numpy.zeros(J - 1), pi[-1]])
-                })
-            else:
-                raise ValueError
+                pi = pi * numpy.ones(self.J)
+            F_XW = scipy.sparse.diags(pi)
+            if q == 'cur':
+                F_XW = self.L_XX @ F_XW
+            return F_XW
 
         mu = self.model.parameters.death.rate(self.model.a)
         omega = 1 / self.model.parameters.waning.mean
@@ -63,36 +67,36 @@ class Tester(solver_test.Tester):
             [None, None, None, F_XW(gamma), F_XW(- mu)]
         ])
 
-    def T(self, q):
-        J = len(self.model.a)
-        if q == 'new':
-            T_XW = scipy.sparse.identity(J)
-        elif q == 'cur':
-            T_XW = models._utility.sparse.diags_from_dict({
-                -1: numpy.ones(J - 1),
-                0: numpy.hstack([numpy.zeros(J - 1), 1])
-            })
-        else:
-            raise ValueError
-        Zeros = solver_test.SparseArray((J, J))
-        return scipy.sparse.bmat([
-            [Zeros, Zeros, Zeros, Zeros, Zeros],
-            [Zeros, - T_XW, Zeros, Zeros, Zeros],
-            [Zeros, T_XW, Zeros, Zeros, Zeros],
-            [Zeros, Zeros, Zeros, Zeros, Zeros],
-            [Zeros, Zeros, Zeros, Zeros, Zeros]
-        ])
+    @property
+    def tau(self):
+        nu = self.model.parameters.birth.maternity(self.model.a)
+        return (self.model.a_step * nu).reshape((1, -1))
 
     def B(self):
-        J = len(self.model.a)
-        nu = self.model.parameters.birth.maternity(self.model.a)
-        B_XW = scipy.sparse.dok_array((J, J))
-        B_XW[0] = nu
-        Zeros = solver_test.SparseArray((J, J))
+        B_XW = self.zeta @ self.tau
+        Zeros = solver_test.Zeros((self.J, self.J))
         return scipy.sparse.bmat([
             [Zeros, Zeros, Zeros, Zeros, B_XW],
             [B_XW, B_XW, B_XW, B_XW, Zeros],
             [Zeros, Zeros, Zeros, Zeros, Zeros],
+            [Zeros, Zeros, Zeros, Zeros, Zeros],
+            [Zeros, Zeros, Zeros, Zeros, Zeros]
+        ])
+
+    def beta(self):
+        zeros = solver_test.Zeros((1, self.J))
+        return (self.model.parameters.transmission.rate
+                * scipy.sparse.hstack(
+                    [zeros, zeros, zeros, self.iota, zeros]
+                ))
+
+    def T(self, q):
+        T_XW = self.H_XX(q)
+        Zeros = solver_test.Zeros((self.J, self.J))
+        return scipy.sparse.bmat([
+            [Zeros, Zeros, Zeros, Zeros, Zeros],
+            [Zeros, - T_XW, Zeros, Zeros, Zeros],
+            [Zeros, T_XW, Zeros, Zeros, Zeros],
             [Zeros, Zeros, Zeros, Zeros, Zeros],
             [Zeros, Zeros, Zeros, Zeros, Zeros]
         ])

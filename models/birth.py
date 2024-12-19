@@ -84,10 +84,10 @@ class BirthConstant(_Birth):
         '''Birth rate before scaling by `self.mean`.'''
         return numpy.ones_like(t)
 
-    '''Birth-rate maximum before scaling by `self.mean`.'''
+    # Birth-rate maximum before scaling by `self.mean`.
     _rate_max = 1
 
-    '''Birth-rate minimum before scaling by `self.mean`.'''
+    # Birth-rate minimum before scaling by `self.mean`.
     _rate_min = 1
 
 
@@ -172,7 +172,7 @@ class BirthPeriodicPiecewiseLinear(_BirthPeriodic):
 BirthPeriodic = BirthSinusoidal
 
 
-def Birth(parameters):
+def Birth(parameters):  # pylint: disable=invalid-name
     '''Factory function for birth.'''
     if parameters.birth_variation == 0:
         return BirthConstant(parameters)

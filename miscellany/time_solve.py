@@ -51,7 +51,7 @@ if __name__ == '__main__':
     t_steps = [1e-1, 5e-2, 2e-2, 1e-2]
     t_span = (0, 1)
     kwds = {'transmission_rate': 10,
-            '_solver_options': {'_check_matrices': False}}
+            'solver_kwds': {'_check_matrices': False}}
     times = time_solves(Model, t_steps, t_span, **kwds)
     axes = plot_times(times, Model._t_step_default)
     matplotlib.pyplot.show()

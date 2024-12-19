@@ -10,294 +10,199 @@ from .. import _model, _utility
 class Solver(_model.solver.Solver):
     '''Crank–Nicolson solver.'''
 
-    _sparse = True
+    sparse = True
 
     _jacobian_method_default = 'dense'
 
-    def __init__(self, model, **kwds):
-        self.a = model.a
-        self.z = model.z
-        super().__init__(model, **kwds)
-
-    @staticmethod
-    def _get_a_step(t_step):
-        a_step = t_step
-        assert a_step > 0
-        return a_step
-
-    @staticmethod
-    def _get_z_step(t_step):
-        z_step = t_step
-        assert z_step > 0
-        return z_step
-
-    @functools.cached_property
-    def a_step(self):
-        return self._get_a_step(self.t_step)
-
-    @functools.cached_property
-    def z_step(self):
-        return self._get_z_step(self.t_step)
-
-    def _beta(self):
-        '''Build the transmission rate vector beta.'''
-        J = len(self.a)
-        K = len(self.z)
-        zeros_X = _utility.sparse.Array((1, J))
-        zeros_y = _utility.sparse.Array((1, J * K))
-        blocks = [
-            zeros_y if state in self.model.states_with_z else zeros_X
-            for state in self.model.states
-        ]
-        infectious = self.model.states.index('infectious')
-        assert 'infectious' in self.model.states_with_z
-        blocks[infectious] = self._iota_y()
-        beta = (self.model.parameters.transmission.rate
-                * _utility.sparse.hstack(blocks))
-        return beta
-
-    @functools.cached_property
-    def Zeros(self):
-        '''Zero matrices used in constructing the other matrices.'''
-        J = len(self.a)
-        K = len(self.z)
-        Zeros = {
-            'XW': _utility.sparse.Array((J, J)),
-            'Xy': _utility.sparse.Array((J, J * K)),
-            'yX': _utility.sparse.Array((J * K, J)),
-            'yw': _utility.sparse.Array((J * K, J * K))
-        }
-        return Zeros
-
-    @functools.cached_property
-    def I_a(self):
-        '''Build an identity matrix block for age.'''
-        J = len(self.a)
-        I_a = _utility.sparse.identity(J)
-        return I_a
-
-    @functools.cached_property
-    def I_z(self):
-        '''Build an identity matrix block for time since entry.'''
-        K = len(self.z)
-        I_z = _utility.sparse.identity(K)
-        return I_z
+    @property
+    def a_max(self):
+        '''The maximum age.'''
+        return self.parameters.age_max
 
     @property
-    def I_XX(self):
-        '''Build an identity matrix block for an X state.'''
-        I_XX = self.I_a
-        return I_XX
+    def a_step(self):
+        '''The step size in age.'''
+        return self.t_step
 
     @functools.cached_property
-    def I_yy(self):
-        '''Build an identity matrix block for a y state.'''
-        I_yy = _utility.sparse.kron(self.I_a, self.I_z)
-        return I_yy
+    def a(self):
+        '''The solution ages.'''
+        return _utility.numerical.build_t(0, self.a_max, self.a_step)
 
-    @staticmethod
-    def _L(C):
-        '''Build the lag matrix of shape CxC.'''
-        diags = {
-            -1: numpy.ones(C - 1),
-            0: numpy.hstack([numpy.zeros(C - 1), 1])
-        }
-        L = _utility.sparse.diags_from_dict(diags)
-        return L
+    @property
+    def z_max(self):
+        '''The maximum time since entry.'''
+        return self.model.z_max
 
-    @functools.cached_property
-    def L_a(self):
-        '''Build the lag matrix in age.'''
-        J = len(self.a)
-        L_a = self._L(J)
-        return L_a
+    @property
+    def z_step(self):
+        '''The step size in time since entry.'''
+        return self.t_step
 
     @functools.cached_property
-    def L_z(self):
-        '''Build the lag matrix in time since entry.'''
-        K = len(self.z)
-        L_z = self._L(K)
-        return L_z
+    def z(self):
+        '''The time-since-entry vector.'''
+        return _utility.numerical.build_t(0, self.z_max, self.z_step)
 
     @functools.cached_property
-    def b_a(self):
-        '''Build the vector for entering a state in age.'''
-        J = len(self.a)
-        b_a = _utility.sparse.array_from_dict(
-            {(0, 0): 1 / self.a_step},
-            shape=(J, 1)
-        )
-        return b_a
-
-    @functools.cached_property
-    def zeta_z(self):
-        '''Build the vector for entering a state in time since entry.'''
-        K = len(self.z)
-        zeta_z = _utility.sparse.array_from_dict(
-            {(0, 0): 1 / self.z_step},
-            shape=(K, 1)
-        )
-        return zeta_z
-
     def _iota_a(self):
-        '''Build a block for integrating over age.'''
-        J = len(self.a)
-        iota_a = self.a_step * numpy.ones((1, J))
-        return iota_a
+        '''The block for integrating over age.'''
+        return self._integration_vector(len(self.a), self.a_step)
 
     @functools.cached_property
-    def iota_z(self):
-        '''Build a block for integrating over time since entry.'''
-        K = len(self.z)
-        iota_z = self.z_step * numpy.ones((1, K))
-        return iota_z
-
-    def _iota_y(self):
-        '''Build a block for integrating a y state over age and time
-        since entry.'''
-        iota_a = self._iota_a()
-        iota_z = self.iota_z
-        iota_y = numpy.kron(iota_a, iota_z)
-        return iota_y
-
-    def _sigma_z(self, xi):
-        '''Build the vector to integrate a vector times `xi` over time
-        since entry.'''
-        if numpy.isscalar(xi):
-            K = len(self.z)
-            xi *= numpy.ones(K)
-        sigma = _utility.sparse.Array(self.z_step * xi)
-        return sigma
+    def _iota_z(self):
+        '''The block for integrating over time since entry.'''
+        return self._integration_vector(len(self.z), self.z_step)
 
     @functools.cached_property
-    def tau_a(self):
-        '''Build the vector to integrate an vector in age over the
-        age-dependent maternity.'''
-        nu = self.model.parameters.birth.maternity(self.a)
-        tau_a = _utility.sparse.Array(self.a_step * nu)
-        return tau_a
+    def _zeta_a(self):
+        '''The influx block for age.'''
+        return self._influx_vector(len(self.a), self.a_step)
 
-    def _tau_X(self):
-        '''Build the vector to integrate an X state over the
-        age-dependent maternity.'''
-        tau_X = self.tau_a
-        return tau_X
+    @functools.cached_property
+    def _zeta_z(self):
+        '''The influx block for time since entry.'''
+        return self._influx_vector(len(self.z), self.z_step)
 
-    def _tau_y(self):
-        '''Build the vector to integrate a y state over the
-        age-dependent maternity.'''
-        tau_a = self.tau_a
-        iota_z = self.iota_z
-        tau_y = _utility.sparse.kron(tau_a, iota_z)
-        return tau_y
+    @functools.cached_property
+    def Zeros(self):  # pylint: disable=invalid-name
+        '''Zero matrices used in constructing the other matrices.'''
+        len_X = len(self.a)  # pylint: disable=invalid-name
+        len_y = len(self.a) * len(self.z)
+        return {
+            'XW': _utility.sparse.Array((len_X, len_X)),
+            'Xy': _utility.sparse.Array((len_X, len_y)),
+            'yX': _utility.sparse.Array((len_y, len_X)),
+            'yw': _utility.sparse.Array((len_y, len_y)),
+        }
 
-    def _I(self):
-        '''Build the identity matrix.'''
-        I_XX = self.I_XX
-        I_yy = self.I_yy
-        blocks = [
-            I_yy if state in self.model.states_with_z else I_XX
+    @functools.cached_property
+    def _I_a(self):  # pylint: disable=invalid-name
+        '''The identity matrix block for age.'''
+        return _utility.sparse.identity(len(self.a))
+
+    @functools.cached_property
+    def _I_z(self):  # pylint: disable=invalid-name
+        '''The identity matrix block for time since entry.'''
+        return _utility.sparse.identity(len(self.z))
+
+    @functools.cached_property
+    def _I_XX(self):  # pylint: disable=invalid-name
+        '''The identity matrix block for an X state.'''
+        return self._I_a
+
+    @functools.cached_property
+    def _I_yy(self):  # pylint: disable=invalid-name
+        '''The identity matrix block for a y state.'''
+        return _utility.sparse.kron(self._I_a, self._I_z)
+
+    @functools.cached_property
+    def I(self):  # pylint: disable=invalid-name  # noqa: E743
+        '''The identity matrix.'''
+        return _utility.sparse.block_diag([
+            self._I_yy if state in self.model.states_with_z else self._I_XX
             for state in self.model.states
-        ]
-        I = _utility.sparse.block_diag(blocks)
-        return I
+        ])
 
-    def _H_a(self, q):
-        '''Build an age block of H(q).'''
+    @functools.cached_property
+    def _L_a(self):  # pylint: disable=invalid-name
+        '''The lag matrix in age.'''
+        return self._lag_matrix(len(self.a))
+
+    @functools.cached_property
+    def _L_z(self):  # pylint: disable=invalid-name
+        '''The lag matrix in time since entry.'''
+        return self._lag_matrix(len(self.z))
+
+    def _H_a(self, q):  # pylint: disable=invalid-name
+        '''The age block of H(q).'''
         if q == 'new':
-            H_a = self.I_a
+            H_a = self._I_a  # pylint: disable=invalid-name
         elif q == 'cur':
-            H_a = self.L_a
+            H_a = self._L_a  # pylint: disable=invalid-name
         else:
             raise ValueError(f'{q=}!')
         return H_a
 
-    def _H_z(self, q):
-        '''Build a time-since-entry block of H(q).'''
+    def _H_z(self, q):  # pylint: disable=invalid-name
+        '''The time-since-entry block of H(q).'''
         if q == 'new':
-            H_z = self.I_z
+            H_z = self._I_z  # pylint: disable=invalid-name
         elif q == 'cur':
-            H_z = self.L_z
+            H_z = self._L_z  # pylint: disable=invalid-name
         else:
             raise ValueError(f'{q=}!')
         return H_z
 
-    def _H_XX(self, q):
-        '''Build a diagonal block for an X state of H(q).'''
-        H_XX = self._H_a(q)
-        return H_XX
+    def _H_XX(self, q):  # pylint: disable=invalid-name
+        '''The diagonal block for an X state of H(q).'''
+        return self._H_a(q)
 
-    def _H_yy(self, q):
-        '''Build a diagonal block for a y state of H(q).'''
-        H_a = self._H_a(q)
-        H_z = self._H_z(q)
-        H_yy = _utility.sparse.kron(H_a, H_z)
-        return H_yy
+    def _H_yy(self, q):  # pylint: disable=invalid-name
+        '''The diagonal block for a y state of H(q).'''
+        return _utility.sparse.kron(self._H_a(q),
+                                    self._H_z(q))
 
-    def _H(self, q):
-        '''Build the time-step matrix H(q).'''
-        H_XX = self._H_XX(q)
-        H_yy = self._H_yy(q)
-        blocks = [
+    def H(self, q):  # pylint: disable=invalid-name
+        '''The time-step matrix, H(q).'''
+        H_XX = self._H_XX(q)  # pylint: disable=invalid-name
+        H_yy = self._H_yy(q)  # pylint: disable=invalid-name
+        return _utility.sparse.block_diag([
             H_yy if state in self.model.states_with_z else H_XX
             for state in self.model.states
-        ]
-        H = _utility.sparse.block_diag(blocks)
-        return H
+        ])
 
-    def _F_a(self, q, pi):
-        '''Build an age block of F(q).'''
-        if q not in {'new', 'cur'}:
+    def _sigma_z(self, xi):
+        '''The vector to integrate a vector against `xi` over time
+        since entry.'''
+        return self._integration_against_vector(
+            len(self.z), self.z_step, xi
+        )
+
+    def _F_a(self, q, pi):  # pylint: disable=invalid-name
+        '''An age block of F(q).'''
+        if q not in self._q_vals:
             raise ValueError(f'{q=}!')
         if numpy.isscalar(pi):
-            J = len(self.a)
-            pi *= numpy.ones(J)
-        F_a = _utility.sparse.diags(pi)
+            pi *= numpy.ones(len(self.a))
+        F_a = _utility.sparse.diags(pi)  # pylint: disable=invalid-name
         if q == 'cur':
-            F_a = self.L_a @ F_a
+            F_a = self._L_a @ F_a  # pylint: disable=invalid-name
         return F_a
 
-    def _F_z(self, q, xi):
-        '''Build a time-since-entry block of F(q).'''
-        if q not in {'new', 'cur'}:
+    def _F_z(self, q, xi):  # pylint: disable=invalid-name
+        '''A time-since-entry block of F(q).'''
+        if q not in self._q_vals:
             raise ValueError(f'{q=}!')
         if numpy.isscalar(xi):
-            K = len(self.z)
-            xi *= numpy.ones(K)
-        F_z = _utility.sparse.diags(xi)
+            xi *= numpy.ones(len(self.z))
+        F_z = _utility.sparse.diags(xi)  # pylint: disable=invalid-name
         if q == 'cur':
-            F_z = self.L_z @ F_z
+            F_z = self._L_z @ F_z  # pylint: disable=invalid-name
         return F_z
 
-    def _F_XW(self, q, pi):
-        '''Build a block between X states of F(q).'''
-        F_XW = self._F_a(q, pi)
-        return F_XW
+    def _F_XW(self, q, pi):  # pylint: disable=invalid-name
+        '''A block between X states of F(q).'''
+        return self._F_a(q, pi)
 
-    def _F_yy(self, q, pi, xi):
-        '''Build a diagonal block for a y state of F(q).'''
-        F_a = self._F_a(q, pi)
-        F_z = self._F_z(q, xi)
-        H_a = self._H_a(q)
-        H_z = self._H_z(q)
-        F_yy = (_utility.sparse.kron(F_a, H_z)
-                + _utility.sparse.kron(H_a, F_z))
-        return F_yy
+    def _F_yy(self, q, pi, xi):  # pylint: disable=invalid-name
+        '''A diagonal block for a y state of F(q).'''
+        return (
+            _utility.sparse.kron(self._F_a(q, pi),
+                                 self._H_z(q))
+            + _utility.sparse.kron(self._H_a(q),
+                                   self._F_z(q, xi))
+        )
 
-    def _F_Xy(self, q, xi):
-        '''Build a block to an X state from a y state of F(q).'''
-        H_a = self._H_a(q)
-        sigma_z = self._sigma_z(xi)
-        F_Xy = _utility.sparse.kron(H_a, sigma_z)
-        return F_Xy
+    def _F_Xy(self, q, xi):  # pylint: disable=invalid-name
+        '''A block to an X state from a y state of F(q).'''
+        return _utility.sparse.kron(self._H_a(q),
+                                    self._sigma_z(xi))
 
-    def _F_yw(self, q, xi):
-        '''Build an off-diagonal block between y states of F(q).'''
-        H_a = self._H_a(q)
-        zeta_z = self.zeta_z
-        sigma_z = self._sigma_z(xi)
-        F_yw = _utility.sparse.kron(H_a, zeta_z @ sigma_z)
-        return F_yw
+    def _F_yw(self, q, xi):  # pylint: disable=invalid-name
+        '''An off-diagonal block between y states of F(q).'''
+        return _utility.sparse.kron(self._H_a(q),
+                                    self._zeta_z @ self._sigma_z(xi))
 
     def _get_rate_a(self, which):
         '''Get the age-dependent rate `which` and make finite any
@@ -313,89 +218,107 @@ class Solver(_model.solver.Solver):
         rate = waiting_time.rate(self.z)
         return _utility.numerical.rate_make_finite(rate)
 
-    def _F(self, q):
+    def F(self, q):  # pylint: disable=invalid-name
         '''Build the transition matrix F(q).'''
         mu = self._get_rate_a('death')
         omega = self._get_rate_a('waning')
         rho = self._get_rate_z('progression')
         gamma = self._get_rate_z('recovery')
-        F_XW = functools.partial(self._F_XW, q)
-        F_yy = functools.partial(self._F_yy, q)
-        F_Xy = functools.partial(self._F_Xy, q)
-        F_yw = functools.partial(self._F_yw, q)
-        F = _utility.sparse.bmat([
+        F_XW = functools.partial(self._F_XW, q)  # pylint: disable=invalid-name
+        F_yy = functools.partial(self._F_yy, q)  # pylint: disable=invalid-name
+        F_Xy = functools.partial(self._F_Xy, q)  # pylint: disable=invalid-name
+        F_yw = functools.partial(self._F_yw, q)  # pylint: disable=invalid-name
+        return _utility.sparse.bmat([
             [F_XW(- omega - mu), None, None, None, None],
             [F_XW(omega), F_XW(- mu), None, None, None],
             [None, None, F_yy(- mu, - rho), None, None],
             [None, None, F_yw(rho), F_yy(- mu, - gamma), None],
             [None, None, None, F_Xy(gamma), F_XW(- mu)]
         ])
-        return F
 
-    def _B_XW(self):
-        '''Build a block between X states of B.'''
-        b_a = self.b_a
-        tau_X = self._tau_X()
-        B_XW = b_a @ tau_X
-        return B_XW
+    @functools.cached_property
+    def _tau_a(self):
+        '''The maternity integration vector for age.'''
+        nu = self.model.parameters.birth.maternity(self.a)
+        tau_a = _utility.sparse.Array(self.a_step * nu)
+        return tau_a
 
-    def _B_Xy(self):
-        '''Build a block to an X state from a y state of B.'''
-        b_a = self.b_a
-        tau_y = self._tau_y()
-        B_Xy = b_a @ tau_y
-        return B_Xy
+    @property
+    def _B_XW(self):  # pylint: disable=invalid-name
+        '''A block between X states of B.'''
+        return self._zeta_a @ self._tau_a
 
-    def _B(self):
-        '''Build the birth matrix B.'''
-        B_XW = self._B_XW()
-        B_Xy = self._B_Xy()
-        Zeros_XW = self.Zeros['XW']
-        Zeros_yX = self.Zeros['yX']
-        B = _utility.sparse.bmat([
-            [    None, None, None, None, B_XW],
-            [    B_XW, B_XW, B_Xy, B_Xy, None],
+    @property
+    def _B_Xy(self):  # pylint: disable=invalid-name
+        '''A block to an X state from a y state of B.'''
+        return (
+            self._zeta_a
+            @ _utility.sparse.kron(self._tau_a,
+                                   self._iota_z)
+        )
+
+    @functools.cached_property
+    def B(self):  # pylint: disable=invalid-name
+        '''The birth matrix, B.'''
+        B_XW = self._B_XW  # pylint: disable=invalid-name
+        B_Xy = self._B_Xy  # pylint: disable=invalid-name
+        Zeros_XW = self.Zeros['XW']  # pylint: disable=invalid-name
+        Zeros_yX = self.Zeros['yX']  # pylint: disable=invalid-name
+        return _utility.sparse.bmat([
+            [None,     None, None, None, B_XW],
+            [B_XW,     B_XW, B_Xy, B_Xy, None],
             [Zeros_yX, None, None, None, None],
             [Zeros_yX, None, None, None, None],
             [Zeros_XW, None, None, None, None]
         ])
-        return B
 
-    def _T_a(self, q):
-        '''Build an age block of T(q).'''
-        T_a = self._H_a(q)
-        return T_a
+    @functools.cached_property
+    def beta(self):
+        '''The transmission rate vector.'''
+        zeros_a = _utility.sparse.Array((1, len(self.a)))
+        zeros_z = _utility.sparse.Array((1, len(self.z)))
+        zeros_X = zeros_a  # pylint: disable=invalid-name
+        zeros_y = _utility.sparse.kron(zeros_a,
+                                       zeros_z)
+        blocks = [
+            zeros_y if state in self.model.states_with_z else zeros_X
+            for state in self.model.states
+        ]
+        infectious = self.model.states.index('infectious')
+        assert 'infectious' in self.model.states_with_z
+        blocks[infectious] = _utility.sparse.kron(self._iota_a,
+                                                  self._iota_z)
+        return (
+            self.model.parameters.transmission.rate
+            * _utility.sparse.hstack(blocks)
+        )
 
-    def _T_XX(self, q):
-        '''Build a diagonal block for an X state of T(q).'''
-        T_XX = self._T_a(q)
-        return T_XX
+    def _T_XX(self, q):  # pylint: disable=invalid-name
+        '''A diagonal block for an X state of T(q).'''
+        return self._H_a(q)
 
-    def _T_yX(self, q):
-        '''Build a block to a y state from an X state of T(q).'''
-        T_a = self._T_a(q)
-        zeta_z = self.zeta_z
-        T_yX = _utility.sparse.kron(T_a, zeta_z)
-        return T_yX
+    def _T_yX(self, q):  # pylint: disable=invalid-name
+        '''A block to a y state from an X state of T(q).'''
+        return _utility.sparse.kron(self._H_a(q),
+                                    self._zeta_z)
 
-    def _T(self, q):
-        '''Build the transmission matrix T(q).'''
-        T_XX = self._T_XX(q)
-        T_yX = self._T_yX(q)
-        Zeros_XW = self.Zeros['XW']
-        Zeros_Xy = self.Zeros['Xy']
-        Zeros_yw = self.Zeros['yw']
-        T = _utility.sparse.bmat([
-            [Zeros_XW,   None, Zeros_Xy,     None,     None],
-            [    None, - T_XX,     None,     None,     None],
-            [    None,   T_yX,     None,     None,     None],
-            [    None,   None,     None, Zeros_yw,     None],
-            [    None,   None,     None,     None, Zeros_XW]
+    def _T(self, q):  # pylint: disable=invalid-name
+        '''The transmission matrix, T(q).'''
+        T_XX = self._T_XX(q)  # pylint: disable=invalid-name
+        T_yX = self._T_yX(q)  # pylint: disable=invalid-name
+        Zeros_XW = self.Zeros['XW']  # pylint: disable=invalid-name
+        Zeros_Xy = self.Zeros['Xy']  # pylint: disable=invalid-name
+        Zeros_yw = self.Zeros['yw']  # pylint: disable=invalid-name
+        return _utility.sparse.bmat([
+            [Zeros_XW, None,   Zeros_Xy, None,     None],
+            [None,     - T_XX, None,     None,     None],
+            [None,     T_yX,   None,     None,     None],
+            [None,     None,   None,     Zeros_yw, None],
+            [None,     None,   None,     None,     Zeros_XW]
         ])
-        return T
 
     def _check_matrices(self, is_M_matrix=False):
         '''Check the solver matrices. Checking the M matrix requires
         finding the dominant eigenvalue, which is very slow and very
-        memory intensive.'''
+        memory intensive, so it is disabled by default.'''
         super()._check_matrices(is_M_matrix=is_M_matrix)

@@ -5,9 +5,9 @@ from .. import _base
 
 
 class Model(_base.Model):
-    '''Solver for the monodromy matrix of a linear age-structured
-    model for the population size with age-dependent death rate,
-    age-dependent maternity, and periodic time-dependent birth rate.'''
+    '''The linear age-structured model for the population size with
+    age-dependent death rate, age-dependent maternity, and periodic
+    time-dependent birth rate.'''
 
     _Solver = _solver.Solver
 
@@ -20,12 +20,9 @@ class Model(_base.Model):
                  t_step=_t_step_default,
                  parameters=None,
                  **kwds):
-        assert t_step > 0
-        self.t_step = t_step
         assert parameters is not None
         self.parameters = parameters
-        super().__init__(**kwds)
-        self._solver = self._Solver(self)
+        super().__init__(t_step, parameters, **kwds)
 
     def integral_over_a(self, arr, *args, **kwds):
         '''Integrate `arr` over age. `args` and `kwds` are passed on

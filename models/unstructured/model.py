@@ -26,13 +26,13 @@ class Model(_model.model.Model):
         '''Build the 'state' level `pandas.Index()` for solutions.'''
         # Use `pandas.CategoricalIndex()` to preserve the order of the
         # states.
+        # pylint: disable-next=assignment-from-none
         idx_other = super()._build_index()
         if idx_other is not None:
             raise NotImplementedError
         states = self.states
-        idx = pandas.CategoricalIndex(states, states,
-                                      ordered=True, name='state')
-        return idx
+        return pandas.CategoricalIndex(states, states,
+                                       ordered=True, name='state')
 
     @functools.cached_property
     def _weights(self):
@@ -41,20 +41,20 @@ class Model(_model.model.Model):
         if weights_other is not None:
             raise NotImplementedError
         # Each 'state' has weight 1.
-        weights = pandas.Series(1, index=self._index)
-        return weights
+        return pandas.Series(1, index=self._index)
 
     def build_initial_conditions(self):
         '''Build the initial conditions for the 'state' level.'''
+        # pylint: disable-next=invalid-name,assignment-from-none
         Y_other = super().build_initial_conditions()
         if Y_other is not None:
             raise NotImplementedError
-        M = E = R = 0
-        I = 0.01
-        S = 1 - M - E - I - R
+        M = E = R = 0  # pylint: disable=invalid-name
+        I = 0.01  # pylint: disable=invalid-name  # noqa: E741
+        S = 1 - M - E - I - R  # pylint: disable=invalid-name
         idx_state = self._get_index_level('state')
+        # pylint: disable-next=invalid-name
         Y_state = pandas.Series([M, S, E, I, R], index=idx_state)
         # Broadcast out to the full index `self._index`.
         ones = pandas.Series(1, index=self._index)
-        Y = Y_state * ones
-        return Y
+        return Y_state * ones

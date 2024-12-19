@@ -5,34 +5,146 @@ import functools
 
 import numpy
 
-from . import _jacobian
+from . import _crank_nicolson, _jacobian
 from .. import _utility
 
 
-class Solver(metaclass=abc.ABCMeta):
+class Base(_crank_nicolson.Mixin, metaclass=abc.ABCMeta):
     '''Base class for Crank–Nicolson solvers.'''
 
     @property
     @abc.abstractmethod
-    def _sparse(self):
-        '''Whether the solver uses sparse matrices and sparse linear
+    def sparse(self):
+        '''Whether the solver uses sparse arrays and sparse linear
         algebra.'''
+
+    @functools.cached_property
+    @abc.abstractmethod
+    def I(self):  # pylint: disable=invalid-name  # noqa: E743
+        '''The identity matrix.'''
+
+    @staticmethod
+    def _integration_vector(n, step):
+        '''The integration vector of length `n` and step size `step`.'''
+        return step * numpy.ones((1, n))
+
+    def _integration_against_vector(self, n, step, vec):
+        '''The vector for integration against `vec` with step size
+        `step`.'''
+        if numpy.isscalar(vec):
+            vec *= numpy.ones(n)
+        if self.sparse:
+            val = _utility.sparse.Array(step * vec,
+                                        shape=(1, n))
+        else:
+            val = numpy.array(step * vec) \
+                       .reshape((1, n))
+        return val
+
+    def _influx_vector(self, n, step):
+        '''The influx vector of length `n` and step size `step`.'''
+        val = _utility.sparse.array_from_dict(
+            {(0, 0): 1 / step},
+            shape=(n, 1)
+        )
+        if not self.sparse:
+            val = val.todense()
+        return val
+
+    def _lag_matrix(self, n):
+        '''The lag matrix of shape `n` x `n`.'''
+        diags = {
+            -1: numpy.ones(n - 1),
+            0: numpy.hstack([numpy.zeros(n - 1), 1]),
+        }
+        val = _utility.sparse.diags_from_dict(diags)
+        if not self.sparse:
+            val = val.todense()
+        return val
+
+
+class Population(Base, metaclass=abc.ABCMeta):
+    '''Base class for Crank–Nicolson solvers for the population and
+    infection models.'''
+
+    @abc.abstractmethod
+    def H(self, q):  # pylint: disable=invalid-name
+        '''The time-step matrix, H(q).'''
+
+    @abc.abstractmethod
+    def F(self, q):  # pylint: disable=invalid-name
+        '''The transition matrix, F(q).'''
+
+    @functools.cached_property
+    @abc.abstractmethod
+    def B(self):  # pylint: disable=invalid-name
+        '''The birth matrix, B.'''
+
+    def __init__(self, t_step, parameters):
+        self.t_step = t_step
+        self.parameters = parameters
+        super().__init__()
+
+    def _A(self, q):  # pylint: disable=invalid-name
+        '''The matrix A(q).'''
+        return self._cn_op(q,
+                           self.H(q),
+                           self.F(q))
+
+    @functools.cached_property
+    def A(self):  # pylint: disable=invalid-name
+        '''The matrix A(q).'''
+        return {
+            q: self._A(q)
+            for q in self._q_vals
+        }
+
+    # pylint: disable-next=invalid-name
+    def _check_matrices(self, is_M_matrix=True):
+        '''Check the solver matrices.'''
+        assert _utility.linalg.is_Z_matrix(self.A['new'])
+        assert _utility.linalg.is_nonnegative(self.A['cur'])
+        assert _utility.linalg.is_Metzler_matrix(self.B)
+        assert _utility.linalg.is_nonnegative(self.B)
+        if is_M_matrix:
+            # pylint: disable-next=invalid-name
+            AB_new = self._cn_op('new',
+                                 self.A['new'],
+                                 self.parameters.birth.rate_max * self.B)
+            assert _utility.linalg.is_M_matrix(AB_new)
+        # pylint: disable-next=invalid-name
+        AB_cur = self._cn_op('cur',
+                             self.A['cur'],
+                             self.parameters.birth.rate_min * self.B)
+        assert _utility.linalg.is_nonnegative(AB_cur)
+
+
+class Solver(Population, metaclass=abc.ABCMeta):
+    '''Base class for Crank–Nicolson solvers for the infection models.'''
 
     @property
     @abc.abstractmethod
     def _jacobian_method_default(self):
         '''The default Jacobian method.'''
 
+    @functools.cached_property
+    @abc.abstractmethod
+    def beta(self):
+        '''The transmission rate vector.'''
+
+    @abc.abstractmethod
+    def _T(self, q):  # pylint: disable=invalid-name
+        '''The transmission matrix, T(q).'''
+
     def __init__(self, model, _jacobian_method=None, _check_matrices=True):
+        super().__init__(model.t_step, model.parameters)
         self.model = model
         if _jacobian_method is None:
             _jacobian_method = self._jacobian_method_default
         self._jacobian_method = _jacobian_method
-        self.t_step = model.t_step
-        self._build_matrices()
         if _check_matrices:
             self._check_matrices()
-        if self._sparse:
+        if self.sparse:
             self._root_kwds = {
                 'options': {
                     'jac_options': {
@@ -43,83 +155,33 @@ class Solver(metaclass=abc.ABCMeta):
         else:
             self._root_kwds = {}
 
-    @abc.abstractmethod
-    def _beta(self):
-        '''Build the transmission rate vector beta.'''
+    @functools.cached_property
+    def T(self):  # pylint: disable=invalid-name
+        '''The transmission matrix, T(q).'''
+        return {
+            q: self._T(q)
+            for q in self._q_vals
+        }
 
-    @abc.abstractmethod
-    def _I(self):
-        '''Build the identity matrix.'''
-
-    @abc.abstractmethod
-    def _H(self, q):
-        '''Build the time-step matrix H(q).'''
-
-    @abc.abstractmethod
-    def _F(self, q):
-        '''Build the transition matrix F(q).'''
-
-    @abc.abstractmethod
-    def _B(self):
-        '''Build the birth matrix B.'''
-
-    @abc.abstractmethod
-    def _T(self, q):
-        '''Build the transition matrix F(q).'''
-
-    def _A(self, q):
-        '''Build the matrix A(q).'''
-        H = self._H(q)
-        F = self.t_step / 2 * self._F(q)
-        if q == 'cur':
-            A = H + F
-        elif q == 'new':
-            A = H - F
-        else:
-            raise ValueError(f'{q=}')
-        return A
-
-    def _build_matrices(self):
-        '''Build matrices needed by the solver.'''
-        q_vals = ('new', 'cur')
-        self.beta = self._beta()
-        self.I = self._I()
-        self.A = {q: self._A(q) for q in q_vals}
-        self.B = self._B()
-        self.T = {q: self._T(q) for q in q_vals}
-
+    # pylint: disable-next=invalid-name
     def _check_matrices(self, is_M_matrix=True):
         '''Check the solver matrices.'''
+        super()._check_matrices(is_M_matrix=is_M_matrix)
         assert _utility.linalg.is_nonnegative(self.beta)
-        assert _utility.linalg.is_Z_matrix(self.A['new'])
-        assert _utility.linalg.is_nonnegative(self.A['cur'])
-        assert _utility.linalg.is_Metzler_matrix(self.B)
-        assert _utility.linalg.is_nonnegative(self.B)
         assert _utility.linalg.is_Metzler_matrix(self.T['new'])
-        birth = self.model.parameters.birth
-        if is_M_matrix:
-            AB_new = (
-                self.A['new']
-                - self.t_step / 2 * birth.rate_max * self.B
-            )
-            assert _utility.linalg.is_M_matrix(AB_new)
-        AB_cur = (
-            self.A['cur']
-            + self.t_step / 2 * birth.rate_min * self.B
-        )
-        assert _utility.linalg.is_nonnegative(AB_cur)
 
     @property
     def _preconditioner(self):
         '''For sparse solvers, the Krylov preconditioner.'''
         return self.A['new']
 
+    # pylint: disable-next=invalid-name
     def _objective(self, y_new, AB_new, ABTy_cur):
         '''Helper for `.step()`.'''
-        ABT_new = (
-            AB_new
-            - self.t_step / 2 * self.beta @ y_new * self.T['new']
-        )
+        # pylint: disable-next=invalid-name
+        ABT_new = self._cn_op('new',
+                              AB_new,
+                              self.beta @ y_new * self.T['new'])
         return ABT_new @ y_new - ABTy_cur
 
     def step(self, t_cur, y_cur, display=False):
@@ -128,26 +190,28 @@ class Solver(metaclass=abc.ABCMeta):
             t_new = t_cur + self.t_step
             print(f'{t_new=}')
         t_mid = t_cur + 0.5 * self.t_step
-        b_mid = self.model.parameters.birth.rate(t_mid)
-        AB_new = (
-            self.A['new']
-            - self.t_step / 2 * b_mid * self.B
+        b_mid = self.parameters.birth.rate(t_mid)
+        # pylint: disable-next=invalid-name
+        AB_new = self._cn_op('new',
+                             self.A['new'],
+                             b_mid * self.B)
+        # pylint: disable-next=invalid-name
+        ABT_cur = self._cn_op(
+            'cur',
+            self.A['cur'],
+            b_mid * self.B + self.beta @ y_cur * self.T['cur']
         )
-        ABT_cur = (
-            self.A['cur']
-            + self.t_step / 2 * (b_mid * self.B
-                                 + self.beta @ y_cur * self.T['cur'])
-        )
+        # pylint: disable-next=invalid-name
         ABTy_cur = ABT_cur @ y_cur
         y_new_guess = y_cur
         result = _utility.optimize.root(self._objective, y_new_guess,
                                         args=(AB_new, ABTy_cur),
-                                        sparse=self._sparse,
+                                        sparse=self.sparse,
                                         **self._root_kwds)
         assert result.success, f'{t_cur=}\n{result=}'
-        y_new = result.x
-        return y_new
+        return result.x
 
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def solve(self, t_span, y_0,
               t=None, y=None, display=False):
         '''Solve. `y` is storage for the solution, which will be built
@@ -161,6 +225,7 @@ class Solver(metaclass=abc.ABCMeta):
             y[ell] = self.step(t[ell - 1], y[ell - 1], display=display)
         return (t, y)
 
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def solution_at_t_end(self, t_span, y_0,
                           t=None, y_temp=None, display=False):
         '''Find the value of the solution at `t_span[1]`.'''
@@ -181,10 +246,8 @@ class Solver(metaclass=abc.ABCMeta):
     @functools.cached_property
     def _jacobian(self):
         '''`._jacobian` is built on first use and then reused.'''
-        _jacobian_ = _jacobian.Calculator(self, method=self._jacobian_method)
-        return _jacobian_
+        return _jacobian.Calculator(self, method=self._jacobian_method)
 
     def jacobian(self, t_cur, y_cur, y_new):
         '''Calculate the Jacobian at `t_cur`, given `y_cur` and `y_new`.'''
-        J = self._jacobian.calculate(t_cur, y_cur, y_new)
-        return J
+        return self._jacobian.calculate(t_cur, y_cur, y_new)

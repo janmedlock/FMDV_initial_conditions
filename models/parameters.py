@@ -76,7 +76,7 @@ class ParametersSAT3(_Parameters):
     transmission_rate: float = 1.2 * 365     # per year
 
 
-def Parameters(SAT=1, **kwds):
+def Parameters(SAT=1, **kwds):  # pylint: disable=invalid-name
     '''Factory function to build model parameters for the given SAT.'''
     klass_name = f'ParametersSAT{SAT}'
     try:
@@ -86,32 +86,46 @@ def Parameters(SAT=1, **kwds):
     return klass(**kwds)
 
 
-class _PeriodMixIn:
-    '''Mixin for the period of the parameters.'''
+class _BaseParameters:
+    '''Base parameters for the transmission and population models.'''
+
+    def __init__(self, birth_, death_):
+        self.birth = birth_
+        self.death = death_
 
     @property
     def period(self):
-        '''The only periodic parameter is birth.'''
+        '''The only periodic parameter is `birth`.'''
         return self.birth.period
 
+    @property
+    def age_max(self):
+        '''The only age-dependent parameters are `birth` and `death`.'''
+        age_max = max(
+            param.age_max
+            for param in (self.birth, self.death)
+        )
+        assert age_max > 0
+        return age_max
 
-class _ModelParametersPopulation(_PeriodMixIn):
-    '''Model parameters for population models. For efficient caching,
-    the infection parameters are dropped.'''
 
-    def __init__(self, model_parameters):
-        self.birth = model_parameters.birth
-        self.death = model_parameters.death
+class PopulationParameters(_BaseParameters):
+    '''Model parameters for the population model. For efficient
+    caching, only birth and death are stored.'''
+
+    def __init__(self, parameters):
+        super().__init__(parameters.birth,
+                         parameters.death)
 
 
-class _ModelParameters(_PeriodMixIn):
-    '''Base model parameters.'''
+class _ModelParameters(_BaseParameters):
+    '''Model parameters for the transmission models.'''
 
     def __init__(self, **kwds):
         parameters = Parameters(**kwds)
         # Setup the population parameters.
-        self.birth = birth.Birth(parameters)
-        self.death = death.Death(parameters)
+        super().__init__(birth.Birth(parameters),
+                         death.Death(parameters))
         self._population_model = _population.Model(parameters=self)
         self._set_for_zero_population_growth()
         # Setup the infection parameters.
@@ -137,7 +151,7 @@ class _ModelParameters(_PeriodMixIn):
 class ModelParametersAgeDependent(_ModelParameters):
     '''Model parameters for age-dependent models.'''
 
-    def _stable_age_density(self, **kwds):
+    def stable_age_density(self, **kwds):
         '''Get the stable age density.'''
         return self._population_model.stable_age_density(**kwds)
 

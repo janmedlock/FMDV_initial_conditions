@@ -9,18 +9,35 @@ from . import _equilibrium, _limit_cycle
 from .. import _utility
 
 
-class Model(metaclass=abc.ABCMeta):
-    '''Base class for models.'''
+# pylint: disable-next=too-few-public-methods
+class Population(metaclass=abc.ABCMeta):
+    '''Base class for the population and infection models.'''
 
     @property
     @abc.abstractmethod
-    def _Parameters(self):
-        '''The parameters class.'''
-
-    @property
-    @abc.abstractmethod
-    def _Solver(self):
+    def _Solver(self):  # pylint: disable=invalid-name
         '''The solver class.'''
+
+    def __init__(self, t_step, parameters, **solver_kwds):
+        assert t_step > 0
+        self.t_step = t_step
+        self.parameters = parameters
+        self.solver_kwds = solver_kwds
+        super().__init__()
+
+    @functools.cached_property
+    def _solver(self):
+        '''`._solver` is built on first use and then reused.'''
+        return self._Solver(self, **self.solver_kwds)
+
+
+class Model(Population, metaclass=abc.ABCMeta):
+    '''Base class for the infection models.'''
+
+    @property
+    @abc.abstractmethod
+    def _Parameters(self):  # pylint: disable=invalid-name
+        '''The parameters class.'''
 
     # The default time step `t_step`. A necessary condition for
     # nonnegative solutions is is that `t_step` must be less than 1 /
@@ -31,74 +48,72 @@ class Model(metaclass=abc.ABCMeta):
 
     def __init__(self,
                  t_step=_t_step_default,
-                 _solver_options=None,
+                 solver_kwds=None,
                  **parameters_kwds):
-        assert t_step > 0
-        self.t_step = t_step
-        if _solver_options is None:
-            _solver_options = {}
-        self._solver_options = _solver_options
-        self.parameters = self._Parameters(**parameters_kwds)
+        if solver_kwds is None:
+            solver_kwds = {}
+        super().__init__(t_step,
+                         self._Parameters(**parameters_kwds),
+                         **solver_kwds)
+        # pylint: disable-next=assignment-from-none
         self._index = self._build_index()
-        super().__init__()
 
     def _get_index_level(self, level):
         '''Get the index for `level`.'''
         if isinstance(self._index, pandas.MultiIndex):
             which = self._index.names.index(level)
             idx_level = self._index.levels[which]
-            return idx_level
         else:
-            return self._index
+            idx_level = self._index
+        return idx_level
 
-    def _build_index(self):
+    def _build_index(self):  # pylint: disable=useless-return
         '''Build a `pandas.Index()` for solutions.'''
         assert not hasattr(super(), '_build_index')
         return None
 
     @functools.cached_property
-    def _weights(self):
+    def _weights(self):  # pylint: disable=useless-return
         '''Weights for the state vector.'''
         assert not hasattr(super(), '_weights')
         return None
 
-    def build_initial_conditions(self):
+    def build_initial_conditions(self):  # pylint: disable=useless-return
         '''Build the initial conditions.'''
         assert not hasattr(super(), 'build_initial_conditions')
         return None
 
-    @functools.cached_property
-    def _solver(self):
-        '''`._solver` is built on first use and then reused.'''
-        _solver = self._Solver(self, **self._solver_options)
-        return _solver
-
-    def Solution(self, y, t=None):
+    def Solution(self, y, t=None):  # pylint: disable=invalid-name
         '''A solution.'''
         if t is None:
-            return pandas.Series(y, index=self._index)
+            solution = pandas.Series(y, index=self._index)
         else:
             t = pandas.Index(t, name='time')
-            return pandas.DataFrame(y, index=t, columns=self._index)
+            solution = pandas.DataFrame(y, index=t, columns=self._index)
+        return solution
 
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def solve(self, t_span,
               y_start=None, t=None, y=None, display=False,
               check_nonnegative=True):
         '''Solve the ODEs.'''
         if y_start is None:
+            # pylint: disable-next=assignment-from-none
             y_start = self.build_initial_conditions()
         (t_, soln_) = self._solver.solve(t_span, y_start,
-                                        t=t, y=y, display=display)
+                                         t=t, y=y, display=display)
         soln = self.Solution(soln_, t_)
         if check_nonnegative:
             _utility.numerical.check_nonnegative(soln)
         return soln
 
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def solution_at_t_end(self, t_span,
                           y_start=None, t=None, y_temp=None,
                           display=False, check_nonnegative=True):
         '''Get the solution at the end time.'''
         if y_start is None:
+            # pylint: disable-next=assignment-from-none
             y_start = self.build_initial_conditions()
         y_end = self._solver.solution_at_t_end(t_span, y_start,
                                                t=t, y_temp=y_temp,
@@ -108,6 +123,7 @@ class Model(metaclass=abc.ABCMeta):
             _utility.numerical.check_nonnegative(soln)
         return soln
 
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def find_equilibrium(self, eql_guess, t=0, t_solve=0,
                          display=False, check_nonnegative=True,
                          **root_kwds):
@@ -124,6 +140,7 @@ class Model(metaclass=abc.ABCMeta):
         '''Get the eigenvalues of the Jacobian.'''
         return _equilibrium.eigenvalues(self, eql, t, k=k, **kws)
 
+    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
     def find_limit_cycle(self, period_0, t_0, lcy_0_guess,
                          solution=True, display=False,
                          check_nonnegative=True,

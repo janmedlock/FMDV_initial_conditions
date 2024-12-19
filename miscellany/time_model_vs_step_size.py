@@ -37,11 +37,11 @@ def build_model(Model, t_step, jacobian_method=None,
     # default `t_step` of 1e-3 and slower for larger `t_step`.
     progression_mean_scale = t_step / 1e-3
     parameters.progression_mean *= progression_mean_scale
-    solver_options = {}
+    solver_kwds = {}
     if jacobian_method is not None:
-        solver_options['_jacobian_method'] = jacobian_method
+        solver_kwds['_jacobian_method'] = jacobian_method
     return Model(t_step=t_step,
-                 _solver_options=solver_options,
+                 solver_kwds=solver_kwds,
                  **parameters)
 
 

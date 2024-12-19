@@ -6,7 +6,7 @@ import numpy
 import pandas
 
 from . import _solver
-from .. import unstructured, _model, _utility
+from .. import unstructured, _model
 
 
 class Model(unstructured.Model):
@@ -43,14 +43,12 @@ class Model(unstructured.Model):
     @functools.cached_property
     def z_step(self):
         '''The step size in time since entry.'''
-        z_step = self._Solver._get_z_step(self.t_step)
-        return z_step
+        return self._solver.z_step
 
-    @functools.cached_property
+    @property
     def z(self):
-        '''The time-since-entry vector.'''
-        z = _utility.numerical.build_t(0, self.z_max, self.z_step)
-        return z
+        '''The solution time since entry.'''
+        return self._solver.z
 
     def _extend_index(self, idx_other):
         '''Extend `idx_other` with the 'time-since-entry' level.'''
@@ -66,15 +64,13 @@ class Model(unstructured.Model):
             z = z_with_z if state in self.states_with_z else z_without_z
             blocks.append(other.merge(z, how='cross'))
         dfr = pandas.concat(blocks)
-        idx = pandas.MultiIndex.from_frame(dfr)
-        return idx
+        return pandas.MultiIndex.from_frame(dfr)
 
     def _build_index(self):
         '''Extend the `pandas.Index()` for solutions with the
         'time-since-entry' level.'''
         idx_other = super()._build_index()
-        idx = self._extend_index(idx_other)
-        return idx
+        return self._extend_index(idx_other)
 
     @functools.cached_property
     def _weights(self):
@@ -86,8 +82,7 @@ class Model(unstructured.Model):
         idx_state = self._get_index_level('state')
         weights_z = pandas.Series(1, index=idx_state, dtype=float)
         weights_z[self.states_with_z] = self.z_step
-        weights = weights_other * weights_z
-        return weights
+        return weights_other * weights_z
 
     def _integral_over_z_group(self, obj, axis):
         '''Integrate one group over time since entry.'''
@@ -103,12 +98,13 @@ class Model(unstructured.Model):
         '''Integrate `obj` over 'time_since_entry'.'''
         if isinstance(obj, numpy.ndarray):
             assert len(obj) == len(self.z)
-            return obj.sum(*args, **kwds) * self.z_step
+            val = obj.sum(*args, **kwds) * self.z_step
         elif isinstance(obj, (pandas.Series, pandas.DataFrame)):
-            return _model.integral.integral(obj, 'time_since_entry',
-                                            self._integral_over_z_group)
+            val = _model.integral.integral(obj, 'time_since_entry',
+                                           self._integral_over_z_group)
         else:
             raise NotImplementedError
+        return val
 
     def _survivals(self):
         '''Get scaled survivals.'''
@@ -142,6 +138,7 @@ class Model(unstructured.Model):
 
     def build_initial_conditions(self, how='survival', **kwds):
         '''Adjust the initial conditions for the 'time-since-entry' level.'''
+        # pylint: disable-next=invalid-name
         Y_other = super().build_initial_conditions(**kwds)
         idx_state = self._get_index_level('state')
         idx_state_z = self._extend_index(idx_state)

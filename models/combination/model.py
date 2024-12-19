@@ -24,9 +24,8 @@ class Model(time_since_entry_structured.Model,
     def integral_over_a_and_z(self, obj, *args, **kwds):
         '''Integrate `obj` over 'age' and 'time_since_entry'.'''
         integrated_over_z = self.integral_over_z(obj, *args, **kwds)
-        integrated_over_z_and_a = self.integral_over_a(integrated_over_z,
-                                                       *args, **kwds)
-        return integrated_over_z_and_a
+        return self.integral_over_a(integrated_over_z,
+                                    *args, **kwds)
 
     integral_over_z_and_a = integral_over_a_and_z
 
@@ -39,9 +38,9 @@ class Model(time_since_entry_structured.Model,
             # Scale to integrate to 1.
             shape /= self.integral_over_a(shape)
         elif how == 'all_in_first':
-            J = len(self.a)
-            shape = numpy.hstack([1 / self.a_step,
-                                  numpy.zeros(J - 1)])
+            shape = numpy.hstack(
+                [1 / self.a_step, numpy.zeros(len(self.a) - 1)]
+            )
         else:
             raise ValueError(f'Unknown {how=}!')
         total = self.integral_over_a(y['maternal_immunity'].to_numpy())

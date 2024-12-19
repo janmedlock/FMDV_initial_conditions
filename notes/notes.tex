@@ -5,6 +5,7 @@
 \usepackage{babel}
 \usepackage[utf8]{inputenc}
 \usepackage[babel=true]{microtype}
+\usepackage{geometry}
 \usepackage{lmodern}
 \usepackage{datetime2}
 \usepackage{amsmath}
@@ -243,7 +244,7 @@ Let
     \end{bmatrix}.
   \end{align}
   System \eqref{numerics_unstructured} is then
-  \begin{multline}
+  \begin{equation}
     \label{step_unstructured}
     \left[
       \mat{A}_{\mathrm{new}}
@@ -253,7 +254,6 @@ Let
       \right)
     \right]
     \vec{x}^{\ell}
-    \\
     =
     \left[
       \mat{A}_{\mathrm{cur}}
@@ -263,7 +263,7 @@ Let
       \right)
     \right]
     \vec{x}^{\ell - 1}.
-  \end{multline}
+  \end{equation}
   For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
   solver to find $\vec{x}^{\ell}$.
 \end{subequations}
@@ -632,7 +632,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \end{bmatrix}.
   \end{align}
   System \eqref{numerics_age_structured} is then
-  \begin{multline}
+  \begin{equation}
     \label{step_age_structured}
     \left[
       \mat{A}_{\mathrm{new}}
@@ -642,7 +642,6 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \right)
     \right]
     \vec{x}^{\ell}
-    \\
     =
     \left[
       \mat{A}_{\mathrm{cur}}
@@ -652,7 +651,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \right)
     \right]
     \vec{x}^{\ell - 1}.
-  \end{multline}
+  \end{equation}
   For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
   solver to find $\vec{x}^{\ell}$.
 \end{subequations}
@@ -974,7 +973,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \end{bmatrix}.
   \end{align}
   System \eqref{numerics_time_since_entry_structured} is then
-  \begin{multline}
+  \begin{equation}
     \label{step_time_since_entry_structured}
     \left[
       \mat{A}_{\mathrm{new}}
@@ -984,7 +983,6 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \right)
     \right]
     \vec{x}^{\ell}
-    \\
     =
     \left[
       \mat{A}_{\mathrm{cur}}
@@ -994,7 +992,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \right)
     \right]
     \vec{x}^{\ell - 1}.
-  \end{multline}
+  \end{equation}
   For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
   solver to find $\vec{x}^{\ell}$.
 \end{subequations}
@@ -1600,7 +1598,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
   \end{align}
   where $\otimes$ is the Kronecker product.
   System \eqref{numerics_age_and_time_since_entry_structured} is then
-  \begin{multline}
+  \begin{equation}
     \label{step_age_and_time_since_entry_structured}
     \left[
       \mat{A}_{\mathrm{new}}
@@ -1610,7 +1608,6 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \right)
     \right]
     \vec{x}^{\ell}
-    \\
     =
     \left[
       \mat{A}_{\mathrm{cur}}
@@ -1620,7 +1617,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \right)
     \right]
     \vec{x}^{\ell - 1}.
-  \end{multline}
+  \end{equation}
   For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
   solver to find $\vec{x}^{\ell}$.
 \end{subequations}
@@ -1805,7 +1802,16 @@ Let
 Using this numerical scheme, we solved for the monodromy matrix, the
 fundamental solution after one period:
 \begin{equation}
-  \mat{\Psi} = [\Psi_{j, k}] \approx [\Phi(t_0 + T, a_j, a'_k)].
+  \mat{\Psi} =
+  \begin{bmatrix}
+    \Psi_{0, 0} & \cdots & \Psi_{0, J - 1} \\
+    \vdots & & \vdots \\
+    \Psi_{J - 1, 0} & \cdots & \Psi_{J - 1, J - 1}
+  \end{bmatrix},
+\end{equation}
+where
+\begin{equation}
+  \Psi_{j, k} \approx \Phi(t_0 + T, a_j, a'_k).
 \end{equation}
 The monodromy matrix projects the population forward at by one period,
 \begin{equation}
@@ -1836,7 +1842,7 @@ gives population growth rate $r = 0$.
 \section{Jacobian}
 
 The numerical methods for the MSEIR models require solving
-\begin{multline}
+\begin{equation}
   \label{step}
   \left[
     \mat{A}_{\mathrm{new}}
@@ -1846,7 +1852,6 @@ The numerical methods for the MSEIR models require solving
     \right)
   \right]
   \vec{x}^{\ell}
-  \\
   =
   \left[
     \mat{A}_{\mathrm{cur}}
@@ -1856,7 +1861,7 @@ The numerical methods for the MSEIR models require solving
     \right)
   \right]
   \vec{x}^{\ell - 1}.
-\end{multline}
+\end{equation}
 for $\vec{x}^{\ell}$ given $\vec{x}^{\ell - 1}$.
 Taking the derivative of this equation with respect to
 $\vec{x}^{\ell - 1}$ gives

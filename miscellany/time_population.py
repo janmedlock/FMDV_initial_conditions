@@ -27,15 +27,39 @@ import timer
 
 
 # Monkeypatch to set the array type.
+# pylint: disable-next=protected-access
 models._utility.sparse.Array = scipy.sparse.csr_array
 
 
+# pylint: disable-next=protected-access,too-few-public-methods
 class TestSolver(_population._solver.Solver):
     '''Test the solver.'''
 
     _methods_timed = ('population_growth_rate',
                       'birth_scaling_for_zero_population_growth',
                       'stable_age_density')
+
+    # pylint: disable-next=protected-access,too-few-public-methods
+    class Model(_population.model.Model):
+        '''Simplified model.'''
+
+        # pylint: disable-next=protected-access,too-few-public-methods
+        class ModelParameters(models.parameters._BaseParameters):
+            '''Simplified model parameters.'''
+
+            def __init__(self, **kwds):
+                parameters = models.parameters.Parameters(**kwds)
+                super().__init__(models.birth.Birth(parameters),
+                                 models.death.Death(parameters))
+                # Set birth mean without finding the value that gives
+                # zero population growth rate.
+                self.birth.mean = 1.
+
+        def __init__(self, **kwds):
+            super().__init__(parameters=self.ModelParameters(**kwds))
+
+    def _cache_methods(self):
+        '''Monkeypatch to disable caching.'''
 
     def _time_methods(self):
         '''Time the methods in `_methods_timed`.'''
@@ -44,35 +68,13 @@ class TestSolver(_population._solver.Solver):
             timed = timer.timer(method)
             setattr(self, name, timed)
 
-    def _cache_methods(self):
-        '''Monkeypatch to disable caching.'''
-
-    class Model:
-        '''Simplified model.'''
-
-        class ModelParameters:
-            '''Simplified model parameters.'''
-
-            def __init__(self, **kwds):
-                parameters = models.parameters.Parameters(**kwds)
-                self.birth = models.birth.Birth(parameters)
-                self.death = models.death.Death(parameters)
-                # Set birth mean without finding the value that gives
-                # zero population growth rate.
-                self.birth.mean = 1.
-
-        def __init__(self, **kwds):
-            self.parameters = self.ModelParameters(**kwds)
-            self.t_step = _population.Model._t_step_default
-            self.a_max = _population.Model._a_max_default
-
     def __init__(self, **kwds):
-        model = self.Model(**kwds)
-        super().__init__(model)
-        self._monodromy_init()
+        super().__init__(self.Model(**kwds))
+        self._check_matrices()
         self._time_methods()
 
     def test(self):
+        '''Test the simplified model.'''
         self.population_growth_rate(1., _guess=0)
         bscl = self.birth_scaling_for_zero_population_growth()
         self.parameters.birth.mean *= bscl
