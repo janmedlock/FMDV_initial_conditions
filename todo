@@ -2,7 +2,8 @@
 
 * What about making $a$ and $z$ finite and working with b.c.?
 
-* Changes in git stash to try to get the solvers working.
+* There are TODOs to try to get the solvers working in
+  models/_model/_poincare_map.py and miscellany/model_birth_ppl.py.
 
 * Unstructured model
   * Finding limit cycles isn't working for the piecewise linear birth rate

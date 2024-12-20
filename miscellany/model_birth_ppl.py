@@ -28,6 +28,7 @@ if __name__ == '__main__':
 
     eql = model_const.find_equilibrium(soln_const.loc[t_end])
     ax_state = models.plotting.state(eql, states=plot_states)
+    # TODO: `method='broyden1', options={'disp': True}` instead.
     lcy = model.find_limit_cycle(period, t_end % period, soln.loc[t_end],
                                  method='broyden1',
                                  options={'maxiter': 1200})
