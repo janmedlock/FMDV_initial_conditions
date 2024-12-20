@@ -2,7 +2,7 @@
 
 import numpy
 
-from . import _equilibrium, _fundamental, _poincaré
+from . import _equilibrium, _fundamental, _poincare
 from .. import _utility
 from .._utility import _transform
 
@@ -15,10 +15,10 @@ def check(y, weights=1, **kwds):
                           **kwds)
 
 
-def _objective(x_0_cur, poincaré_map, weights, transform, display):
+def _objective(x_0_cur, poincare_map, weights, transform, display):
     '''Helper for `find_with_period`.'''
     y_0_cur = transform.inverse(x_0_cur)
-    y_0_new = poincaré_map(y_0_cur, display=display)
+    y_0_new = poincare_map(y_0_cur, display=display)
     diff = (y_0_new - y_0_cur) * weights
     return diff
 
@@ -37,13 +37,13 @@ def find_with_period(model, period, t_0, y_0_guess,
                                                            display=display)
     # Find a fixed point `y_0` of the Poincaré map, i.e. that gives
     # `y(t_0 + period) = y_0`.
-    poincaré_map = _poincaré.Map(model, period, t_0)
+    poincare_map = _poincare.Map(model, period, t_0)
     transform = _transform.Logarithm(a=1e-6,
                                      weights=weights)
     x_0_guess = transform(y_0_guess)
     result = _utility.optimize.root(
         _objective, x_0_guess,
-        args=(poincaré_map, weights, transform, display),
+        args=(poincare_map, weights, transform, display),
         sparse=model.solver.sparse,
         display=display,
         **root_kwds
@@ -56,7 +56,7 @@ def find_with_period(model, period, t_0, y_0_guess,
             / _utility.numerical.weighted_sum(y_0, weights))
     if solution:
         # Return the solution at the `t` values, not just at the end time.
-        (t, y) = poincaré_map.solve(y_0, display=display)
+        (t, y) = poincare_map.solve(y_0, display=display)
         assert check(y, weights=weights)
         return (t, y)
     return y_0
