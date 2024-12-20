@@ -15,8 +15,7 @@ class _Solver(solver.Base):
     def sparse(self):
         '''Whether the solver uses sparse arrays and sparse linear
         algebra.'''
-        # pylint: disable-next=protected-access
-        return self.model._solver.sparse
+        return self.model.solver.sparse
 
     @functools.cached_property
     def I(self):  # pylint: disable=invalid-name  # noqa: E743
@@ -34,8 +33,7 @@ class _Solver(solver.Base):
         i = self.y.index.get_loc(t_cur)
         y_cur = self.y.iloc[i]
         y_new = self.y.iloc[i + 1]
-        # pylint: disable-next=protected-access
-        return self.model._solver.jacobian(t_cur, y_cur, y_new)
+        return self.model.solver.jacobian(t_cur, y_cur, y_new)
 
     # pylint: disable-next=invalid-name
     def step(self, t_cur, Phi_cur, t_new, display=False):

@@ -28,12 +28,12 @@ class Model(_base.ModelMixin, _model.model.Population):
     def integral_over_a(self, arr, *args, **kwds):
         '''Integrate `arr` over age. `args` and `kwds` are passed on
          to `.sum()`.'''
-        return self._solver.integral_over_a(arr, *args, **kwds)
+        return self.solver.integral_over_a(arr, *args, **kwds)
 
     def birth_scaling_for_zero_population_growth(self, **kwds):
         '''Find the birth scaling that gives zero population growth rate.'''
-        return self._solver.birth_scaling_for_zero_population_growth(**kwds)
+        return self.solver.birth_scaling_for_zero_population_growth(**kwds)
 
     def stable_age_density(self, **kwds):
         '''Get the stable age density.'''
-        return self._solver.stable_age_density(**kwds)
+        return self.solver.stable_age_density(**kwds)

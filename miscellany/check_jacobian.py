@@ -36,7 +36,7 @@ if __name__ == '__main__':
     # M_new = I - t_step / 2 * J
     # M_cur = I + t_step / 2 * J
     M = {
-        q: model._solver._jacobian._M(q, eql, b)
+        q: model.solver._jacobian._M(q, eql, b)
         for q in ('cur', 'new')
     }
     assert numpy.allclose(I - M['new'],

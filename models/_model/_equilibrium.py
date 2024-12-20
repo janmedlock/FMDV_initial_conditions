@@ -12,7 +12,7 @@ def solution_after_t_solve(model, t_0, t_solve, y_0, **kwds):
     if t_solve == 0:
         return (t_0, y_0)
     t_1 = t_0 + t_solve
-    y_1 = model._solver.solution_at_t_end((t_0, t_1), y_0, **kwds)
+    y_1 = model.solver.solution_at_t_end((t_0, t_1), y_0, **kwds)
     return (t_1, y_1)
 
 
@@ -23,6 +23,7 @@ def _objective(y_cur, solver, t, weights):
     return diff
 
 
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
 def find(model, y_guess, t=0, t_solve=0, weights=1,
          display=False, **root_kwds):
     '''Find an equilibrium `y` while keeping
@@ -32,8 +33,8 @@ def find(model, y_guess, t=0, t_solve=0, weights=1,
     (t, y_guess) = solution_after_t_solve(model, t, t_solve, y_guess,
                                           display=display)
     result = _utility.optimize.root(_objective, y_guess,
-                                    args=(model._solver, t, weights),
-                                    sparse=model._solver.sparse,
+                                    args=(model.solver, t, weights),
+                                    sparse=model.solver.sparse,
                                     display=display,
                                     **root_kwds)
     assert result.success, result
@@ -50,7 +51,7 @@ def eigenvalues(model, equilibrium, t=0, k=5, verbose=False):
     part.'''
     if verbose:
         print('Building the jacobian...')
-    jac = model._solver.jacobian(t, equilibrium, equilibrium)
+    jac = model.solver.jacobian(t, equilibrium, equilibrium)
     if verbose:
         print('Finding eigenvalues...')
     evals = _utility.linalg.eigs(jac, k=k, which='LR',

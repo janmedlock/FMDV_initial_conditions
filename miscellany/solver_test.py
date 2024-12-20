@@ -50,7 +50,7 @@ class Tester:
         return A_
 
     def test(self):
-        solver = self.model._solver
+        solver = self.model.solver
         names = ('A', 'B', 'beta', 'T')
         for name in names:
             matrix = getattr(solver, name)

@@ -13,17 +13,17 @@ class ModelMixin:
     @property
     def a_max(self):
         '''The maximum age.'''
-        return self._solver.a_max
+        return self.solver.a_max
 
     @property
     def a_step(self):
         '''The step size in age.'''
-        return self._solver.a_step
+        return self.solver.a_step
 
     @property
     def a(self):
         '''The solution ages.'''
-        return self._solver.a
+        return self.solver.a
 
 
 class SolverMixin:

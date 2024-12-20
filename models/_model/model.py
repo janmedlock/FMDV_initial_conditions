@@ -26,8 +26,8 @@ class Population(metaclass=abc.ABCMeta):
         super().__init__()
 
     @functools.cached_property
-    def _solver(self):
-        '''`._solver` is built on first use and then reused.'''
+    def solver(self):
+        '''`.solver` is built on first use and then reused.'''
         return self._Solver(self, **self.solver_kwds)
 
 
@@ -100,8 +100,8 @@ class Model(Population, metaclass=abc.ABCMeta):
         if y_start is None:
             # pylint: disable-next=assignment-from-none
             y_start = self.build_initial_conditions()
-        (t_, soln_) = self._solver.solve(t_span, y_start,
-                                         t=t, y=y, display=display)
+        (t_, soln_) = self.solver.solve(t_span, y_start,
+                                        t=t, y=y, display=display)
         soln = self.Solution(soln_, t_)
         if check_nonnegative:
             _utility.numerical.check_nonnegative(soln)
@@ -115,9 +115,9 @@ class Model(Population, metaclass=abc.ABCMeta):
         if y_start is None:
             # pylint: disable-next=assignment-from-none
             y_start = self.build_initial_conditions()
-        y_end = self._solver.solution_at_t_end(t_span, y_start,
-                                               t=t, y_temp=y_temp,
-                                               display=display)
+        y_end = self.solver.solution_at_t_end(t_span, y_start,
+                                              t=t, y_temp=y_temp,
+                                              display=display)
         soln = self.Solution(y_end)
         if check_nonnegative:
             _utility.numerical.check_nonnegative(soln)

@@ -23,6 +23,7 @@ def _objective(x_0_cur, poincaré_map, weights, transform, display):
     return diff
 
 
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments,too-many-locals  # noqa: E501
 def find_with_period(model, period, t_0, y_0_guess,
                      t_solve=0, weights=1, solution=True,
                      display=False, **root_kwds):
@@ -43,7 +44,7 @@ def find_with_period(model, period, t_0, y_0_guess,
     result = _utility.optimize.root(
         _objective, x_0_guess,
         args=(poincaré_map, weights, transform, display),
-        sparse=model._solver.sparse,
+        sparse=model.solver.sparse,
         display=display,
         **root_kwds
     )
@@ -58,10 +59,10 @@ def find_with_period(model, period, t_0, y_0_guess,
         (t, y) = poincaré_map.solve(y_0, display=display)
         assert check(y, weights=weights)
         return (t, y)
-    else:
-        return y_0
+    return y_0
 
 
+# pylint: disable-next=too-many-arguments,too-many-positional-arguments
 def find_subharmonic(model, period_0, t_0, y_0_guess,
                      t_solve=0, order_max=10, weights=1, solution=True,
                      display=False, **root_kwds):
@@ -89,6 +90,7 @@ def find_subharmonic(model, period_0, t_0, y_0_guess,
 
 def monodromy(model, limit_cycle, display=False):
     '''Get the monodromy matrix.'''
+    # pylint: disable-next=invalid-name
     Psi = _fundamental.monodromy(model, limit_cycle, display=display)
     return Psi
 
@@ -96,6 +98,7 @@ def monodromy(model, limit_cycle, display=False):
 def characteristic_multipliers(model, limit_cycle, k=5, display=False):
     '''Get the `k` characteristic multipliers of `limit_cycle` with
     largest magnitude.'''
+    # pylint: disable-next=invalid-name
     Psi = monodromy(model, limit_cycle, display=display)
     mlts = _utility.linalg.eigs(Psi, k=k, which='LM',
                                 return_eigenvectors=False)

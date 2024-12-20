@@ -2,6 +2,8 @@
 
 * What about making $a$ and $z$ finite and working with b.c.?
 
+* Changes in git stash to try to get the solvers working.
+
 * Unstructured model
   * Finding limit cycles isn't working for the piecewise linear birth rate
 

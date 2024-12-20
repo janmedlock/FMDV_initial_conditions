@@ -43,12 +43,12 @@ class Model(unstructured.Model):
     @functools.cached_property
     def z_step(self):
         '''The step size in time since entry.'''
-        return self._solver.z_step
+        return self.solver.z_step
 
     @property
     def z(self):
         '''The solution time since entry.'''
-        return self._solver.z
+        return self.solver.z
 
     def _extend_index(self, idx_other):
         '''Extend `idx_other` with the 'time-since-entry' level.'''

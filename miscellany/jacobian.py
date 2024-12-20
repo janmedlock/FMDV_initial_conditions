@@ -40,11 +40,11 @@ def time_jac(Model, t_step, method, t_solve=10, **kwds):
     t_eql = time.perf_counter() - t0_eql
     print(f'Found equilibrium for {t_step=}, {method=} in {t_eql} sec')
     t0_bld = time.perf_counter()
-    model._solver._jacobian
+    model.solver._jacobian
     t_bld = time.perf_counter() - t0_bld
     print(f'Built Jacobian solver for {t_step=}, {method=} in {t_bld} sec')
     t0_jac = time.perf_counter()
-    J = model._solver.jacobian(0, eql, eql)
+    J = model.solver.jacobian(0, eql, eql)
     t_jac = time.perf_counter() - t0_jac
     print(f'Found Jacobian for {t_step=}, {method=} in {t_jac} sec')
     return t_jac
