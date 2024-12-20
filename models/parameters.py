@@ -2,6 +2,7 @@
 
 import collections.abc
 import dataclasses
+import functools
 
 import numpy
 
@@ -41,6 +42,16 @@ class _Parameters(_MappingMixin):
     birth_age_menopause: float = numpy.PINF  # years
     maternal_immunity_mean: float = 0.37     # years
     maternal_immunity_shape: float = 1.19    # unitless
+
+    @functools.cached_property
+    def birth(self):
+        '''The birth process, built when first used.'''
+        return birth.Birth(self)
+
+    @functools.cached_property
+    def death(self):
+        '''The death process, built when first used.'''
+        return death.Death(self)
 
 
 @dataclasses.dataclass
@@ -86,12 +97,13 @@ def Parameters(SAT=1, **kwds):  # pylint: disable=invalid-name
     return klass(**kwds)
 
 
-class _BaseParameters:
-    '''Base parameters for the transmission and population models.'''
+class PopulationParameters:
+    '''Model parameters for population models.'''
 
-    def __init__(self, birth_, death_):
-        self.birth = birth_
-        self.death = death_
+    def __init__(self, parameters):
+        '''For efficient caching, only birth and death are stored.'''
+        self.birth = parameters.birth
+        self.death = parameters.death
 
     @property
     def period(self):
@@ -109,23 +121,12 @@ class _BaseParameters:
         return age_max
 
 
-class PopulationParameters(_BaseParameters):
-    '''Model parameters for the population model. For efficient
-    caching, only birth and death are stored.'''
-
-    def __init__(self, parameters):
-        super().__init__(parameters.birth,
-                         parameters.death)
-
-
-class _ModelParameters(_BaseParameters):
+class _ModelParameters(PopulationParameters):
     '''Model parameters for the transmission models.'''
 
     def __init__(self, **kwds):
         parameters = Parameters(**kwds)
-        # Setup the population parameters.
-        super().__init__(birth.Birth(parameters),
-                         death.Death(parameters))
+        super().__init__(parameters)
         self._population_model = _population.Model(parameters=self)
         self._set_for_zero_population_growth()
         # Setup the infection parameters.

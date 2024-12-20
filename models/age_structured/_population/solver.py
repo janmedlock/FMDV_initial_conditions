@@ -24,8 +24,8 @@ class Solver(_base.SolverMixin, _model.solver.Population):
     _state_attrs = ('parameters', 't_step')
 
     def __init__(self, model):
-        super().__init__(model.t_step,
-                         parameters.PopulationParameters(model.parameters))
+        parameters_ = parameters.PopulationParameters(model.parameters)
+        super().__init__(model.t_step, parameters_)
         self.t_step = model.t_step
         self._checked_matrices = False
         self._cache_methods()

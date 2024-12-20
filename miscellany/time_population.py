@@ -22,16 +22,16 @@
 import scipy.sparse
 
 from context import models
+from models import _utility
 from models.age_structured import _population
 import timer
 
 
 # Monkeypatch to set the array type.
-# pylint: disable-next=protected-access
-models._utility.sparse.Array = scipy.sparse.csr_array
+_utility.sparse.Array = scipy.sparse.csr_array
 
 
-# pylint: disable-next=protected-access,too-few-public-methods
+# pylint: disable-next=too-few-public-methods
 class TestSolver(_population.solver.Solver):
     '''Test the solver.'''
 
@@ -39,24 +39,16 @@ class TestSolver(_population.solver.Solver):
                       'birth_scaling_for_zero_population_growth',
                       'stable_age_density')
 
-    # pylint: disable-next=protected-access,too-few-public-methods
-    class Model(_population.model.Model):
-        '''Simplified model.'''
-
-        # pylint: disable-next=protected-access,too-few-public-methods
-        class ModelParameters(models.parameters._BaseParameters):
-            '''Simplified model parameters.'''
-
-            def __init__(self, **kwds):
-                parameters = models.parameters.Parameters(**kwds)
-                super().__init__(models.birth.Birth(parameters),
-                                 models.death.Death(parameters))
-                # Set birth mean without finding the value that gives
-                # zero population growth rate.
-                self.birth.mean = 1.
+    # pylint: disable-next=too-few-public-methods
+    class Parameters(models.parameters.PopulationParameters):
+        '''Simplified model parameters.'''
 
         def __init__(self, **kwds):
-            super().__init__(parameters=self.ModelParameters(**kwds))
+            parameters = models.parameters.Parameters(**kwds)
+            # Set birth mean without finding the value that gives
+            # zero population growth rate.
+            parameters.birth.mean = 1.
+            super().__init__(parameters)
 
     def _cache_methods(self):
         '''Monkeypatch to disable caching.'''
@@ -69,7 +61,9 @@ class TestSolver(_population.solver.Solver):
             setattr(self, name, timed)
 
     def __init__(self, **kwds):
-        super().__init__(self.Model(**kwds))
+        parameters = self.Parameters(**kwds)
+        model = _population.model.Model(parameters=parameters)
+        super().__init__(model)
         self._check_matrices()
         self._time_methods()
 
