@@ -4,7 +4,6 @@ import numpy
 
 from . import _equilibrium, _fundamental, _poincare
 from .. import _utility
-from .._utility import _transform
 
 
 def check(y, weights=1, **kwds):
@@ -15,16 +14,8 @@ def check(y, weights=1, **kwds):
                           **kwds)
 
 
-def _objective(x_0_cur, poincare_map, weights, transform, display):
-    '''Helper for `find_with_period`.'''
-    y_0_cur = transform.inverse(x_0_cur)
-    y_0_new = poincare_map(y_0_cur, display=display)
-    diff = (y_0_new - y_0_cur) * weights
-    return diff
-
-
-# pylint: disable-next=too-many-arguments,too-many-positional-arguments,too-many-locals  # noqa: E501
-def find_with_period(model, period, t_0, y_0_guess,
+# pylint: disable-next=too-many-arguments
+def find_with_period(model, period, t_0, y_0_guess, *,
                      t_solve=0, weights=1, solution=True,
                      display=False, **root_kwds):
     '''Find a limit cycle with period `period` while keeping
@@ -35,25 +26,9 @@ def find_with_period(model, period, t_0, y_0_guess,
                                                            t_0, t_solve,
                                                            y_0_guess,
                                                            display=display)
-    # Find a fixed point `y_0` of the Poincaré map, i.e. that gives
-    # `y(t_0 + period) = y_0`.
     poincare_map = _poincare.Map(model, period, t_0)
-    transform = _transform.Logarithm(a=1e-6,
-                                     weights=weights)
-    x_0_guess = transform(y_0_guess)
-    result = _utility.optimize.root(
-        _objective, x_0_guess,
-        args=(poincare_map, weights, transform, display),
-        sparse=model.solver.sparse,
-        display=display,
-        **root_kwds
-    )
-    assert result.success, result
-    y_0 = transform.inverse(result.x)
-    # Scale `y_0` so that `weighted_sum()` is the same as for
-    # `y_0_guess`.
-    y_0 *= (_utility.numerical.weighted_sum(y_0_guess, weights)
-            / _utility.numerical.weighted_sum(y_0, weights))
+    y_0 = poincare_map.find_fixed_point(y_0_guess, weights=weights,
+                                        display=display, **root_kwds)
     if solution:
         # Return the solution at the `t` values, not just at the end time.
         (t, y) = poincare_map.solve(y_0, display=display)
@@ -62,8 +37,8 @@ def find_with_period(model, period, t_0, y_0_guess,
     return y_0
 
 
-# pylint: disable-next=too-many-arguments,too-many-positional-arguments
-def find_subharmonic(model, period_0, t_0, y_0_guess,
+# pylint: disable-next=too-many-arguments
+def find_subharmonic(model, period_0, t_0, y_0_guess, *,
                      t_solve=0, order_max=10, weights=1, solution=True,
                      display=False, **root_kwds):
     '''Find a subharmonic limit cycle for a system with forcing period

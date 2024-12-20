@@ -23,8 +23,9 @@ def _objective(y_cur, solver, t, weights):
     return diff
 
 
-# pylint: disable-next=too-many-arguments,too-many-positional-arguments
-def find(model, y_guess, t=0, t_solve=0, weights=1,
+# pylint: disable-next=too-many-arguments
+def find(model, y_guess, t=0, *,
+         t_solve=0, weights=1,
          display=False, **root_kwds):
     '''Find an equilibrium `y` while keeping
     `weighted_sum(y, weights)` constant.'''

@@ -92,8 +92,8 @@ class Model(Population, metaclass=abc.ABCMeta):
             solution = pandas.DataFrame(y, index=t, columns=self._index)
         return solution
 
-    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
-    def solve(self, t_span,
+    # pylint: disable-next=too-many-arguments
+    def solve(self, t_span, *,
               y_start=None, t=None, y=None, display=False,
               check_nonnegative=True):
         '''Solve the ODEs.'''
@@ -107,8 +107,8 @@ class Model(Population, metaclass=abc.ABCMeta):
             _utility.numerical.check_nonnegative(soln)
         return soln
 
-    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
-    def solution_at_t_end(self, t_span,
+    # pylint: disable-next=too-many-arguments
+    def solution_at_t_end(self, t_span, *,
                           y_start=None, t=None, y_temp=None,
                           display=False, check_nonnegative=True):
         '''Get the solution at the end time.'''
@@ -123,9 +123,9 @@ class Model(Population, metaclass=abc.ABCMeta):
             _utility.numerical.check_nonnegative(soln)
         return soln
 
-    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
-    def find_equilibrium(self, eql_guess, t=0, t_solve=0,
-                         display=False, check_nonnegative=True,
+    # pylint: disable-next=too-many-arguments
+    def find_equilibrium(self, eql_guess, t=0, *,
+                         t_solve=0, display=False, check_nonnegative=True,
                          **root_kwds):
         '''Find an equilibrium of the model.'''
         eql_ = _equilibrium.find(self, eql_guess, t,
@@ -140,8 +140,8 @@ class Model(Population, metaclass=abc.ABCMeta):
         '''Get the eigenvalues of the Jacobian.'''
         return _equilibrium.eigenvalues(self, eql, t, k=k, **kws)
 
-    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
-    def find_limit_cycle(self, period_0, t_0, lcy_0_guess,
+    # pylint: disable-next=too-many-arguments
+    def find_limit_cycle(self, period_0, t_0, lcy_0_guess, *,
                          solution=True, display=False,
                          check_nonnegative=True,
                          **root_kwds):

@@ -10,7 +10,7 @@ class Mixin:  # pylint: disable=too-few-public-methods
 
     def _cn_op(self, q, X, Y, out=None):  # pylint: disable=invalid-name
         '''X ± t_step / 2 * Y.'''
-        # pylint: disable=invalid-name
+        # pylint: disable-next=invalid-name
         scaled_Y = numpy.multiply(self.t_step / 2, Y, out=out)
         if q == 'new':
             op = numpy.subtract

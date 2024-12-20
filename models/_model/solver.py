@@ -9,8 +9,9 @@ from . import _crank_nicolson, _jacobian
 from .. import _utility
 
 
-class Base(_crank_nicolson.Mixin, metaclass=abc.ABCMeta):
-    '''Base class for Crank–Nicolson solvers.'''
+class Population(_crank_nicolson.Mixin, metaclass=abc.ABCMeta):
+    '''Base class for Crank–Nicolson solvers for the population and
+    infection models.'''
 
     @property
     @abc.abstractmethod
@@ -22,6 +23,24 @@ class Base(_crank_nicolson.Mixin, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def I(self):  # pylint: disable=invalid-name  # noqa: E743
         '''The identity matrix.'''
+
+    @abc.abstractmethod
+    def H(self, q):  # pylint: disable=invalid-name
+        '''The time-step matrix, H(q).'''
+
+    @abc.abstractmethod
+    def F(self, q):  # pylint: disable=invalid-name
+        '''The transition matrix, F(q).'''
+
+    @functools.cached_property
+    @abc.abstractmethod
+    def B(self):  # pylint: disable=invalid-name
+        '''The birth matrix, B.'''
+
+    def __init__(self, t_step, parameters):
+        self.t_step = t_step
+        self.parameters = parameters
+        super().__init__()
 
     @staticmethod
     def _integration_vector(n, step):
@@ -61,29 +80,6 @@ class Base(_crank_nicolson.Mixin, metaclass=abc.ABCMeta):
         if not self.sparse:
             val = val.todense()
         return val
-
-
-class Population(Base, metaclass=abc.ABCMeta):
-    '''Base class for Crank–Nicolson solvers for the population and
-    infection models.'''
-
-    @abc.abstractmethod
-    def H(self, q):  # pylint: disable=invalid-name
-        '''The time-step matrix, H(q).'''
-
-    @abc.abstractmethod
-    def F(self, q):  # pylint: disable=invalid-name
-        '''The transition matrix, F(q).'''
-
-    @functools.cached_property
-    @abc.abstractmethod
-    def B(self):  # pylint: disable=invalid-name
-        '''The birth matrix, B.'''
-
-    def __init__(self, t_step, parameters):
-        self.t_step = t_step
-        self.parameters = parameters
-        super().__init__()
 
     def _A(self, q):  # pylint: disable=invalid-name
         '''The matrix A(q).'''
@@ -211,8 +207,8 @@ class Solver(Population, metaclass=abc.ABCMeta):
         assert result.success, f'{t_cur=}\n{result=}'
         return result.x
 
-    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
-    def solve(self, t_span, y_0,
+    # pylint: disable-next=too-many-arguments
+    def solve(self, t_span, y_0, *,
               t=None, y=None, display=False):
         '''Solve. `y` is storage for the solution, which will be built
         if not provided.'''
@@ -225,8 +221,8 @@ class Solver(Population, metaclass=abc.ABCMeta):
             y[ell] = self.step(t[ell - 1], y[ell - 1], display=display)
         return (t, y)
 
-    # pylint: disable-next=too-many-arguments,too-many-positional-arguments
-    def solution_at_t_end(self, t_span, y_0,
+    # pylint: disable-next=too-many-arguments
+    def solution_at_t_end(self, t_span, y_0, *,
                           t=None, y_temp=None, display=False):
         '''Find the value of the solution at `t_span[1]`.'''
         if t is None:

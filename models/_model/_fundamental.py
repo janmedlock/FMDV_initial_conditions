@@ -4,29 +4,23 @@ import functools
 
 import numpy
 
-from . import solver
+from . import _crank_nicolson
 from .. import _utility
 
 
-class _Solver(solver.Base):
+class _Solver(_crank_nicolson.Mixin):
     '''Crank–Nicolson solver for the variational equation.'''
+
+    def __init__(self, model, y):
+        self.model = model
+        self.y = y
+        self.t_step = 0.  # This is updated in `.step()`.
 
     @property
     def sparse(self):
         '''Whether the solver uses sparse arrays and sparse linear
         algebra.'''
         return self.model.solver.sparse
-
-    @functools.cached_property
-    def I(self):  # pylint: disable=invalid-name  # noqa: E743
-        '''The identity matrix.'''
-        return _utility.numerical.identity(self.y.shape[-1],
-                                           sparse=self.sparse)
-
-    def __init__(self, model, y):
-        self.model = model
-        self.y = y
-        self.t_step = 0.  # This is updated in `.step()`.
 
     def jacobian(self, t_cur):
         '''Get the Jacobian at (t, y(t)).'''
@@ -54,6 +48,12 @@ class _Solver(solver.Base):
         return _utility.linalg.solve(IJ_new, IJPhi_cur,
                                      overwrite_a=True,
                                      overwrite_b=True)
+
+    @functools.cached_property
+    def I(self):  # pylint: disable=invalid-name  # noqa: E743
+        '''The identity matrix.'''
+        return _utility.numerical.identity(self.y.shape[-1],
+                                           sparse=self.sparse)
 
     @property
     def _I_dense(self):  # pylint: disable=invalid-name
@@ -93,11 +93,11 @@ class _Solver(solver.Base):
 
 def monodromy(model, y, display=False):
     '''Solve for the monodromy matrix.'''
-    solver_ = _Solver(model, y)
-    return solver_.monodromy(display=display)
+    solver = _Solver(model, y)
+    return solver.monodromy(display=display)
 
 
 def solution(model, y, display=False):
     '''Solve for the fundamental solution.'''
-    solver_ = _Solver(model, y)
-    return solver_.solve(display=display)
+    solver = _Solver(model, y)
+    return solver.solve(display=display)
