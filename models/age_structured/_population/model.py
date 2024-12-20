@@ -1,11 +1,29 @@
 '''Age-structured population model.'''
 
 from . import solver
-from .. import _base
 from ... import _model
 
 
-class Model(_base.ModelMixin, _model.model.Population):
+class _Mixin:
+    '''Mixin for age-structured models.'''
+
+    @property
+    def a_max(self):
+        '''The maximum age.'''
+        return self.solver.a_max
+
+    @property
+    def a_step(self):
+        '''The step size in age.'''
+        return self.solver.a_step
+
+    @property
+    def a(self):
+        '''The solution ages.'''
+        return self.solver.a
+
+
+class Model(_Mixin, _model.model.Population):
     '''The linear age-structured model for the population size with
     age-dependent death rate, age-dependent maternity, and periodic
     time-dependent birth rate.'''

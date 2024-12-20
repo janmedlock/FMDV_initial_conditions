@@ -2,11 +2,8 @@
 
 import functools
 
-from . import _base
+from ._population.solver import Mixin
 from .. import _model, _utility
-
-
-Mixin = _base.SolverMixin
 
 
 class Solver(Mixin, _model.solver.Solver):
