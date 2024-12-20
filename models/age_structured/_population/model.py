@@ -1,31 +1,11 @@
 '''Age-structured population model.'''
 
-import abc
-
 from . import solver
+from .. import _base
 from ... import _model
 
 
-class Base(_model.model.Population, metaclass=abc.ABCMeta):
-    '''Base for age-structured models.'''
-
-    @property
-    def a_max(self):
-        '''The maximum age.'''
-        return self._solver.a_max
-
-    @property
-    def a_step(self):
-        '''The step size in age.'''
-        return self._solver.a_step
-
-    @property
-    def a(self):
-        '''The solution ages.'''
-        return self._solver.a
-
-
-class Model(Base):
+class Model(_base.ModelMixin, _model.model.Population):
     '''The linear age-structured model for the population size with
     age-dependent death rate, age-dependent maternity, and periodic
     time-dependent birth rate.'''

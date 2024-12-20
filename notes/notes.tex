@@ -187,17 +187,26 @@ i.e.~periodic with period $T = \unit[1]{y}$.
 
 Let
 \begin{subequations}
-  \begin{gather}
-    \vec{x}^{\ell} =
+  \begin{align}
+    \vec{x}^{\ell} &=
     \begin{bmatrix}
       M^{\ell} \\ S^{\ell} \\ E^{\ell} \\ I^{\ell} \\ R^{\ell}
     \end{bmatrix},
     \\
-    \mat{H}_{\mathrm{new}} =
+    \vec{\beta} &=
+    \beta
+    \begin{bmatrix}
+      0 & 0 & 0 & 1 & 0
+    \end{bmatrix},
+    \\
+    % \lambda^{\ell} &=
+    % \vec{\beta} \vec{x}^{\ell},
+    % \\
+    \mat{H}_{\mathrm{new}} &=
     \mat{H}_{\mathrm{cur}} =
     \mat{I}_{5 \times 5},
     \\
-    \mat{F}_{\mathrm{new}} =
+    \mat{F}_{\mathrm{new}} &=
     \mat{F}_{\mathrm{cur}} =
     \begin{bmatrix}
       - \omega - \mu & 0 & 0 & 0 & 0 \\
@@ -207,15 +216,7 @@ Let
       0 & 0 & 0 & \gamma & - \mu
     \end{bmatrix},
     \\
-    \begin{aligned}
-      \mat{A}_{\mathrm{new}} &=
-      \mat{H}_{\mathrm{new}} - \frac{\Delta t}{2} \mat{F}_{\mathrm{new}},
-      &
-      \mat{A}_{\mathrm{cur}} &=
-      \mat{H}_{\mathrm{cur}} + \frac{\Delta t}{2} \mat{F}_{\mathrm{cur}},
-    \end{aligned}
-    \\
-    \mat{B} =
+    \mat{B} &=
     \begin{bmatrix}
       0 & 0 & 0 & 0 & 1 \\
       1 & 1 & 1 & 1 & 0 \\
@@ -224,16 +225,7 @@ Let
       0 & 0 & 0 & 0 & 0
     \end{bmatrix},
     \\
-    \vec{\beta} =
-    \beta
-    \begin{bmatrix}
-      0 & 0 & 0 & 1 & 0
-    \end{bmatrix},
-    \\
-    % \lambda^{\ell} =
-    % \vec{\beta} \vec{x}^{\ell},
-    % \\
-    \mat{T}_{\mathrm{new}} =
+    \mat{T}_{\mathrm{new}} &=
     \mat{T}_{\mathrm{cur}} =
     \begin{bmatrix}
       0 & 0 & 0 & 0 & 0 \\
@@ -242,10 +234,21 @@ Let
       0 & 0 & 0 & 0 & 0 \\
       0 & 0 & 0 & 0 & 0
     \end{bmatrix}.
-  \end{gather}
-  System \eqref{numerics_unstructured} is then
-  \begin{equation}
-    \label{step_unstructured}
+  \end{align}
+\end{subequations}
+System \eqref{numerics_unstructured} is then
+\begin{subequations}
+  \label{step_unstructured}
+  \begin{align}
+    \mat{A}_q &=
+    \begin{cases}
+      \mat{H}_{\mathrm{new}} - \frac{\Delta t}{2} \mat{F}_{\mathrm{new}}
+      & \text{if $q = \mathrm{new}$},
+      \\
+      \mat{H}_{\mathrm{cur}} + \frac{\Delta t}{2} \mat{F}_{\mathrm{cur}}
+      & \text{if $q = \mathrm{cur}$},
+    \end{cases}
+    \\
     \left[
       \mat{A}_{\mathrm{new}}
       - \frac{\Delta t}{2} \left(
@@ -253,20 +256,19 @@ Let
         + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
       \right)
     \right]
-    \vec{x}^{\ell}
-    =
+    \vec{x}^{\ell} &=
     \left[
       \mat{A}_{\mathrm{cur}}
       + \frac{\Delta t}{2} \left(
         b^{\ell - 1 / 2} \mat{B}
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{cur}}
       \right)
     \right]
     \vec{x}^{\ell - 1}.
-  \end{equation}
-  For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
-  solver to find $\vec{x}^{\ell}$.
+  \end{align}
 \end{subequations}
+For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
+solver to find $\vec{x}^{\ell}$.
 
 
 \section{Age-structured model}
@@ -502,10 +504,74 @@ Crank--Nicolson method on characteristics is
 
 \subsubsection{Linear algebra}
 
+For solvers of age-structured models, define
+\begin{subequations}
+  \label{definitions_age_structured}
+  \begin{align}
+    \vec{0}_a &=
+    \begin{bmatrix}
+      0 & \cdots & 0
+    \end{bmatrix}_{1 \times J},
+    \\
+    \vec{\iota}_a &=
+    \Delta t
+    \begin{bmatrix}
+      1 & \cdots & 1
+    \end{bmatrix}_{1 \times J},
+    \\
+    \vec{\zeta}_a &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}_{J \times 1},
+    \\
+    \vec{\tau}_a &=
+    \Delta t
+    \begin{bmatrix}
+      \nu_0 & \cdots & \nu_{J - 1}
+    \end{bmatrix},
+    \\
+    \mat{0}_{aa} &= \vec{0}_a^{\mathrm{T}} \vec{0}_a,
+    \\
+    \mat{I}_a &= \mat{I}_{J \times J},
+    \\
+    \mat{L}_a &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & 0 & 0 \\
+      1 & \ddots & & \vdots & \vdots \\
+      0 & \ddots & \ddots & \vdots & \vdots \\
+      \vdots & \ddots & \ddots & 0 & 0 \\
+      0 & \cdots & 0 & 1 & 1
+    \end{bmatrix}_{K \times K},
+    \\
+    \mat{H}_{a, q} &=
+    \begin{cases}
+      \mat{I}_a & \text{if $q = \mathrm{new}$},
+      \\
+      \mat{L}_a & \text{if $q = \mathrm{cur}$},
+    \end{cases}
+    \\
+    \mat{F}_{a, q}(\vec{\pi}) &=
+    \begin{cases}
+      \begin{bmatrix}
+        \pi_0 & 0 & \cdots & 0 \\
+        0 & \pi_1 & \ddots & \vdots \\
+        \vdots & \ddots & \ddots & 0 \\
+        0 & \cdots & 0 & \pi_{J - 1}
+      \end{bmatrix}
+      & \text{if $q = \mathrm{new}$},
+      \\
+      \mat{L}_{a} \mat{F}_{a, \mathrm{new}}(\vec{\pi})
+      & \text{if $q = \mathrm{cur}$},
+    \end{cases}
+    \\
+    \mat{B}_a &= \vec{\zeta}_a \vec{\tau}_a.
+  \end{align}
+\end{subequations}
 For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
 \begin{subequations}
-  \begin{gather}
-    \vec{x}^{\ell} =
+  \begin{align}
+    \vec{x}^{\ell} &=
     \begin{bmatrix}
       M_0^{\ell} \\ \vdots \\ M_{J - 1}^{\ell} \\
       S_0^{\ell} \\ \vdots \\ S_{J - 1}^{\ell} \\
@@ -514,130 +580,83 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       R_0^{\ell} \\ \vdots \\ R_{J - 1}^{\ell}
     \end{bmatrix},
     \\
-    \vec{\iota} =
-    \Delta t
-    \begin{bmatrix}
-      1 & \cdots & 1
-    \end{bmatrix}_{1 \times J},
-    \\
-    \vec{\zeta} =
-    \frac{1}{\Delta t}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix}_{J \times 1},
-    \\
-    \begin{aligned}
-      \mat{H}_{XX, \mathrm{new}} &= \mat{I}_{J \times J},
-      &
-      \mat{H}_{XX, \mathrm{cur}} &=
-      \begin{bmatrix}
-        0 & \cdots & \cdots & 0 & 0 \\
-        1 & \ddots & & \vdots & \vdots \\
-        0 & \ddots & \ddots & \vdots & \vdots \\
-        \vdots & \ddots & \ddots & 0 & 0 \\
-        0 & \cdots & 0 & 1 & 1
-      \end{bmatrix}_{J \times J},
-    \end{aligned}
-    \\
-    \mat{H}_{q} =
-    \begin{bmatrix}
-      \mat{H}_{XX, q} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{H}_{XX, q} & \mat{0} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{0} & \mat{H}_{XX, q} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{XX, q} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{XX, q}
-    \end{bmatrix},
-    \\
-    \begin{aligned}
-      \mat{F}_{XW, \mathrm{new}}(\vec{\pi}) &=
-      \begin{bmatrix}
-        \pi_0 & 0 & \cdots & 0 \\
-        0 & \pi_1 & \ddots & \vdots \\
-        \vdots & \ddots & \ddots & 0 \\
-        0 & \cdots & 0 & \pi_{J - 1}
-      \end{bmatrix},
-      &
-      \mat{F}_{XW, \mathrm{cur}}(\vec{\pi}) &=
-      \mat{H}_{XX, \mathrm{cur}} \mat{F}_{XW, \mathrm{new}}(\vec{\pi}),
-    \end{aligned}
-    \\
-    \mat{F}_q =
-    \begin{bmatrix}
-      \mat{F}_{XW, q}(- \omega - \vec{\mu}) & \mat{0}
-      & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{F}_{XW, q}(\omega) & \mat{F}_{XW, q}(- \vec{\mu})
-      & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0}
-      & \mat{F}_{XW, q}(- \rho - \vec{\mu})
-      & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{F}_{XW, q}(\rho)
-      & \mat{F}_{XW, q}(- \gamma - \vec{\mu}) & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{F}_{XW, q}(\gamma)
-      & \mat{F}_{XW, q}(- \vec{\mu})
-    \end{bmatrix},
-    \\
-    \begin{aligned}
-      \mat{A}_{\mathrm{new}} &=
-      \mat{H}_{\mathrm{new}} - \frac{\Delta t}{2} \mat{F}_{\mathrm{new}},
-      &
-      \mat{A}_{\mathrm{cur}} &=
-      \mat{H}_{\mathrm{cur}} + \frac{\Delta t}{2} \mat{F}_{\mathrm{cur}},
-    \end{aligned}
-    \\
-    \vec{\tau} =
-    \Delta t
-    \begin{bmatrix}
-      \nu_0 & \cdots & \nu_{J - 1}
-    \end{bmatrix},
-    \\
-    \mat{B}_{XW} = \vec{\zeta} \vec{\tau},
-    \\
-    \mat{B} =
-    \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{XW}
-      \\
-      \mat{B}_{XW} & \mat{B}_{XW} & \mat{B}_{XW}
-      & \mat{B}_{XW} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-    \end{bmatrix},
-    \\
-    \vec{\beta} =
+    \vec{\beta} &=
     \beta
     \begin{bmatrix}
-      \vec{0} & \vec{0} & \vec{0} & \vec{\iota} & \vec{0}
+      \vec{0}_a & \vec{0}_a & \vec{0}_a & \vec{\iota}_a & \vec{0}_a
     \end{bmatrix},
     \\
-    % \lambda^{\ell} =
+    % \lambda^{\ell} &=
     % \vec{\beta} \vec{x}^{\ell},
     % \\
-    \mat{T}_{XW, q} = \mat{H}_{XX, q},
-    \\
-    \mat{T}_q =
+    \mat{H}_{q} &=
     \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \mat{H}_{a, q} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{H}_{a, q} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{H}_{a, q} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{a, q} & \mat{0}
       \\
-      \mat{0} & - \mat{T}_{XW, q} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{a, q}
+    \end{bmatrix},
+    \\
+    \mat{F}_q &=
+    \begin{bmatrix}
+      \mat{F}_{a, q}(- \omega - \vec{\mu}) & \mat{0} & \mat{0}
+      & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{T}_{XW, q} & \mat{0} & \mat{0} & \mat{0}
+      \mat{F}_{a, q}(\omega) & \mat{F}_{a, q}(- \vec{\mu}) & \mat{0}
+      & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0} & \mat{0} & \mat{F}_{a, q}(- \rho - \vec{\mu}) & \mat{0}
+      & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0} & \mat{0} & \mat{F}_{a, q}(\rho)
+      & \mat{F}_{a, q}(- \gamma - \vec{\mu}) & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{F}_{a, q}(\gamma)
+      & \mat{F}_{a, q}(- \vec{\mu})
+    \end{bmatrix},
+    \\
+    \mat{B} &=
+    \begin{bmatrix}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_a
+      \\
+      \mat{B}_a & \mat{B}_a & \mat{B}_a & \mat{B}_a & \mat{0}
+      \\
+      \mat{0}_{aa} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0}_{aa} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0}_{aa} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+    \end{bmatrix},
+    \\
+    \mat{T}_q &=
+    \begin{bmatrix}
+      \mat{0}_{aa} & \mat{0} & \mat{0}_{aa} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & - \mat{H}_{a, q} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{H}_{a, q} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0}_{aa} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}_{aa}
     \end{bmatrix}.
-  \end{gather}
-  System \eqref{numerics_age_structured} is then
-  \begin{equation}
-    \label{step_age_structured}
+  \end{align}
+\end{subequations}
+System \eqref{numerics_age_structured} is then
+\begin{subequations}
+  \label{step_age_structured}
+  \begin{align}
+    \mat{A}_q &=
+    \begin{cases}
+      \mat{H}_{\mathrm{new}} - \frac{\Delta t}{2} \mat{F}_{\mathrm{new}}
+      & \text{if $q = \mathrm{new}$},
+      \\
+      \mat{H}_{\mathrm{cur}} + \frac{\Delta t}{2} \mat{F}_{\mathrm{cur}}
+      & \text{if $q = \mathrm{cur}$},
+    \end{cases}
+    \\
     \left[
       \mat{A}_{\mathrm{new}}
       - \frac{\Delta t}{2} \left(
@@ -645,20 +664,19 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
         + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
       \right)
     \right]
-    \vec{x}^{\ell}
-    =
+    \vec{x}^{\ell} &=
     \left[
       \mat{A}_{\mathrm{cur}}
       + \frac{\Delta t}{2} \left(
         b^{\ell - 1 / 2} \mat{B}
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{cur}}
       \right)
     \right]
     \vec{x}^{\ell - 1}.
-  \end{equation}
-  For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
-  solver to find $\vec{x}^{\ell}$.
+  \end{align}
 \end{subequations}
+For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
+solver to find $\vec{x}^{\ell}$.
 
 
 \section{Time-since-entry-structured model}
@@ -842,10 +860,72 @@ the Crank--Nicolson method on characteristics is
 
 \subsubsection{Linear algebra}
 
+For solvers of time-since-entry-structured models, define
+\begin{subequations}
+  \label{definitions_time_since_entry_structured}
+  \begin{align}
+    \vec{0}_z &=
+    \begin{bmatrix}
+      0 & \cdots & 0
+    \end{bmatrix}_{1 \times K},
+    \\
+    \vec{\iota}_z &=
+    \Delta t
+    \begin{bmatrix}
+      1 & \cdots & 1
+    \end{bmatrix}_{1 \times K},
+    \\
+    \vec{\zeta}_z &=
+    \frac{1}{\Delta t}
+    \begin{bmatrix}
+      1 \\ 0 \\ \vdots \\ 0
+    \end{bmatrix}_{K \times 1},
+    \\
+    \vec{\sigma}_z(\vec{\xi}) &=
+    \Delta t
+    \begin{bmatrix}
+      \xi_0 & \cdots & \xi_{K - 1}
+    \end{bmatrix},
+    \\
+    \mat{0}_{zz} &= \vec{0}_z^{\mathrm{T}} \vec{0}_z,
+    \\
+    \mat{I}_z &= \mat{I}_{K \times K},
+    \\
+    \mat{L}_z &=
+    \begin{bmatrix}
+      0 & \cdots & \cdots & 0 & 0 \\
+      1 & \ddots & & \vdots & \vdots \\
+      0 & \ddots & \ddots & \vdots & \vdots \\
+      \vdots & \ddots & \ddots & 0 & 0 \\
+      0 & \cdots & 0 & 1 & 1
+    \end{bmatrix}_{K \times K},
+    \\
+    \mat{H}_{z, q} &=
+    \begin{cases}
+      \mat{I}_z & \text{if $q = \mathrm{new}$},
+      \\
+      \mat{L}_z & \text{if $q = \mathrm{cur}$},
+    \end{cases}
+    \\
+    \mat{F}_{z, q}(\vec{\xi}) &=
+    \begin{cases}
+      \begin{bmatrix}
+        \xi_0 & 0 & \cdots & 0 \\
+        0 & \xi_1 & \ddots & \vdots \\
+        \vdots & \ddots & \ddots & 0 \\
+        0 & \cdots & 0 & \xi_{K - 1}
+      \end{bmatrix}
+      & \text{if $q = \mathrm{new}$},
+      \\
+      \mat{L}_z \mat{F}_{z, \mathrm{new}}(\vec{\xi})
+      & \text{if $q = \mathrm{cur}$}.
+    \end{cases}
+  \end{align}
+\end{subequations}
 For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
 \begin{subequations}
-  \begin{gather}
-    \vec{x}^{\ell} =
+  \begin{align}
+    \vec{x}^{\ell} &=
     \begin{bmatrix}
       m_0^{\ell} \\ \vdots \\ m_{K - 1}^{\ell} \\
       S^{\ell} \\
@@ -854,137 +934,82 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       R^{\ell}
     \end{bmatrix},
     \\
-    \vec{\iota} =
-    \Delta t
+    \vec{\beta} &=
+    \beta
     \begin{bmatrix}
-      1 & \cdots & 1
-    \end{bmatrix}_{1 \times K},
+      \vec{0}_z & 0 & \vec{0}_z & \vec{\iota}_z & 0
+    \end{bmatrix},
     \\
-    \vec{\zeta} =
-    \frac{1}{\Delta t}
+    % \lambda^{\ell} &=
+    % \vec{\beta} \vec{x}^{\ell},
+    % \\
+    \mat{H}_{q} &=
     \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix}_{K \times 1},
-    \\
-    \begin{aligned}
-      \mat{H}_{yy, \mathrm{new}} &= \mat{I}_{K \times K},
-      &
-      \mat{H}_{yy, \mathrm{cur}} &=
-      \begin{bmatrix}
-        0 & \cdots & \cdots & 0 & 0 \\
-        1 & \ddots & & \vdots & \vdots \\
-        0 & \ddots & \ddots & \vdots & \vdots \\
-        \vdots & \ddots & \ddots & 0 & 0 \\
-        0 & \cdots & 0 & 1 & 1
-      \end{bmatrix}_{K \times K},
-    \end{aligned}
-    \\
-    \mat{H}_{q} =
-    \begin{bmatrix}
-      \mat{H}_{yy, q} & \vec{0} & \mat{0} & \mat{0} & \vec{0} \\
+      \mat{H}_{z, q} & \vec{0} & \mat{0} & \mat{0} & \vec{0} \\
       \vec{0} & 1 & \vec{0} & \vec{0} & 0 \\
-      \mat{0} & \vec{0} & \mat{H}_{yy, q} & \mat{0} & \vec{0} \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{H}_{yy, q} & \vec{0}
+      \mat{0} & \vec{0} & \mat{H}_{z, q} & \mat{0} & \vec{0} \\
+      \mat{0} & \vec{0} & \mat{0} & \mat{H}_{z, q} & \vec{0}
       \\
       \vec{0} & 0 & \vec{0} & \vec{0} & 1
     \end{bmatrix},
     \\
-    \vec{\sigma}(\vec{\xi}) =
-    \Delta t
+    \mat{F}_q &=
     \begin{bmatrix}
-      \xi_0 & \cdots & \xi_{K - 1}
-    \end{bmatrix},
-    \\
-    \begin{aligned}
-      \mat{F}_{yy, \mathrm{new}}(\vec{\xi}) &=
-      \begin{bmatrix}
-        \xi_0 & 0 & \cdots & 0 \\
-        0 & \xi_1 & \ddots & \vdots \\
-        \vdots & \ddots & \ddots & 0 \\
-        0 & \cdots & 0 & \xi_{K - 1}
-      \end{bmatrix},
-      &
-      \mat{F}_{yy, \mathrm{cur}}(\vec{\xi}) &=
-      \mat{H}_{yy, \mathrm{cur}} \mat{F}_{yy, \mathrm{new}}(\vec{\xi}),
-    \end{aligned}
-    \\
-    \begin{aligned}
-      \vec{f}_{Xy}(\vec{\xi}) &= \vec{\sigma}(\vec{\xi}),
-      &
-      \mat{F}_{yw}(\vec{\rho}) &= \vec{\zeta} \vec{\sigma}(\vec{\rho}),
-    \end{aligned}
-    \\
-    \mat{F}_q =
-    \begin{bmatrix}
-      \mat{F}_{yy, q}(- \vec{\omega} - \mu) & \vec{0} & \mat{0}
+      \mat{F}_{z, q}(- \vec{\omega} - \mu) & \vec{0} & \mat{0}
       & \mat{0} & \vec{0}
       \\
-      \vec{f}_{Xy}(\vec{\omega}) & - \mu & \vec{0} & \vec{0} & 0
+      \vec{\sigma}_z(\vec{\omega}) & - \mu & \vec{0} & \vec{0} & 0
       \\
-      \mat{0} & \vec{0} & \mat{F}_{yy, q}(- \vec{\rho} - \mu)
+      \mat{0} & \vec{0} & \mat{F}_{z, q}(- \vec{\rho} - \mu)
       & \mat{0} & \vec{0}
       \\
-      \mat{0} & \vec{0} & \mat{F}_{yw}(\vec{\rho})
-      & \mat{F}_{yy, q}(- \vec{\gamma} - \mu) & \vec{0}
+      \mat{0} & \vec{0} & \vec{\zeta}_z \vec{\sigma}_z(\vec{\rho})
+      & \mat{F}_{z, q}(- \vec{\gamma} - \mu) & \vec{0}
       \\
-      \vec{0} & 0 & \vec{0} & \vec{f}_{Xy}(\vec{\gamma}) & - \mu
+      \vec{0} & 0 & \vec{0} & \vec{\sigma}_z(\vec{\gamma}) & - \mu
     \end{bmatrix},
     \\
-    \begin{aligned}
-      \mat{A}_{\mathrm{new}} &=
-      \mat{H}_{\mathrm{new}} - \frac{\Delta t}{2} \mat{F}_{\mathrm{new}},
-      &
-      \mat{A}_{\mathrm{cur}} &=
-      \mat{H}_{\mathrm{cur}} + \frac{\Delta t}{2} \mat{F}_{\mathrm{cur}},
-    \end{aligned}
-    \\
-    \begin{aligned}
-      \vec{b}_{Xy} &= \vec{\iota},
-      &
-      \vec{b}_{yX} &= \vec{\zeta},
-    \end{aligned}
-    \\
-    \mat{B} =
+    \mat{B} &=
     \begin{bmatrix}
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{b}_{yX}
+      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{\zeta}_z
       \\
-      \vec{b}_{Xy} & 1 & \vec{b}_{Xy} & \vec{b}_{Xy} & 0
+      \vec{\iota}_z & 1 & \vec{\iota}_z & \vec{\iota}_z & 0
       \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \mat{0}_{zz} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \mat{0}_{zz} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
-      \mat{0} & 0 & \mat{0} & \mat{0} & 0
+      \vec{0}_z & 0 & \vec{0} & \vec{0} & 0
     \end{bmatrix},
     \\
-    \vec{\beta} =
-    \beta
-    \begin{bmatrix}
-      \vec{0} & 0 & \vec{0} & \vec{\iota} & 0
-    \end{bmatrix},
-    \\
-    % \lambda^{\ell} =
-    % \vec{\beta} \vec{x}^{\ell},
-    % \\
-    \vec{t}_{yX} = \vec{\zeta},
-    \\
-    \mat{T}_{\mathrm{new}} =
+    \mat{T}_{\mathrm{new}} &=
     \mat{T}_{\mathrm{cur}} =
     \begin{bmatrix}
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \mat{0}_{zz} & \vec{0} & \mat{0}_{zz} & \mat{0} & \vec{0}
       \\
       \vec{0} & - 1 & \vec{0} & \vec{0} & 0
       \\
-      \mat{0} & \vec{t}_{yX} & \mat{0} & \mat{0} & \vec{0}
+      \mat{0} & \vec{\zeta}_z & \mat{0} & \mat{0} & \vec{0}
       \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \mat{0} & \vec{0} & \mat{0} & \mat{0}_{zz} & \vec{0}
       \\
       \vec{0} & 0 & \vec{0} & \vec{0} & 0
     \end{bmatrix}.
-  \end{gather}
-  System \eqref{numerics_time_since_entry_structured} is then
-  \begin{equation}
-    \label{step_time_since_entry_structured}
+  \end{align}
+\end{subequations}
+System \eqref{numerics_time_since_entry_structured} is then
+\begin{subequations}
+  \label{step_time_since_entry_structured}
+  \begin{align}
+    \mat{A}_q &=
+    \begin{cases}
+      \mat{H}_{\mathrm{new}} - \frac{\Delta t}{2} \mat{F}_{\mathrm{new}}
+      & \text{if $q = \mathrm{new}$},
+      \\
+      \mat{H}_{\mathrm{cur}} + \frac{\Delta t}{2} \mat{F}_{\mathrm{cur}}
+      & \text{if $q = \mathrm{cur}$},
+    \end{cases}
+    \\
     \left[
       \mat{A}_{\mathrm{new}}
       - \frac{\Delta t}{2} \left(
@@ -992,20 +1017,19 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
         + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
       \right)
     \right]
-    \vec{x}^{\ell}
-    =
+    \vec{x}^{\ell} &=
     \left[
       \mat{A}_{\mathrm{cur}}
       + \frac{\Delta t}{2} \left(
         b^{\ell - 1 / 2} \mat{B}
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{cur}}
       \right)
     \right]
     \vec{x}^{\ell - 1}.
-  \end{equation}
-  For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
-  solver to find $\vec{x}^{\ell}$.
+  \end{align}
 \end{subequations}
+For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
+solver to find $\vec{x}^{\ell}$.
 
 
 \section{Age- and time-since-entry-structured model}
@@ -1395,10 +1419,14 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
 
 \subsubsection{Linear algebra}
 
-For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
+Using the definitions for solvers of age-structured models
+\eqref{definitions_age_structured} and the definitions for solvers of
+time-since-entry-structured models
+\eqref{definitions_time_since_entry_structured},
+for $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
 \begin{subequations}
-  \begin{gather}
-    \vec{x}^{\ell} =
+  \begin{align}
+    \vec{x}^{\ell} &=
     \begin{bmatrix}
       M_0^{\ell} \\ \vdots \\ M_{J - 1}^{\ell} \\
       S_0^{\ell} \\ \vdots \\ S_{J - 1}^{\ell} \\
@@ -1409,195 +1437,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       R_0^{\ell} \\ \vdots \\ R_{J - 1}^{\ell}
     \end{bmatrix},
     \\
-    \begin{aligned}
-      \vec{\iota}_a &=
-      \Delta t
-      \begin{bmatrix}
-        1 & \cdots & 1
-      \end{bmatrix}_{1 \times J},
-      &
-      \vec{\iota}_z &=
-      \Delta t
-      \begin{bmatrix}
-        1 & \cdots & 1
-      \end{bmatrix}_{1 \times K},
-    \end{aligned}
-    \\
-    \begin{aligned}
-      \vec{\zeta}_a &=
-      \frac{1}{\Delta t}
-      \begin{bmatrix}
-        1 \\ 0 \\ \vdots \\ 0
-      \end{bmatrix}_{J \times 1},
-      &
-      \vec{\zeta}_z
-      &=
-      \frac{1}{\Delta t}
-      \begin{bmatrix}
-        1 \\ 0 \\ \vdots \\ 0
-      \end{bmatrix}_{K \times 1},
-    \end{aligned}
-    \\
-    \begin{aligned}
-      \mat{H}_{a, \mathrm{new}} &= \mat{I}_{J \times J},
-      &
-      \mat{H}_{a, \mathrm{cur}} &=
-      \begin{bmatrix}
-        0 & \cdots & \cdots & 0 & 0 \\
-        1 & \ddots & & \vdots & \vdots \\
-        0 & \ddots & \ddots & \vdots & \vdots \\
-        \vdots & \ddots & \ddots & 0 & 0 \\
-        0 & \cdots & 0 & 1 & 1
-      \end{bmatrix}_{J \times J},
-    \end{aligned}
-    \\
-    \begin{aligned}
-      \mat{H}_{z, \mathrm{new}} &= \mat{I}_{K \times K},
-      &
-      \mat{H}_{z, \mathrm{cur}}
-      &=
-      \begin{bmatrix}
-        0 & \cdots & \cdots & 0 & 0 \\
-        1 & \ddots & & \vdots & \vdots \\
-        0 & \ddots & \ddots & \vdots & \vdots \\
-        \vdots & \ddots & \ddots & 0 & 0 \\
-        0 & \cdots & 0 & 1 & 1
-      \end{bmatrix}_{K \times K},
-    \end{aligned}
-    \\
-    \begin{aligned}
-      \mat{H}_{XX, q} &= \mat{H}_{a, q},
-      &
-      \mat{H}_{yy, q} &= \mat{H}_{a, q} \otimes \mat{H}_{z, q},
-    \end{aligned}
-    \\
-    \mat{H}_q =
-    \begin{bmatrix}
-      \mat{H}_{XX, q} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{H}_{XX, q} & \mat{0} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{0} & \mat{H}_{yy, q} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{yy, q} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{XX, q}
-    \end{bmatrix},
-    \\
-    \vec{\sigma}_z(\vec{\xi}) =
-    \Delta t
-    \begin{bmatrix}
-      \xi_0 & \cdots & \xi_{K - 1}
-    \end{bmatrix},
-    \\
-    \begin{aligned}
-      \mat{F}_{a, \mathrm{new}}(\vec{\pi}) &=
-      \begin{bmatrix}
-        \pi_0 & 0 & \cdots & 0 \\
-        0 & \pi_1 & \ddots & \vdots \\
-        \vdots & \ddots & \ddots & 0 \\
-        0 & \cdots & 0 & \pi_{J - 1}
-      \end{bmatrix},
-      &
-      \mat{F}_{a, \mathrm{cur}}(\vec{\pi}) &=
-      \mat{H}_{a, \mathrm{cur}} \mat{F}_{a, \mathrm{new}}(\vec{\pi}),
-    \end{aligned}
-    \\
-    \begin{aligned}
-      \mat{F}_{z, \mathrm{new}}(\vec{\xi}) &=
-      \begin{bmatrix}
-        \xi_0 & 0 & \cdots & 0 \\
-        0 & \xi_1 & \ddots & \vdots \\
-        \vdots & \ddots & \ddots & 0 \\
-        0 & \cdots & 0 & \xi_{K - 1}
-      \end{bmatrix},
-      &
-      \mat{F}_{z, \mathrm{cur}}(\vec{\xi}) &=
-      \mat{H}_{z, \mathrm{cur}} \mat{F}_{z, \mathrm{new}}(\vec{\xi}),
-    \end{aligned}
-    \\
-    \begin{aligned}
-      \mat{F}_{XW, q}(\vec{\pi}) &=
-      \mat{F}_{a, q}(\vec{\pi}),
-      &
-      \mat{F}_{yy, q}(\vec{\pi}, \vec{\xi}) &=
-      \mat{F}_{a, q} (\vec{\pi}) \otimes \mat{H}_{z, q}
-      + \mat{H}_{a, q} \otimes \mat{F}_{z, q}(\vec{\xi}),
-    \end{aligned}
-    \\
-    \begin{aligned}
-      \mat{F}_{Xy, q}(\vec{\gamma}) &=
-      \mat{H}_{a, q} \otimes \vec{\sigma}_z(\vec{\gamma}),
-      &
-      \mat{F}_{yw, q}(\vec{\rho}) &=
-      \mat{H}_{a, q} \otimes \left[
-        \vec{\zeta}_z \vec{\sigma}_z(\vec{\rho})
-      \right],
-    \end{aligned}
-    \\
-    \mat{F}_q =
-    \begin{bmatrix}
-      \mat{F}_{XW, q}(- \vec{\omega} - \vec{\mu}) & \mat{0} & \mat{0}
-      & \mat{0} & \mat{0}
-      \\
-      \mat{F}_{XW, q}(\vec{\omega})
-      & \mat{F}_{XW, q}(- \vec{\mu})
-      & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{F}_{yy, q}(- \vec{\mu}, - \vec{\rho})
-      & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{F}_{yw, q}(\vec{\rho})
-      & \mat{F}_{yy, q}(- \vec{\mu}, - \vec{\gamma}) & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0}
-      & \mat{F}_{Xy, q}(\vec{\gamma})
-      & \mat{F}_{XW, q}(- \vec{\mu})
-    \end{bmatrix},
-    \\
-    \begin{aligned}
-      \mat{A}_{\mathrm{new}} &=
-      \mat{H}_{\mathrm{new}} - \frac{\Delta t}{2} \mat{F}_{\mathrm{new}},
-      &
-      \mat{A}_{\mathrm{cur}} &=
-      \mat{H}_{\mathrm{cur}} + \frac{\Delta t}{2} \mat{F}_{\mathrm{cur}},
-    \end{aligned}
-    \\
-    \vec{\tau}_a =
-    \Delta t
-    \begin{bmatrix}
-      \nu_0 & \cdots & \nu_{J - 1}
-    \end{bmatrix},
-    \\
-    \begin{aligned}
-      \mat{B}_{XW} &= \vec{\zeta}_a \vec{\tau}_{a},
-      &
-      \mat{B}_{Xy} &=
-      \vec{\zeta}_a \left(\vec{\tau}_a \otimes \vec{\iota}_z\right)
-    \end{aligned}
-    \\
-    \mat{B} =
-    \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_{XW}
-      \\
-      \mat{B}_{XW} & \mat{B}_{XW} & \mat{B}_{Xy}
-      & \mat{B}_{Xy} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-    \end{bmatrix},
-    \\
-    \vec{0}_{a} =
-    \begin{bmatrix}
-      0 & \cdots & 0
-    \end{bmatrix}_{1 \times J},
-    \\
-    \vec{0}_{z} =
-    \begin{bmatrix}
-      0 & \cdots & 0
-    \end{bmatrix}_{1 \times K},
-    \\
-    \vec{\beta} =
+    \vec{\beta} &=
     \beta
     \begin{bmatrix}
       \vec{0}_{a}
@@ -1607,33 +1447,90 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       & \vec{0}_{a}
     \end{bmatrix},
     \\
-    % \lambda^{\ell} =
+    % \lambda^{\ell} &=
     % \vec{\beta} \vec{x}^{\ell},
     % \\
-    \begin{aligned}
-      \mat{T}_{XX, q} &= \mat{H}_{a, q},
-      &
-      \mat{T}_{yX, q} &=
-      \mat{H}_{a, q} \otimes \vec{\zeta}_z,
-    \end{aligned}
-    \\
-    \mat{T}_q =
+    \mat{H}_q &=
     \begin{bmatrix}
+      \mat{H}_{a, q} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{H}_{a, q} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{H}_{a, q} \otimes \mat{H}_{z, q}
+      & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{a, q} \otimes \mat{H}_{z, q}
+      & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{a, q}
+    \end{bmatrix},
+    \\
+    \mat{F}_{az, q}(\vec{\pi}, \vec{\xi}) &=
+    \mat{F}_{a, q} (\vec{\pi}) \otimes \mat{H}_{z, q}
+    + \mat{H}_{a, q} \otimes \mat{F}_{z, q}(\vec{\xi}),
+    \\
+    \mat{F}_q &=
+    \begin{bmatrix}
+      \mat{F}_{a, q}(- \vec{\omega} - \vec{\mu}) & \mat{0} & \mat{0}
+      & \mat{0} & \mat{0}
+      \\
+      \mat{F}_{a, q}(\vec{\omega}) & \mat{F}_{a, q}(- \vec{\mu})
+      & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{F}_{az, q}(- \vec{\mu}, - \vec{\rho})
+      & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0}
+      & \mat{H}_{a, q}
+        \otimes \left[\vec{\zeta}_z \vec{\sigma}_z(\vec{\rho})\right]
+      & \mat{F}_{az, q}(- \vec{\mu}, - \vec{\gamma}) & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0}
+      & \mat{H}_{a, q} \otimes \vec{\sigma}_z(\vec{\gamma})
+      & \mat{F}_{a, q}(- \vec{\mu})
+    \end{bmatrix},
+    \\
+    \mat{B} &=
+    \begin{bmatrix}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \vec{\zeta}_a \vec{\tau}_a
+      \\
+      \vec{\zeta}_a \vec{\tau}_a & \vec{\zeta}_a \vec{\tau}_a
+      & \vec{\zeta}_a \left(\vec{\tau}_a \otimes \vec{\iota}_z\right)
+      & \vec{\zeta}_a \left(\vec{\tau}_a \otimes \vec{\iota}_z\right)
+      & \mat{0}
+      \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & - \mat{T}_{XX, q} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{T}_{yX, q} & \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
     \end{bmatrix},
-  \end{gather}
-  where $\otimes$ is the Kronecker product.
-  System \eqref{numerics_age_and_time_since_entry_structured} is then
-  \begin{equation}
-    \label{step_age_and_time_since_entry_structured}
+    \\
+    \mat{T}_q &=
+    \begin{bmatrix}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & - \mat{H}_{a, q} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{H}_{a, q} \otimes \vec{\zeta}_z & \mat{0}
+      & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+    \end{bmatrix},
+  \end{align}
+\end{subequations}
+where $\otimes$ is the Kronecker product.
+System \eqref{numerics_age_and_time_since_entry_structured} is then
+\begin{subequations}
+  \label{step_age_and_time_since_entry_structured}
+  \begin{align}
+    \mat{A}_q &=
+    \begin{cases}
+      \mat{H}_{\mathrm{new}} - \frac{\Delta t}{2} \mat{F}_{\mathrm{new}}
+      & \text{if $q = \mathrm{new}$},
+      \\
+      \mat{H}_{\mathrm{cur}} + \frac{\Delta t}{2} \mat{F}_{\mathrm{cur}}
+      & \text{if $q = \mathrm{cur}$},
+    \end{cases}
+    \\
     \left[
       \mat{A}_{\mathrm{new}}
       - \frac{\Delta t}{2} \left(
@@ -1641,20 +1538,19 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
         + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
       \right)
     \right]
-    \vec{x}^{\ell}
-    =
+    \vec{x}^{\ell} &=
     \left[
       \mat{A}_{\mathrm{cur}}
       + \frac{\Delta t}{2} \left(
         b^{\ell - 1 / 2} \mat{B}
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
+        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{cur}}
       \right)
     \right]
     \vec{x}^{\ell - 1}.
-  \end{equation}
-  For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
-  solver to find $\vec{x}^{\ell}$.
+  \end{align}
 \end{subequations}
+For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
+solver to find $\vec{x}^{\ell}$.
 
 
 \appendix
@@ -1753,89 +1649,52 @@ aging out of the last age group.
 
 \subsubsection{Linear algebra}
 
-Let
+Using the definitions for solvers of age-structured models
+\eqref{definitions_age_structured},
+for $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
 \begin{subequations}
-  \begin{gather}
+  \begin{align}
     \mat{\Phi}^{\ell}
-    =
+    &=
     \begin{bmatrix}
       \Phi_{0, 0}^{\ell} & \cdots & \Phi_{0, K - 1}^{\ell} \\
       \vdots & & \vdots \\
       \Phi_{J - 1, 0}^{\ell} & \cdots & \Phi_{J - 1, K - 1}^{\ell}
     \end{bmatrix},
     \\
-    \vec{\zeta} =
-    \frac{1}{\Delta t}
-    \begin{bmatrix}
-      1 \\ 0 \\ \vdots \\ 0
-    \end{bmatrix}_{J \times 1},
+    \mat{H}_q &= \mat{H}_{a, q},
     \\
-    \begin{aligned}
-      \mat{H}_{\mathrm{new}} &= \mat{I}_{J \times J},
-      &
-      \mat{H}_{\mathrm{cur}} &=
-      \begin{bmatrix}
-        0 & \cdots & \cdots & 0 & 0
-        \\
-        1 & \ddots & & \vdots & \vdots
-        \\
-        0 & \ddots & \ddots & \vdots & \vdots
-        \\
-        \vdots & \ddots & \ddots & 0 & 0
-        \\
-        0 & \cdots & 0 & 1 & 1
-      \end{bmatrix}_{J \times J},
-    \end{aligned}
+    \mat{F}_q &= \mat{F}_{a, q}(-\vec{\mu}),
     \\
-    \begin{aligned}
-      \mat{F}_{\mathrm{new}} &=
-      \begin{bmatrix}
-        - \mu_0 & 0 & \cdots & 0
-        \\
-        0 & - \mu_1 & \ddots & \vdots
-        \\
-        \vdots & \ddots & \ddots & 0
-        \\
-        0 & \cdots & 0 & - \mu_{J - 1}
-      \end{bmatrix},
-      &
-      \mat{F}_{\mathrm{cur}} &=
-      \mat{H}_{\mathrm{cur}} \mat{F}_{\mathrm{new}},
-    \end{aligned}
+    \mat{B} &= \mat{B}_a.
+  \end{align}
+\end{subequations}
+System \eqref{numerics_age_structured_fundamental} is then
+\begin{subequations}
+  \begin{align}
+    \mat{A}_q &=
+    \begin{cases}
+      \mat{H}_{\mathrm{new}} - \frac{\Delta t}{2} \mat{F}_{\mathrm{new}}
+      & \text{if $q = \mathrm{new}$},
+      \\
+      \mat{H}_{\mathrm{cur}} + \frac{\Delta t}{2} \mat{F}_{\mathrm{cur}}
+      & \text{if $q = \mathrm{cur}$}.
+    \end{cases}
     \\
-    \begin{aligned}
-      \mat{A}_{\mathrm{new}} &=
-      \mat{H}_{\mathrm{new}} - \frac{\Delta t}{2} \mat{F}_{\mathrm{new}},
-      &
-      \mat{A}_{\mathrm{cur}} &=
-      \mat{H}_{\mathrm{cur}} + \frac{\Delta t}{2} \mat{F}_{\mathrm{cur}},
-    \end{aligned}
-    \\
-    \vec{\tau} =
-    \Delta t
-    \begin{bmatrix}
-      \nu_0 & \cdots & \nu_{J - 1}
-    \end{bmatrix},
-    \\
-    \mat{B} = \vec{\zeta} \vec{\tau}.
-  \end{gather}
-  System \eqref{numerics_age_structured_fundamental} is then
-  \begin{equation}
     \left(
       \mat{A}_{\mathrm{new}}
       - \frac{\Delta t}{2} b^{\ell - 1 / 2} \mat{B}
     \right)
-    \mat{\Phi}^{\ell}
-    =
+    \mat{\Phi}^{\ell} &=
     \left(
       \mat{A}_{\mathrm{cur}}
       + \frac{\Delta t}{2} b^{\ell - 1 / 2} \mat{B}
     \right)
     \mat{\Phi}^{\ell - 1}.
-  \end{equation}
-  For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a linear
-  solver to find $\mat{\Phi}^{\ell}$.
+  \end{align}
 \end{subequations}
+For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a linear solver
+to find $\mat{\Phi}^{\ell}$.
 
 Using this numerical scheme, we solved for the monodromy matrix, the
 fundamental solution after one period:
@@ -1895,7 +1754,7 @@ The numerical methods for the MSEIR models require solving
     \mat{A}_{\mathrm{cur}}
     + \frac{\Delta t}{2} \left(
       b^{\ell - 1 / 2} \mat{B}
-      + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
+      + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{cur}}
     \right)
   \right]
   \vec{x}^{\ell - 1}.

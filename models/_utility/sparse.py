@@ -21,14 +21,24 @@ def identity(size, *args, **kwds):
     return Array(eye)
 
 
+def _fix_scalar_blocks(blocks):
+    '''Convert any scalar blocks to 1x1 arrays.'''
+    return [
+        numpy.array([[block]]) if numpy.isscalar(block) else block
+        for block in blocks
+    ]
+
+
 def block_diag(blocks, *args, **kwds):
     '''Build a sparse `Array()` from the block diagonals `blocks`.'''
+    blocks = _fix_scalar_blocks(blocks)
     arr = scipy.sparse.block_diag(blocks, *args, **kwds)
     return Array(arr)
 
 
 def bmat(blocks, *args, **kwds):
     '''Build a sparse `Array()` from the sparse sub-blocks `blocks`.'''
+    blocks = [_fix_scalar_blocks(row) for row in blocks]
     arr = scipy.sparse.bmat(blocks, *args, **kwds)
     return Array(arr)
 
@@ -41,12 +51,14 @@ def diags(diagonals, offsets=0, shape=None, **kwds):
 
 def hstack(blocks, *args, **kwds):
     '''Build a sparse `Array()` by horizontally stacking `blocks`.'''
+    blocks = _fix_scalar_blocks(blocks)
     arr = scipy.sparse.hstack(blocks, *args, **kwds)
     return Array(arr)
 
 
 def vstack(blocks, *args, **kwds):
     '''Build a sparse `Array()` by vertically stacking `blocks`.'''
+    blocks = _fix_scalar_blocks(blocks)
     arr = scipy.sparse.vstack(blocks, *args, **kwds)
     return Array(arr)
 

@@ -15,6 +15,17 @@ class Solver(_model.solver.Solver):
     _jacobian_method_default = 'base'
 
     @functools.cached_property
+    def beta(self):
+        '''The transmission rate vector.'''
+        blocks = [0] * len(self.model.states)
+        infectious = self.model.states.index('infectious')
+        blocks[infectious] = 1
+        return (
+            self.model.parameters.transmission.rate
+            * numpy.array(blocks).reshape((1, -1))
+        )
+
+    @functools.cached_property
     def I(self):  # pylint: disable=invalid-name  # noqa: E743
         '''The identity matrix.'''
         return numpy.identity(len(self.model.states))
@@ -52,17 +63,6 @@ class Solver(_model.solver.Solver):
             [0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0]
         ])
-
-    @functools.cached_property
-    def beta(self):
-        '''The transmission rate vector.'''
-        blocks = [0] * len(self.model.states)
-        infectious = self.model.states.index('infectious')
-        blocks[infectious] = 1
-        return (
-            self.model.parameters.transmission.rate
-            * numpy.array(blocks).reshape((1, -1))
-        )
 
     @functools.cached_property
     def _T_(self):  # pylint: disable=invalid-name

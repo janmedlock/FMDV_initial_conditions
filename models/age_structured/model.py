@@ -5,11 +5,11 @@ import functools
 import numpy
 import pandas
 
-from . import _population, _solver
+from . import _base, _solver
 from .. import parameters, unstructured, _model
 
 
-class Model(_population.model.Base, unstructured.Model):
+class Model(_base.ModelMixin, unstructured.Model):
     '''Age-structured model.'''
 
     _Parameters = parameters.ModelParametersAgeDependent
