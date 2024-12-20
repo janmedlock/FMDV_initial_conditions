@@ -4,7 +4,7 @@ import functools
 
 import pandas
 
-from . import _solver
+from . import solver
 from .. import parameters, _model
 
 
@@ -20,7 +20,7 @@ class Model(_model.model.Model):
 
     _Parameters = parameters.ModelParametersAgeIndependent
 
-    _Solver = _solver.Solver
+    _Solver = solver.Solver
 
     def _build_index(self):
         '''Build the 'state' level `pandas.Index()` for solutions.'''

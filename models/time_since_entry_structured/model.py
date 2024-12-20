@@ -5,7 +5,7 @@ import functools
 import numpy
 import pandas
 
-from . import _solver
+from . import solver
 from .. import unstructured, _model
 
 
@@ -22,7 +22,7 @@ class Model(unstructured.Model):
         'infectious':        'recovery',
     }
 
-    _Solver = _solver.Solver
+    _Solver = solver.Solver
 
     # The default maximum time since entry `z_max`.
     # This was chosen to ensure that the survival for all of the

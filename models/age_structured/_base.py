@@ -69,7 +69,7 @@ class SolverMixin:
         )
 
     @functools.cached_property
-    def _Zeros_aa(self):  # pylint: disable=invalid-name
+    def _Zeros_a_a(self):  # pylint: disable=invalid-name
         '''Zero matrix used in constructing the other matrices.'''
         return self._zeros_a.T @ self._zeros_a
 
@@ -108,3 +108,10 @@ class SolverMixin:
     def _B_a(self):  # pylint: disable=invalid-name
         '''The age block of B.'''
         return self._zeta_a @ self._tau_a
+
+    def _get_rate_a(self, which):
+        '''Get the age-dependent rate `which` and make finite any
+        infinite entries.'''
+        waiting_time = getattr(self.model.parameters, which)
+        rate = waiting_time.rate(self.a)
+        return _utility.numerical.rate_make_finite(rate)

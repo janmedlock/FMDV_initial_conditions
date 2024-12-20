@@ -49,7 +49,7 @@ class Mixin:
         )
 
     @functools.cached_property
-    def _Zeros_zz(self):  # pylint: disable=invalid-name
+    def _Zeros_z_z(self):  # pylint: disable=invalid-name
         '''Zero matrix used in constructing the other matrices.'''
         return self._zeros_z.T @ self._zeros_z
 
@@ -101,7 +101,9 @@ class Solver(Mixin, _model.solver.Solver):
     def beta(self):
         '''The transmission rate vector.'''
         blocks = [
-            self._zeros_z if state in self.model.states_with_z else 0
+            self._zeros_z
+            if state in self.model.states_with_z
+            else 0
             for state in self.model.states
         ]
         infectious = self.model.states.index('infectious')
@@ -116,7 +118,9 @@ class Solver(Mixin, _model.solver.Solver):
     def I(self):  # pylint: disable=invalid-name  # noqa: E743
         '''The identity matrix.'''
         return _utility.sparse.block_diag([
-            self._I_z if state in self.model.states_with_z else 1
+            self._I_z
+            if state in self.model.states_with_z
+            else 1
             for state in self.model.states
         ])
 
@@ -124,7 +128,9 @@ class Solver(Mixin, _model.solver.Solver):
         '''The time-step matrix, H(q).'''
         H_z = self._H_z(q)  # pylint: disable=invalid-name
         return _utility.sparse.block_diag([
-            H_z if state in self.model.states_with_z else 1
+            H_z
+            if state in self.model.states_with_z
+            else 1
             for state in self.model.states
         ])
 
@@ -151,26 +157,26 @@ class Solver(Mixin, _model.solver.Solver):
         zeta_z = self._zeta_z
         iota_z = self._iota_z
         zeros_z = self._zeros_z
-        Zeros_zz = self._Zeros_zz  # pylint: disable=invalid-name
+        Zeros_z_z = self._Zeros_z_z  # pylint: disable=invalid-name
         return _utility.sparse.bmat([
-            [None,     None, None,   None,   zeta_z],
-            [iota_z,   1,    iota_z, iota_z, None],
-            [Zeros_zz, None, None,   None,   None],
-            [Zeros_zz, None, None,   None,   None],
-            [zeros_z,  None, None,   None,   None]
+            [None,      None, None,   None,   zeta_z],
+            [iota_z,    1,    iota_z, iota_z, None],
+            [Zeros_z_z, None, None,   None,   None],
+            [Zeros_z_z, None, None,   None,   None],
+            [zeros_z,   None, None,   None,   None]
         ])
 
     @functools.cached_property
     def _T_(self):  # pylint: disable=invalid-name
         '''T is independent of q, so build once and reuse it.'''
         zeta_z = self._zeta_z
-        Zeros_zz = self._Zeros_zz  # pylint: disable=invalid-name
+        Zeros_z_z = self._Zeros_z_z  # pylint: disable=invalid-name
         return _utility.sparse.bmat([
-            [Zeros_zz, None,   Zeros_zz, None,     None],
-            [None,     - 1,    None,     None,     None],
-            [None,     zeta_z, None,     None,     None],
-            [None,     None,   None,     Zeros_zz, None],
-            [None,     None,   None,     None,     0]
+            [Zeros_z_z, None,   Zeros_z_z, None,      None],
+            [None,      - 1,    None,      None,      None],
+            [None,      zeta_z, None,      None,      None],
+            [None,      None,   None,      Zeros_z_z, None],
+            [None,      None,   None,      None,      0]
         ])
 
     def _T(self, q):  # pylint: disable=invalid-name

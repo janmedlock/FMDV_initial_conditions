@@ -5,7 +5,7 @@ import functools
 import numpy
 import pandas
 
-from . import _base, _solver
+from . import solver, _base
 from .. import parameters, unstructured, _model
 
 
@@ -14,7 +14,7 @@ class Model(_base.ModelMixin, unstructured.Model):
 
     _Parameters = parameters.ModelParametersAgeDependent
 
-    _Solver = _solver.Solver
+    _Solver = solver.Solver
 
     def _build_index(self):
         '''Extend the `pandas.Index()` for solutions with the 'age'

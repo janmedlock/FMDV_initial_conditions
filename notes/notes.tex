@@ -531,7 +531,7 @@ For solvers of age-structured models, define
       \nu_0 & \cdots & \nu_{J - 1}
     \end{bmatrix},
     \\
-    \mat{0}_{aa} &= \vec{0}_a^{\mathrm{T}} \vec{0}_a,
+    \mat{0}_{a,a} &= \vec{0}_a^{\mathrm{T}} \vec{0}_a,
     \\
     \mat{I}_a &= \mat{I}_{J \times J},
     \\
@@ -542,7 +542,7 @@ For solvers of age-structured models, define
       0 & \ddots & \ddots & \vdots & \vdots \\
       \vdots & \ddots & \ddots & 0 & 0 \\
       0 & \cdots & 0 & 1 & 1
-    \end{bmatrix}_{K \times K},
+    \end{bmatrix}_{J \times J},
     \\
     \mat{H}_{a, q} &=
     \begin{cases}
@@ -623,24 +623,24 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \\
       \mat{B}_a & \mat{B}_a & \mat{B}_a & \mat{B}_a & \mat{0}
       \\
-      \mat{0}_{aa} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0}_{a,a} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0}_{aa} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0}_{a,a} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0}_{aa} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0}_{a,a} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
     \end{bmatrix},
     \\
     \mat{T}_q &=
     \begin{bmatrix}
-      \mat{0}_{aa} & \mat{0} & \mat{0}_{aa} & \mat{0} & \mat{0}
+      \mat{0}_{a,a} & \mat{0} & \mat{0}_{a,a} & \mat{0} & \mat{0}
       \\
       \mat{0} & - \mat{H}_{a, q} & \mat{0} & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{H}_{a, q} & \mat{0} & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0}_{aa} & \mat{0}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0}_{a,a} & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}_{aa}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}_{a,a}
     \end{bmatrix}.
   \end{align}
 \end{subequations}
@@ -887,7 +887,7 @@ For solvers of time-since-entry-structured models, define
       \xi_0 & \cdots & \xi_{K - 1}
     \end{bmatrix},
     \\
-    \mat{0}_{zz} &= \vec{0}_z^{\mathrm{T}} \vec{0}_z,
+    \mat{0}_{z,z} &= \vec{0}_z^{\mathrm{T}} \vec{0}_z,
     \\
     \mat{I}_z &= \mat{I}_{K \times K},
     \\
@@ -975,9 +975,9 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \\
       \vec{\iota}_z & 1 & \vec{\iota}_z & \vec{\iota}_z & 0
       \\
-      \mat{0}_{zz} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \mat{0}_{z,z} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
-      \mat{0}_{zz} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \mat{0}_{z,z} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
       \vec{0}_z & 0 & \vec{0} & \vec{0} & 0
     \end{bmatrix},
@@ -985,13 +985,13 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \mat{T}_{\mathrm{new}} &=
     \mat{T}_{\mathrm{cur}} =
     \begin{bmatrix}
-      \mat{0}_{zz} & \vec{0} & \mat{0}_{zz} & \mat{0} & \vec{0}
+      \mat{0}_{z,z} & \vec{0} & \mat{0}_{z,z} & \mat{0} & \vec{0}
       \\
       \vec{0} & - 1 & \vec{0} & \vec{0} & 0
       \\
       \mat{0} & \vec{\zeta}_z & \mat{0} & \mat{0} & \vec{0}
       \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{0}_{zz} & \vec{0}
+      \mat{0} & \vec{0} & \mat{0} & \mat{0}_{z,z} & \vec{0}
       \\
       \vec{0} & 0 & \vec{0} & \vec{0} & 0
     \end{bmatrix}.
@@ -1437,33 +1437,53 @@ for $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       R_0^{\ell} \\ \vdots \\ R_{J - 1}^{\ell}
     \end{bmatrix},
     \\
+    \vec{0}_{az} &=
+    \vec{0}_{a} \otimes \vec{0}_z,
+    \\
     \vec{\beta} &=
     \beta
     \begin{bmatrix}
-      \vec{0}_{a}
-      & \vec{0}_{a}
-      & \vec{0}_{a} \otimes \vec{0}_z
-      & \vec{\iota}_{a} \otimes \vec{\iota}_z
-      & \vec{0}_{a}
+      \vec{0}_a
+      & \vec{0}_a
+      & \vec{0}_{az}
+      & \vec{\iota}_a \otimes \vec{\iota}_z
+      & \vec{0}_a
     \end{bmatrix},
     \\
     % \lambda^{\ell} &=
     % \vec{\beta} \vec{x}^{\ell},
     % \\
+    \\
+    \mat{0}_{a,az} &=
+    \vec{0}_a^{\mathrm{T}} \vec{0}_{az},
+    \\
+    \mat{0}_{az,a} &=
+    \vec{0}_{az}^{\mathrm{T}} \vec{0}_a,
+    \\
+    \mat{0}_{az,az} &=
+    \vec{0}_{az}^{\mathrm{T}} \vec{0}_{az},
+    \\
+    \mat{H}_{az,q} &=
+    \mat{H}_{a, q} \otimes \mat{H}_{z, q}
+    \\
     \mat{H}_q &=
     \begin{bmatrix}
       \mat{H}_{a, q} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
       \mat{0} & \mat{H}_{a, q} & \mat{0} & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{0} & \mat{H}_{a, q} \otimes \mat{H}_{z, q}
-      & \mat{0} & \mat{0} \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{a, q} \otimes \mat{H}_{z, q}
-      & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{H}_{az, q} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{H}_{az, q} & \mat{0} \\
       \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{H}_{a, q}
     \end{bmatrix},
     \\
     \mat{F}_{az, q}(\vec{\pi}, \vec{\xi}) &=
     \mat{F}_{a, q} (\vec{\pi}) \otimes \mat{H}_{z, q}
     + \mat{H}_{a, q} \otimes \mat{F}_{z, q}(\vec{\xi}),
+    \\
+    \mat{\Sigma}_{a, q}(\vec{\xi}) &=
+    \mat{H}_{a, q} \otimes \vec{\sigma}_z(\vec{\xi}),
+    \\
+    \mat{\Sigma}_{az, q}(\vec{\xi}) &=
+    \mat{\Sigma}_{a, q}(\vec{\xi}) \otimes \vec{\zeta}_z,
     \\
     \mat{F}_q &=
     \begin{bmatrix}
@@ -1476,44 +1496,35 @@ for $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \mat{0} & \mat{0} & \mat{F}_{az, q}(- \vec{\mu}, - \vec{\rho})
       & \mat{0} & \mat{0}
       \\
-      \mat{0} & \mat{0}
-      & \mat{H}_{a, q}
-        \otimes \left[\vec{\zeta}_z \vec{\sigma}_z(\vec{\rho})\right]
+      \mat{0} & \mat{0} & \mat{\Sigma}_{az, q}(\vec{\rho})
       & \mat{F}_{az, q}(- \vec{\mu}, - \vec{\gamma}) & \mat{0}
       \\
-      \mat{0} & \mat{0} & \mat{0}
-      & \mat{H}_{a, q} \otimes \vec{\sigma}_z(\vec{\gamma})
+      \mat{0} & \mat{0} & \mat{0} & \mat{\Sigma}_{a, q}(\vec{\gamma})
       & \mat{F}_{a, q}(- \vec{\mu})
     \end{bmatrix},
     \\
+    \mat{B}_{az} &=
+    \mat{B}_a \otimes \vec{\iota}_z
+    \\
     \mat{B} &=
     \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \vec{\zeta}_a \vec{\tau}_a
-      \\
-      \vec{\zeta}_a \vec{\tau}_a & \vec{\zeta}_a \vec{\tau}_a
-      & \vec{\zeta}_a \left(\vec{\tau}_a \otimes \vec{\iota}_z\right)
-      & \vec{\zeta}_a \left(\vec{\tau}_a \otimes \vec{\iota}_z\right)
-      & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{B}_a \\
+      \mat{B}_a & \mat{B}_a & \mat{B}_{az} & \mat{B}_{az} & \mat{0} \\
+      \mat{0}_{az,a} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0}_{az,a} & \mat{0} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0}_{a,a} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
     \end{bmatrix},
+    \\
+    \mat{T}_{az,q} &=
+    \mat{H}_{a, q} \otimes \vec{\zeta}_z,
     \\
     \mat{T}_q &=
     \begin{bmatrix}
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & - \mat{H}_{a, q} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{H}_{a, q} \otimes \vec{\zeta}_z & \mat{0}
-      & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
-      \\
-      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}
+      \mat{0}_{a,a} & \mat{0} & \mat{0}_{a,az} & \mat{0} & \mat{0} \\
+      \mat{0} & - \mat{H}_{a, q} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{T}_{az, q} & \mat{0} & \mat{0} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0}_{az,az} & \mat{0} \\
+      \mat{0} & \mat{0} & \mat{0} & \mat{0} & \mat{0}_{a,a}
     \end{bmatrix},
   \end{align}
 \end{subequations}

@@ -60,23 +60,23 @@ class Solver(Mixin, _model.solver.Solver):
     def B(self):  # pylint: disable=invalid-name
         '''The birth matrix, B.'''
         B_a = self._B_a  # pylint: disable=invalid-name
-        Zeros_aa = self._Zeros_aa  # pylint: disable=invalid-name
+        Zeros_a_a = self._Zeros_a_a  # pylint: disable=invalid-name
         return _utility.sparse.bmat([
-            [None,     None, None, None, B_a],
-            [B_a,      B_a,  B_a,  B_a, None],
-            [Zeros_aa, None, None, None, None],
-            [Zeros_aa, None, None, None, None],
-            [Zeros_aa, None, None, None, None]
+            [None,      None, None, None, B_a],
+            [B_a,       B_a,  B_a,  B_a, None],
+            [Zeros_a_a, None, None, None, None],
+            [Zeros_a_a, None, None, None, None],
+            [Zeros_a_a, None, None, None, None]
         ])
 
     def _T(self, q):  # pylint: disable=invalid-name
         '''The transmission matrix, T(q).'''
         H_a = self._H_a(q)  # pylint: disable=invalid-name
-        Zeros_aa = self._Zeros_aa  # pylint: disable=invalid-name
+        Zeros_a_a = self._Zeros_a_a  # pylint: disable=invalid-name
         return _utility.sparse.bmat([
-            [Zeros_aa, None,  Zeros_aa, None,     None],
-            [None,     - H_a, None,     None,     None],
-            [None,     H_a,   None,     None,     None],
-            [None,     None,  None,     Zeros_aa, None],
-            [None,     None,  None,     None,     Zeros_aa]
+            [Zeros_a_a, None,  Zeros_a_a, None,      None],
+            [None,      - H_a, None,      None,      None],
+            [None,      H_a,   None,      None,      None],
+            [None,      None,  None,      Zeros_a_a, None],
+            [None,      None,  None,      None,      Zeros_a_a]
         ])
