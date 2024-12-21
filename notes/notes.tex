@@ -15,6 +15,14 @@
 % Use Arabic numbers for subequation labels.
 \usepackage{etoolbox}
 \patchcmd{\subequations}{\alph{equation}}{.\arabic{equation}}{}{}
+% Add subsubsubsection & subsubsubsubsection.
+\usepackage{titlesec}
+\setcounter{secnumdepth}{5}
+\setcounter{tocdepth}{5}
+\titleformat{\paragraph}{\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+\titlespacing*{\paragraph}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+\titleformat{\subparagraph}{\normalfont\normalsize\bfseries}{\thesubparagraph}{1em}{}
+\titlespacing*{\subparagraph}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
 \usepackage{units}
 \usepackage{csquotes}
 \usepackage[bibstyle=authoryear,citestyle=authoryear-comp]{biblatex}
