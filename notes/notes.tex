@@ -2134,15 +2134,15 @@ Let
     I(t)
     &= \int_0^{+\infty} i(t, z) \md z,
     \\
-    \bar{\omega}(t)
+    \hat{\omega}(t)
     &= \frac{\int_0^{+\infty} \omega(z) m(t, z) \md z}
       {\int_0^{+\infty} m(t, z) \md z},
     \\
-    \bar{\rho}(t)
+    \hat{\rho}(t)
     &= \frac{\int_0^{+\infty} \rho(z) e(t, z) \md z}
       {\int_0^{+\infty} e(t, z) \md z},
     \\
-    \bar{\gamma}(t)
+    \hat{\gamma}(t)
     &= \frac{\int_0^{+\infty} \gamma(z) i(t, z) \md z}
       {\int_0^{+\infty} i(t, z) \md z}.
   \end{align}
@@ -2154,23 +2154,23 @@ time since entry gives
   \begin{align}
     \frac{\md}{\md t} M(t)
     &= b(t) R(t)
-    - \left[\bar{\omega}(t) + \mu\right] M(t),
+    - \left[\hat{\omega}(t) + \mu\right] M(t),
     \\
     \frac{\md}{\md t} S(t)
     &= b(t) \left[N(t) - R(t)\right]
-    + \bar{\omega}(t) M(t)
+    + \hat{\omega}(t) M(t)
     - [\lambda(t) + \mu] S(t),
     \\
     \frac{\md}{\md t} E(t)
     &= \lambda(t) S(t)
-    - \left[\bar{\rho}(t) + \mu\right] E(t),
+    - \left[\hat{\rho}(t) + \mu\right] E(t),
     \\
     \frac{\md}{\md t} I(t)
-    &= \bar{\rho}(t) E(t)
-    - \left[\bar{\gamma}(t) + \mu\right] I(t),
+    &= \hat{\rho}(t) E(t)
+    - \left[\hat{\gamma}(t) + \mu\right] I(t),
     \\
     \frac{\md}{\md t} R(t)
-    &= \bar{\gamma}(t) I(t)
+    &= \hat{\gamma}(t) I(t)
     - \mu R(t).
   \end{align}
 \end{subequations}
@@ -2187,15 +2187,15 @@ Let
     I^{\ell}
     &= \sum_{k = 0}^{K - 1} i_k^{\ell} \Delta t,
     \\
-    \bar{\omega}^{\ell}
+    \hat{\omega}^{\ell}
     &= \frac{\sum_{k = 0}^{K - 1} \omega_k m_k^{\ell} \Delta t}
       {\sum_{k = 0}^{K - 1} m_k^{\ell} \Delta t},
     \\
-    \bar{\rho}^{\ell}
+    \hat{\rho}^{\ell}
     &= \frac{\sum_{k = 0}^{K - 1} \rho_k e_k^{\ell} \Delta t}
       {\sum_{k = 0}^{K - 1} e_k^{\ell} \Delta t},
     \\
-    \bar{\gamma}^{\ell}
+    \hat{\gamma}^{\ell}
     &= \frac{\sum_{k = 0}^{K - 1} \gamma_k i_k^{\ell} \Delta t}
       {\sum_{k = 0}^{K - 1} i_k^{\ell} \Delta t}.
   \end{align}
@@ -2207,36 +2207,36 @@ gives
   \label{numerics_time_since_entry_structured_agg_tse}
   \begin{align}
     \frac{M^{\ell}  - M^{\ell - 1}}{\Delta t}
-    &= - \frac{(\bar{\omega}^{\ell} + \mu) M^{\ell}
-      + (\bar{\omega}^{\ell - 1} + \mu) M^{\ell - 1}}{2}
+    &= - \frac{(\hat{\omega}^{\ell} + \mu) M^{\ell}
+      + (\hat{\omega}^{\ell - 1} + \mu) M^{\ell - 1}}{2}
       + b^{\ell - 1 / 2} \frac{R^{\ell} + R^{\ell - 1}}{2},
     \\
     \begin{split}
       \frac{S^{\ell} - S^{\ell - 1}}{\Delta t}
       &= b^{\ell - 1 / 2}
       \frac{N^{\ell} - R^{\ell} + N^{\ell - 1} - R^{\ell - 1}}{2}
-      + \frac{\bar{\omega}^{\ell} M^{\ell}
-        + \bar{\omega}^{\ell - 1} M^{\ell - 1}}{2}
+      + \frac{\hat{\omega}^{\ell} M^{\ell}
+        + \hat{\omega}^{\ell - 1} M^{\ell - 1}}{2}
       \\ & \quad {}
       - \frac{(\lambda^{\ell} + \mu) S^{\ell}
         + (\lambda^{\ell - 1} + \mu) S^{\ell - 1}}{2},
     \end{split}
     \\
     \frac{E^{\ell}  - E^{\ell - 1}}{\Delta t}
-    &= - \frac{(\bar{\rho}^{\ell} + \mu) E^{\ell}
-      + (\bar{\rho}^{\ell - 1} + \mu) E^{\ell - 1}}{2}
+    &= - \frac{(\hat{\rho}^{\ell} + \mu) E^{\ell}
+      + (\hat{\rho}^{\ell - 1} + \mu) E^{\ell - 1}}{2}
       + \frac{\lambda^{\ell} S^{\ell}
       + \lambda^{\ell - 1} S^{\ell - 1}}{2},
     \\
     \frac{I^{\ell}  - I^{\ell - 1}}{\Delta t}
-    &= - \frac{(\bar{\gamma}^{\ell} + \mu) I^{\ell}
-      + (\bar{\gamma}^{\ell - 1} + \mu) I^{\ell - 1}}{2}
-      + \frac{\bar{\rho}^{\ell} E^{\ell}
-      + \bar{\rho}^{\ell - 1} E^{\ell - 1}}{2},
+    &= - \frac{(\hat{\gamma}^{\ell} + \mu) I^{\ell}
+      + (\hat{\gamma}^{\ell - 1} + \mu) I^{\ell - 1}}{2}
+      + \frac{\hat{\rho}^{\ell} E^{\ell}
+      + \hat{\rho}^{\ell - 1} E^{\ell - 1}}{2},
     \\
     \frac{R^{\ell} - R^{\ell - 1}}{\Delta t}
-    &= \frac{\bar{\gamma}^{\ell} I^{\ell}
-      + \bar{\gamma}^{\ell - 1} I^{\ell - 1}}{2}
+    &= \frac{\hat{\gamma}^{\ell} I^{\ell}
+      + \hat{\gamma}^{\ell - 1} I^{\ell - 1}}{2}
       - \mu \frac{R^{\ell} + R^{\ell - 1}}{2},
   \end{align}
 \end{subequations}
@@ -2292,11 +2292,11 @@ Let
     I(t, a)
     &= \int_0^{+\infty} i(t, a, z) \md z,
     \\
-    \bar{\rho}(t, a)
+    \hat{\rho}(t, a)
     &= \frac{\int_0^{+\infty} \rho(z) e(t, a, z) \md z}
       {\int_0^{+\infty} e(t, a, z) \md z},
     \\
-    \bar{\gamma}(t, a)
+    \hat{\gamma}(t, a)
     &= \frac{\int_0^{+\infty} \gamma(z) i(t, a, z) \md z}
       {\int_0^{+\infty} i(t, a, z) \md z}.
   \end{align}
@@ -2329,22 +2329,22 @@ entry gives
       + \frac{\partial}{\partial a}\right)
     E(t, a)
     &= \lambda(t) S(t, a)
-    - \bar{\rho}(t, a) E(t, a) - \mu(a) E(t, a),
+    - \hat{\rho}(t, a) E(t, a) - \mu(a) E(t, a),
     \\
     I(t, 0) &= 0,
     \\
     \left(\frac{\partial}{\partial t}
       + \frac{\partial}{\partial a}\right)
     I(t, a)
-    &= \bar{\rho}(t, a) E(t, a)
-    - \bar{\gamma}(t, a) I(t, a) - \mu(a) I(t, a),
+    &= \hat{\rho}(t, a) E(t, a)
+    - \hat{\gamma}(t, a) I(t, a) - \mu(a) I(t, a),
     \\
     R(t, 0) &= 0,
     \\
     \left(\frac{\partial}{\partial t}
       + \frac{\partial}{\partial a}\right)
     R(t, a)
-    &= \bar{\gamma}(t, a) I(t, a) - \mu(a) R(t, a).
+    &= \hat{\gamma}(t, a) I(t, a) - \mu(a) R(t, a).
   \end{align}
 \end{subequations}
 
@@ -2357,11 +2357,11 @@ Let
     I_j^{\ell}
     &= \sum_{k = 0}^{K - 1} i_{j, k}^{\ell} \Delta t,
     \\
-    \bar{\rho}_j^{\ell}
+    \hat{\rho}_j^{\ell}
     &= \frac{\sum_{k = 0}^{K - 1} \rho_k e_{j, k}^{\ell} \Delta t}
       {\sum_{k = 0}^{K - 1} e_{j, k}^{\ell} \Delta t},
     \\
-    \bar{\gamma}_j^{\ell}
+    \hat{\gamma}_j^{\ell}
     &= \frac{\sum_{k = 0}^{K - 1} \gamma_k i_{j, k}^{\ell} \Delta t}
       {\sum_{k = 0}^{K - 1} i_{j, k}^{\ell} \Delta t}.
   \end{align}
@@ -2433,7 +2433,7 @@ entry gives
       \right] S_{J - 1}^{\ell - 1},
     \end{split}
     \\
-    \left[1 + \frac{\Delta t}{2} (\bar{\rho}_0^{\ell} + \mu_0)\right]
+    \left[1 + \frac{\Delta t}{2} (\hat{\rho}_0^{\ell} + \mu_0)\right]
     E_0^{\ell}
     &= \frac{\Delta t}{2} \lambda^{\ell} S_0^{\ell},
     \\
@@ -2443,8 +2443,8 @@ entry gives
         + \lambda^{\ell - 1} S_{j - 1}^{\ell - 1}}
       {2}
       \\ & \quad {}
-      - \frac{(\bar{\rho}_j^{\ell} + \mu_j) E_j^{\ell}
-        + (\bar{\rho}_{j - 1}^{\ell - 1} + \mu_{j - 1}) E_{j - 1}^{\ell - 1}}
+      - \frac{(\hat{\rho}_j^{\ell} + \mu_j) E_j^{\ell}
+        + (\hat{\rho}_{j - 1}^{\ell - 1} + \mu_{j - 1}) E_{j - 1}^{\ell - 1}}
       {2},
     \end{split}
     \\
@@ -2454,53 +2454,53 @@ entry gives
         + \lambda^{\ell - 1} S_{J - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
-      - \frac{(\bar{\rho}_{J - 1}^{\ell} + \mu_{J - 1}) E_{J - 1}^{\ell}
-        + (\bar{\rho}_{J - 2}^{\ell - 1} + \mu_{J - 2}) E_{J - 2}^{\ell - 1}}
+      - \frac{(\hat{\rho}_{J - 1}^{\ell} + \mu_{J - 1}) E_{J - 1}^{\ell}
+        + (\hat{\rho}_{J - 2}^{\ell - 1} + \mu_{J - 2}) E_{J - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
       + \frac{\lambda^{\ell - 1} S_{J - 1}^{\ell - 1}}{2}
       \\ & \quad {}
       + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\bar{\rho}_{J - 1}^{\ell - 1} + \mu_{J - 1})
+        1 - \frac{\Delta t}{2} (\hat{\rho}_{J - 1}^{\ell - 1} + \mu_{J - 1})
       \right] E_{J - 1}^{\ell - 1},
     \end{split}
     \\
-    \left[1 + \frac{\Delta t}{2} (\bar{\gamma}_0^{\ell} + \mu_0)\right]
+    \left[1 + \frac{\Delta t}{2} (\hat{\gamma}_0^{\ell} + \mu_0)\right]
     I_0^{\ell}
-    &= \frac{\Delta t}{2} \bar{\rho}_0^{\ell} E_0^{\ell},
+    &= \frac{\Delta t}{2} \hat{\rho}_0^{\ell} E_0^{\ell},
     \\
     \begin{split}
       \frac{I_j^{\ell} - I_{j - 1}^{\ell - 1}}{\Delta t}
-      &= \frac{\bar{\rho}_j^{\ell} E_j^{\ell}
-        + \bar{\rho}_{j - 1}^{\ell - 1} E_{j - 1}^{\ell - 1}} {2}
+      &= \frac{\hat{\rho}_j^{\ell} E_j^{\ell}
+        + \hat{\rho}_{j - 1}^{\ell - 1} E_{j - 1}^{\ell - 1}} {2}
       \\ & \quad {}
-      - \frac{(\bar{\gamma}_j^{\ell} + \mu_j) I_j^{\ell}
-        + (\bar{\gamma}_{j - 1}^{\ell - 1} + \mu_{j - 1}) I_{j - 1}^{\ell - 1}}
+      - \frac{(\hat{\gamma}_j^{\ell} + \mu_j) I_j^{\ell}
+        + (\hat{\gamma}_{j - 1}^{\ell - 1} + \mu_{j - 1}) I_{j - 1}^{\ell - 1}}
       {2},
     \end{split}
     \\
     \begin{split}
       \frac{I_{J - 1}^{\ell} - I_{J - 2}^{\ell - 1}}{\Delta t}
-      &= \frac{\bar{\rho}_{J - 1}^{\ell} E_{J - 1}^{\ell}
-        + \bar{\rho}_{J - 2}^{\ell - 1} E_{J - 2}^{\ell - 1}} {2}
+      &= \frac{\hat{\rho}_{J - 1}^{\ell} E_{J - 1}^{\ell}
+        + \hat{\rho}_{J - 2}^{\ell - 1} E_{J - 2}^{\ell - 1}} {2}
       \\ & \quad {}
-      - \frac{(\bar{\gamma}_{J - 1}^{\ell} + \mu_{J - 1}) I_{J - 1}^{\ell}
-        + (\bar{\gamma}_{J - 2}^{\ell - 1} + \mu_{J - 2}) I_{J - 2}^{\ell - 1}}
+      - \frac{(\hat{\gamma}_{J - 1}^{\ell} + \mu_{J - 1}) I_{J - 1}^{\ell}
+        + (\hat{\gamma}_{J - 2}^{\ell - 1} + \mu_{J - 2}) I_{J - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
-      + \frac{\bar{\rho}_{J - 1}^{\ell - 1} E_{J - 1}^{\ell - 1}} {2}
+      + \frac{\hat{\rho}_{J - 1}^{\ell - 1} E_{J - 1}^{\ell - 1}} {2}
       \\ & \quad {}
       + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\bar{\gamma}_{J - 1}^{\ell - 1} + \mu_{J - 1})
+        1 - \frac{\Delta t}{2} (\hat{\gamma}_{J - 1}^{\ell - 1} + \mu_{J - 1})
       \right] I_{J - 1}^{\ell - 1},
     \end{split}
     \\
     \left[1 + \frac{\Delta t}{2} \mu_0\right] R_0^{\ell}
-    &= \frac{\Delta t}{2} \bar{\gamma}_0^{\ell} I_0^{\ell},
+    &= \frac{\Delta t}{2} \hat{\gamma}_0^{\ell} I_0^{\ell},
     \\
     \frac{R_j^{\ell} - R_{j - 1}^{\ell - 1}}{\Delta t}
-    &= \frac{\bar{\gamma}_j^{\ell} I_j^{\ell}
-      + \bar{\gamma}_{j - 1}^{\ell - 1} I_{j - 1}^{\ell - 1}}
+    &= \frac{\hat{\gamma}_j^{\ell} I_j^{\ell}
+      + \hat{\gamma}_{j - 1}^{\ell - 1} I_{j - 1}^{\ell - 1}}
       {2}
       - \frac{\mu_j R_j^{\ell}
       + \mu_{j - 1} R_{j - 1}^{\ell - 1}}
@@ -2508,15 +2508,15 @@ entry gives
     \\
     \begin{split}
       \frac{R_{J - 1}^{\ell} - R_{J - 2}^{\ell - 1}}{\Delta t}
-      &= \frac{\bar{\gamma}_{J - 1}^{\ell} I_{J - 1}^{\ell}
-        + \bar{\gamma}_{J - 2}^{\ell - 1} I_{J - 2}^{\ell - 1}}
+      &= \frac{\hat{\gamma}_{J - 1}^{\ell} I_{J - 1}^{\ell}
+        + \hat{\gamma}_{J - 2}^{\ell - 1} I_{J - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
       - \frac{\mu_{J - 1} R_{J - 1}^{\ell}
         + \mu_{J - 2} R_{J - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
-      + \frac{\bar{\gamma}_{J - 1}^{\ell - 1} I_{J - 1}^{\ell - 1}}{2}
+      + \frac{\hat{\gamma}_{J - 1}^{\ell - 1} I_{J - 1}^{\ell - 1}}{2}
       \\ & \quad {}
       + \frac{1}{\Delta t} \left[
         1 - \frac{\Delta t}{2} \mu_{J - 1}
@@ -2671,12 +2671,12 @@ Let
     &= \frac{\int_0^{+\infty} \omega(a) M(t, a) \md a}
     {\int_0^{+\infty} M(t, a) \md a},
     \\
-    \bar{\bar{\rho}}(t)
-    &= \frac{\int_0^{+\infty} \bar{\rho}(t, a) E(t, a) \md a}
+    \hat{\bar{\rho}}(t)
+    &= \frac{\int_0^{+\infty} \hat{\rho}(t, a) E(t, a) \md a}
     {\int_0^{+\infty} E(t, a) \md a},
     \\
-    \bar{\bar{\gamma}}(t)
-    &= \frac{\int_0^{+\infty} \bar{\gamma}(t, a) I(t, a) \md a}
+    \hat{\bar{\gamma}}(t)
+    &= \frac{\int_0^{+\infty} \hat{\gamma}(t, a) I(t, a) \md a}
     {\int_0^{+\infty} I(t, a) \md a}.
   \end{align}
 \end{subequations}
@@ -2703,16 +2703,16 @@ gives
     \\
     \frac{\md}{\md t} \bar{E}(t)
     &= \lambda(t) \bar{S}(t)
-    - \bar{\bar{\rho}}(t) \bar{E}(t)
+    - \hat{\bar{\rho}}(t) \bar{E}(t)
     - \bar{\mu}_E(t) \bar{E}(t),
     \\
     \frac{\md}{\md t} \bar{I}(t)
-    &= \bar{\bar{\rho}}(t) \bar{E}(t)
-      - \bar{\bar{\gamma}}(t) \bar{I}(t)
+    &= \hat{\bar{\rho}}(t) \bar{E}(t)
+      - \hat{\bar{\gamma}}(t) \bar{I}(t)
       - \bar{\mu}_I(t) \bar{I}(t),
     \\
     \frac{\md}{\md t} \bar{R}(t)
-    &= \bar{\bar{\gamma}}(t) \bar{I}(t)
+    &= \hat{\bar{\gamma}}(t) \bar{I}(t)
     - \bar{\mu}_R(t) \bar{R}(t).
   \end{align}
 \end{subequations}
@@ -2742,12 +2742,12 @@ Let
     &= \frac{\sum_{j = 0}^{J - 1} \omega_j M_j^{\ell} \Delta t}
     {\sum_{j = 0}^{J - 1} M_j^{\ell} \Delta t},
     \\
-    \bar{\bar{\rho}}^{\ell}
-    &= \frac{\sum_{j = 0}^{J - 1} \bar{\rho}_j^{\ell} E_j^{\ell} \Delta t}
+    \hat{\bar{\rho}}^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \hat{\rho}_j^{\ell} E_j^{\ell} \Delta t}
     {\sum_{j = 0}^{J - 1} E_j^{\ell} \Delta t},
     \\
-    \bar{\bar{\gamma}}^{\ell}
-    &= \frac{\sum_{j = 0}^{J - 1} \bar{\gamma}_j^{\ell} I_j^{\ell} \Delta t}
+    \hat{\bar{\gamma}}^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \hat{\gamma}_j^{\ell} I_j^{\ell} \Delta t}
     {\sum_{j = 0}^{J - 1} I_j^{\ell} \Delta t}.
   \end{align}
 \end{subequations}
@@ -2785,21 +2785,21 @@ age gives
     \frac{\bar{E}^{\ell} - \bar{E}^{\ell - 1}}{\Delta t}
     &= \frac{\lambda^{\ell} \bar{S}^{\ell}
       + \lambda^{\ell - 1} \bar{S}^{\ell - 1}}{2}
-    - \frac{(\bar{\bar{\rho}}^{\ell} + \bar{\mu}_E^{\ell}) \bar{E}^{\ell}
-      + (\bar{\bar{\rho}}^{\ell - 1} + \bar{\mu}_E^{\ell - 1}) \bar{E}^{\ell - 1}}
+      - \frac{(\hat{\bar{\rho}}^{\ell} + \bar{\mu}_E^{\ell}) \bar{E}^{\ell}
+      + (\hat{\bar{\rho}}^{\ell - 1} + \bar{\mu}_E^{\ell - 1}) \bar{E}^{\ell - 1}}
     {2},
     \\
     \frac{\bar{I}^{\ell} - \bar{I}^{\ell - 1}}{\Delta t}
-    &= \frac{\bar{\bar{\rho}}^{\ell} \bar{E}^{\ell}
-      + \bar{\bar{\rho}}^{\ell - 1} \bar{E}^{\ell - 1}} {2}
-    - \frac{(\bar{\bar{\gamma}}^{\ell} + \bar{\mu}_I^{\ell}) \bar{I}^{\ell}
-      + (\bar{\bar{\gamma}}^{\ell - 1} + \bar{\mu}_I^{\ell - 1})
+    &= \frac{\hat{\bar{\rho}}^{\ell} \bar{E}^{\ell}
+      + \hat{\bar{\rho}}^{\ell - 1} \bar{E}^{\ell - 1}} {2}
+    - \frac{(\hat{\bar{\gamma}}^{\ell} + \bar{\mu}_I^{\ell}) \bar{I}^{\ell}
+      + (\hat{\bar{\gamma}}^{\ell - 1} + \bar{\mu}_I^{\ell - 1})
       \bar{I}^{\ell - 1}}
     {2},
     \\
     \frac{\bar{R}^{\ell} - \bar{R}^{\ell - 1}}{\Delta t}
-    &= \frac{\bar{\bar{\gamma}}^{\ell} \bar{I}^{\ell}
-      + \bar{\bar{\gamma}}^{\ell - 1} \bar{I}^{\ell - 1}}
+    &= \frac{\hat{\bar{\gamma}}^{\ell} \bar{I}^{\ell}
+      + \hat{\bar{\gamma}}^{\ell - 1} \bar{I}^{\ell - 1}}
     {2}
     - \frac{\bar{\mu}_R^{\ell} \bar{R}^{\ell}
       + \bar{\mu}_R^{\ell - 1} \bar{R}^{\ell - 1}}
@@ -3066,15 +3066,15 @@ Let
     \bar{I}(t)
     &= \int_0^{+\infty} \bar{i}(t, z) \md z,
     \\
-    \bar{\bar{\mu}}_y(t)
+    \hat{\bar{\mu}}_y(t)
     &= \frac{\int_0^{+\infty} \bar{\mu}_y(t, z) \bar{y}(t, z) \md z}
     {\int_0^{+\infty} \bar{y}(t, z) \md z},
     \\
-    \bar{\bar{\rho}}(t)
+    \hat{\bar{\rho}}(t)
     &= \frac{\int_0^{+\infty} \rho(z) \bar{e}(t, z) \md z}
     {\int_0^{+\infty} \bar{e}(t, z) \md z},
     \\
-    \bar{\bar{\gamma}}(t)
+    \hat{\bar{\gamma}}(t)
     &= \frac{\int_0^{+\infty} \gamma(z) \bar{i}(t, z) \md z}
     {\int_0^{+\infty} \bar{i}(t, z) \md z}.
   \end{align}
@@ -3102,16 +3102,16 @@ since entry gives
     \\
     \frac{\md}{\md t} \bar{E}(t)
     &= \lambda(t) \bar{S}(t)
-    - \bar{\bar{\rho}}(t) \bar{E}(t)
-    - \bar{\bar{\mu}}_e(t) \bar{E}(t),
+    - \hat{\bar{\rho}}(t) \bar{E}(t)
+    - \hat{\bar{\mu}}_e(t) \bar{E}(t),
     \\
     \frac{\md}{\md t} \bar{I}(t)
-    &= \bar{\bar{\rho}}(t) \bar{E}(t)
-    - \bar{\bar{\gamma}}(t) \bar{I}(t)
-    - \bar{\bar{\mu}}_i(t) \bar{I}(t),
+    &= \hat{\bar{\rho}}(t) \bar{E}(t)
+    - \hat{\bar{\gamma}}(t) \bar{I}(t)
+    - \hat{\bar{\mu}}_i(t) \bar{I}(t),
     \\
     \frac{\md}{\md t} \bar{R}(t)
-    &= \bar{\bar{\gamma}}(t) \bar{I}(t)
+    &= \hat{\bar{\gamma}}(t) \bar{I}(t)
     - \bar{\mu}_R(t) \bar{R}(t).
   \end{align}
 \end{subequations}
@@ -3125,18 +3125,18 @@ Let
     \bar{I}^{\ell}
     &= \sum_{k = 0}^{K - 1} \bar{i}_k^{\ell} \Delta t,
     \\
-    \bar{\bar{\mu}}_y^{\ell}
+    \hat{\bar{\mu}}_y^{\ell}
     &= \frac{
       \sum_{k = 0}^{K - 1} \bar{\mu}_{y, k}^{\ell} \bar{y}_k^{\ell} \Delta t
     }{
       \sum_{k = 0}^{K - 1} \bar{y}_k^{\ell} \Delta t
     },
     \\
-    \bar{\bar{\rho}}^{\ell}
+    \hat{\bar{\rho}}^{\ell}
     &= \frac{\sum_{k = 0}^{K - 1} \rho_k \bar{e}_k^{\ell} \Delta t}
     {\sum_{k = 0}^{K - 1} \bar{e}_k^{\ell} \Delta t},
     \\
-    \bar{\bar{\gamma}}^{\ell}
+    \hat{\bar{\gamma}}^{\ell}
     &= \frac{\sum_{k = 0}^{K - 1} \gamma_k \bar{i}_k^{\ell} \Delta t}
     {\sum_{k = 0}^{K - 1} \bar{i}_k^{\ell} \Delta t}.
   \end{align}
@@ -3182,9 +3182,9 @@ time since entry gives
       }{2}
       \\ & \quad {}
       - \frac{
-        (\bar{\bar{\rho}}^{\ell} + \bar{\bar{\mu}}_e^{\ell})
+        (\hat{\bar{\rho}}^{\ell} + \hat{\bar{\mu}}_e^{\ell})
         \bar{E}^{\ell}
-        + (\bar{\bar{\rho}}^{\ell - 1} + \bar{\bar{\mu}}_e^{\ell - 1})
+        + (\hat{\bar{\rho}}^{\ell - 1} + \hat{\bar{\mu}}_e^{\ell - 1})
         \bar{E}^{\ell - 1}
       }{2}
     \end{split}
@@ -3192,14 +3192,14 @@ time since entry gives
     \begin{split}
       \frac{\bar{I}^{\ell} - \bar{I}^{\ell - 1}}{\Delta t}
       &= \frac{
-        \bar{\bar{\rho}}^{\ell} \bar{E}^{\ell}
-        + \bar{\bar{\rho}}^{\ell} \bar{E}^{\ell - 1}
+        \hat{\bar{\rho}}^{\ell} \bar{E}^{\ell}
+        + \hat{\bar{\rho}}^{\ell} \bar{E}^{\ell - 1}
       }{2}
       \\ & \quad {}
       - \frac{
-        (\bar{\bar{\gamma}}^{\ell} + \bar{\bar{\mu}}_i^{\ell})
+        (\hat{\bar{\gamma}}^{\ell} + \hat{\bar{\mu}}_i^{\ell})
         \bar{I}^{\ell}
-        + (\bar{\bar{\gamma}}^{\ell - 1} + \bar{\bar{\mu}}_i^{\ell - 1})
+        + (\hat{\bar{\gamma}}^{\ell - 1} + \hat{\bar{\mu}}_i^{\ell - 1})
         \bar{I}^{\ell - 1}
       }{2},
     \end{split}
