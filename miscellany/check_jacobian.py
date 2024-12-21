@@ -31,12 +31,13 @@ if __name__ == '__main__':
     ])
 
     t_step = model.t_step
-    I = numpy.eye(len(eql))
+    I = numpy.eye(len(eql))  # noqa: E741
     # J = F + beta x T + b B
     # M_new = I - t_step / 2 * J
     # M_cur = I + t_step / 2 * J
     M = {
-        q: model.solver._jacobian._M(q, eql, b)
+        # pylint: disable-next=protected-access
+        q: model.solver._jacobian.M(q, eql, b)
         for q in ('cur', 'new')
     }
     assert numpy.allclose(I - M['new'],

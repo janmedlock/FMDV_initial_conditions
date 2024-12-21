@@ -242,8 +242,8 @@ class Solver(Population, metaclass=abc.ABCMeta):
     @functools.cached_property
     def _jacobian(self):
         '''`._jacobian` is built on first use and then reused.'''
-        return _jacobian.Calculator(self, method=self._jacobian_method)
+        return _jacobian.Jacobian(self, method=self._jacobian_method)
 
     def jacobian(self, t_cur, y_cur, y_new):
         '''Calculate the Jacobian at `t_cur`, given `y_cur` and `y_new`.'''
-        return self._jacobian.calculate(t_cur, y_cur, y_new)
+        return self._jacobian(t_cur, y_cur, y_new)
