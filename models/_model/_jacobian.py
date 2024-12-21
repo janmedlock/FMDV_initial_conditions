@@ -120,7 +120,9 @@ class Base(_crank_nicolson.Mixin):
                            out=out)
 
     def _D(self, t_cur, y_cur, y_new):  # pylint: disable=invalid-name
-        '''Calculate the D matrix at `t_cur`, given `y_cur` and `y_new`.'''
+        '''Calculate the D matrix at `t_cur`, given `y_cur` and `y_new`.
+        D is the derivative of `y_new` with respect to `y_cur`,
+        i.e. D = I + t_step * J.'''
         # Compute `D`, the derivative of `y_cur` with respect to `y_new`,
         # which is `M_new @ D = M_cur`.
         t_mid = t_cur + 0.5 * self.t_step
