@@ -15,7 +15,7 @@
 % Use Arabic numbers for subequation labels.
 \usepackage{etoolbox}
 \patchcmd{\subequations}{\alph{equation}}{.\arabic{equation}}{}{}
-% Add subsubsubsection & subsubsubsubsection.
+% Format \paragraph and \subparagraph like \section levels.
 \usepackage{titlesec}
 \setcounter{secnumdepth}{5}
 \setcounter{tocdepth}{5}
@@ -24,12 +24,14 @@
 \titleformat{\subparagraph}{\normalfont\normalsize\bfseries}{\thesubparagraph}{1em}{}
 \titlespacing*{\subparagraph}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
 \usepackage{units}
+\usepackage{multirow}
 \usepackage{csquotes}
 \usepackage[bibstyle=authoryear,citestyle=authoryear-comp]{biblatex}
 \usepackage[pdfborderstyle={/S/U/W 1}]{hyperref}
 
 \addbibresource{notes.bib}
 
+\DeclareMathOperator{\Prob}{Prob}
 \renewcommand{\vec}[1]{\boldsymbol{\mathrm{#1}}}
 \newcommand{\mat}[1]{\mathbf{#1}}
 \newcommand{\md}{\mathrm{d}}
@@ -50,6 +52,90 @@
 \maketitle
 
 
+\section{Model parameters}
+
+Most of the models' parameters are waiting-time hazards. The
+infection-related parameters except waning depend on FMDV serotype
+(\autoref{infection_parameters}).
+
+
+\begin{table}
+  \centering
+  \begin{tabular}{|c|rr|r|rr|rr|}
+    \hline
+    \multirow{2}{*}{\textbf{serotype}}
+    & \multicolumn{2}{|c|}{\textbf{waning}}
+    & \multirow{2}{*}{\textbf{transmission}}
+    & \multicolumn{2}{|c|}{\textbf{progression}}
+    & \multicolumn{2}{|c|}{\textbf{recovery}}
+    \\
+    & \textbf{mean} & \textbf{shape}
+    &
+    & \textbf{mean} & \textbf{shape}
+    & \textbf{mean} & \textbf{shape}
+    \\
+    \hline
+    SAT1
+    & \unit[0.37]{d} & 1.19
+    & \unit[2.8]{d$^{-1}$}
+    & \unit[0.5]{d} & 1.2
+    & \unit[5.7]{d} & 11.8
+    \\
+    SAT2
+    & \unit[0.37]{d} & 1.19
+    & \unit[1.6]{d$^{-1}$}
+    & \unit[1.3]{d} & 1.6
+    & \unit[4.6]{d} & 8.7
+    \\
+    SAT3
+    & \unit[0.37]{d} & 1.19
+    & \unit[1.2]{d$^{-1}$}
+    & \unit[2.8]{d} & 1.6
+    & \unit[4.2]{d} & 11.8
+    \\
+    \hline
+  \end{tabular}
+  \caption{The infection-related parameters by serotype. Waning,
+    progression, and recovery are based on waiting times with the
+    given means and shapes. Waning mean and shape do not vary by
+    serotype.}
+  \label{infection_parameters}
+\end{table}
+
+
+\subsection{Death}
+
+The death hazard is the piecewise-linear function
+\begin{equation}
+  \begin{split}
+    \mu(a)
+    =
+    \begin{cases}
+      - a_{\mathrm{y}} \log 0.66
+      & \text{if $a < \unit[1]{y}$},
+      \\
+      - \log 0.66
+      - \left(a_{\mathrm{y}} - 1\right) \log 0.79
+      & \text{if $\unit[1]{y} \leq a < \unit[3]{y}$},
+      \\
+      - \log 0.66
+      - 2 \log 0.79
+      - \left(a_{\mathrm{y}} - 3\right) \log 0.88
+      & \text{if $\unit[3]{y} \leq a < \unit[12]{y}$},
+      \\
+      - \log 0.66
+      - 2 \log 0.79
+      - 9 \log 0.88
+      - \left(a_{\mathrm{y}} - 12\right) \log 0.66
+      & \text{if $a \geq \unit[12]{y}$},
+    \end{cases}
+  \end{split}
+\end{equation}
+where $a_{\mathrm{y}} = \frac{a}{\unit[1]{y}}$ is years of age.
+
+
+\subsection{Birth}
+
 All of the models use the periodic birth rate
 \begin{subequations}
   \label{birth_rate}
@@ -60,11 +146,84 @@ All of the models use the periodic birth rate
   \end{equation}
   with period
   \begin{equation}
-    T = \unit[1]{y}.
+    T = \unit[1]{y},
+  \end{equation}
+  and coefficient of variation
+  \begin{equation}
+    \sigma = 0.613.
   \end{equation}
 \end{subequations}
-As we show for each model, the mean birth rate $\bar{b}$ was chosen so
+As I show for each model, the mean birth rate $\bar{b}$ was chosen so
 that the total population is periodic in time.
+
+
+\subsubsection{Maternity}
+
+Menarche in buffaloes is approximately 4 years. Maternity is therefore
+the piecewise constant function
+\begin{equation}
+  \nu(a) =
+  \begin{cases}
+    0 & \text{if $a < \unit[4]{y}$}, \\
+    1 & \text{if $a >= \unit[4]{y}$}.
+  \end{cases}
+\end{equation}
+
+
+\subsubsection{Population stable age distribution}
+
+
+\subsection{Waning}
+
+The hazard of waning is that of a gamma random variable with
+mean $\hat{\omega} = \unit[0.37]{y}$ and shape
+$\omega_{\mathrm{shape}} = 1.19$,
+\begin{equation}
+  \omega(z) =
+  \frac{\hat{\omega}}{\omega_{\mathrm{shape}}}
+  h_{\Gamma}(z, \omega_{\mathrm{shape}}),
+\end{equation}
+where the hazard for the gamma random variable with shape
+$\alpha$ and scale $1$ is
+\begin{subequations}
+  \label{gamma_hazard}
+  \begin{equation}
+    h_{\Gamma}(x, \alpha) =
+    \frac{x^{\alpha - 1} \me^{- x}}{\Gamma(\alpha, x)},
+  \end{equation}
+  with $\Gamma(\alpha, x)$ the upper incomplete gamma function,
+  \begin{equation}
+    \Gamma(\alpha, x)
+    = \int_x^{+ \infty} t^{s -1} \me^{-t} \md t.
+  \end{equation}
+\end{subequations}
+
+
+\subsection{Transmission}
+
+The transmission rate is the scalar $\beta$.
+
+
+\subsection{Progression}
+
+The hazard of progression is that of a gamma random variable with shape
+$\rho_{\mathrm{shape}}$ and mean $\hat{\rho}$,
+\begin{equation}
+  \rho(z) =
+  \frac{\hat{\rho}}{\rho_{\mathrm{shape}}}
+  h_{\Gamma}(z, \rho_{\mathrm{shape}}).
+\end{equation}
+
+
+\subsection{Recovery}
+
+The hazard of recovery is that of a gamma random variable with shape
+$\gamma_{\mathrm{shape}}$ and mean $\hat{\gamma}$,
+\begin{equation}
+  \gamma(z) =
+  \frac{\hat{\gamma}}{\gamma_{\mathrm{shape}}}
+  h_{\Gamma}(z, \gamma_{\mathrm{shape}}).
+\end{equation}
 
 
 \section{Unstructured model}
