@@ -54,9 +54,9 @@
 
 \section{Model parameters}
 
-Most of the models' parameters are waiting-time hazards. The
-infection-related parameters except waning depend on FMDV serotype
-(\autoref{infection_parameters}).
+Many of the models' parameters are hazards from waiting times that are
+gamma random variables. The infection-related parameters except waning
+depend on FMDV serotype (\autoref{infection_parameters}).
 
 
 \begin{table}
@@ -105,7 +105,7 @@ infection-related parameters except waning depend on FMDV serotype
 
 \subsection{Death}
 
-The death hazard is the piecewise-linear function
+The death rate is the piecewise-linear function
 \begin{equation}
   \begin{split}
     \mu(a)
@@ -133,6 +133,13 @@ The death hazard is the piecewise-linear function
 \end{equation}
 where $a_{\mathrm{y}} = \frac{a}{\unit[1]{y}}$ is years of age.
 
+For the models without age structure, I used the mean death rate
+over the population stable age distribution
+(\autoref{appendix_Floquet_theory}),
+\begin{equation}
+  \mu = \bar{\mu} = \int_0^{+ \infty} \mu(a) \tilde{N}(a) \md a.
+\end{equation}
+
 
 \subsection{Birth}
 
@@ -140,7 +147,7 @@ All of the models use the periodic birth rate
 \begin{subequations}
   \label{birth_rate}
   \begin{equation}
-    b(t) = \bar{b} \left[
+    b(t) = \tilde{b} \left[
       1 + \sigma \sqrt{2} \cos\left(2 \pi t / T\right)
     \right],
   \end{equation}
@@ -153,43 +160,46 @@ All of the models use the periodic birth rate
     \sigma = 0.613.
   \end{equation}
 \end{subequations}
-As I show for each model, the mean birth rate $\bar{b}$ was chosen so
+As I show for each model, the mean birth rate $\tilde{b}$ was chosen so
 that the total population is periodic in time.
 
 
 \subsubsection{Maternity}
 
-Menarche in buffaloes is approximately 4 years. Maternity is therefore
-the piecewise constant function
+Menarche in buffaloes occurs at approximately 4 years of
+age. Maternity is therefore the piecewise constant function
 \begin{equation}
   \nu(a) =
   \begin{cases}
     0 & \text{if $a < \unit[4]{y}$}, \\
-    1 & \text{if $a >= \unit[4]{y}$}.
+    1 & \text{if $a \geq \unit[4]{y}$}.
   \end{cases}
 \end{equation}
 
-
-\subsubsection{Population stable age distribution}
+For the models without age structure, there is no maternity parameter.
 
 
 \subsection{Waning}
 
-The hazard of waning is that of a gamma random variable with
-mean $\hat{\omega} = \unit[0.37]{y}$ and shape
-$\omega_{\mathrm{shape}} = 1.19$,
+The waning rate is the hazard of a gamma random variable with
+mean $\hat{\omega}$ and shape $\omega_{\mathrm{shape}}$,
 \begin{equation}
   \omega(z) =
-  \frac{\hat{\omega}}{\omega_{\mathrm{shape}}}
-  h_{\Gamma}(z, \omega_{\mathrm{shape}}),
+  h_{\Gamma}\left(z;
+                 \omega_{\mathrm{shape}},
+                 \frac{\hat{\omega}}{\omega_{\mathrm{shape}}}\right),
 \end{equation}
 where the hazard for the gamma random variable with shape
-$\alpha$ and scale $1$ is
+$\alpha$ and scale $\theta$ is
 \begin{subequations}
   \label{gamma_hazard}
   \begin{equation}
-    h_{\Gamma}(x, \alpha) =
-    \frac{x^{\alpha - 1} \me^{- x}}{\Gamma(\alpha, x)},
+    h_{\Gamma}(x; \alpha, \theta) =
+    \frac{
+      x^{\alpha - 1} \me^{- x / \theta}
+    }{
+      \theta^{\alpha} \Gamma\left(\alpha, \frac{x}{\theta}\right)
+    },
   \end{equation}
   with $\Gamma(\alpha, x)$ the upper incomplete gamma function,
   \begin{equation}
@@ -197,6 +207,9 @@ $\alpha$ and scale $1$ is
     = \int_x^{+ \infty} t^{s -1} \me^{-t} \md t.
   \end{equation}
 \end{subequations}
+
+For the models without time-since-entry structure, I used the mean
+waning rate, $\omega = \hat{\omega}$.
 
 
 \subsection{Transmission}
@@ -206,24 +219,32 @@ The transmission rate is the scalar $\beta$.
 
 \subsection{Progression}
 
-The hazard of progression is that of a gamma random variable with shape
-$\rho_{\mathrm{shape}}$ and mean $\hat{\rho}$,
+The progression rate is the hazard of a gamma random variable with
+mean $\hat{\rho}$ and shape $\rho_{\mathrm{shape}}$,
 \begin{equation}
   \rho(z) =
-  \frac{\hat{\rho}}{\rho_{\mathrm{shape}}}
-  h_{\Gamma}(z, \rho_{\mathrm{shape}}).
+  h_{\Gamma}\left(z;
+                 \rho_{\mathrm{shape}},
+                 \frac{\hat{\rho}}{\rho_{\mathrm{shape}}}\right).
 \end{equation}
+
+For the models without time-since-entry structure, I used the mean
+progression rate, $\rho = \hat{\rho}$.
 
 
 \subsection{Recovery}
 
-The hazard of recovery is that of a gamma random variable with shape
-$\gamma_{\mathrm{shape}}$ and mean $\hat{\gamma}$,
+The recovery rate is the hazard of a gamma random variable with mean
+$\hat{\gamma}$ and shape $\gamma_{\mathrm{shape}}$,
 \begin{equation}
   \gamma(z) =
-  \frac{\hat{\gamma}}{\gamma_{\mathrm{shape}}}
-  h_{\Gamma}(z, \gamma_{\mathrm{shape}}).
+  h_{\Gamma}\left(z;
+                 \gamma_{\mathrm{shape}},
+                 \frac{\hat{\gamma}}{\gamma_{\mathrm{shape}}}\right).
 \end{equation}
+
+For the models without time-since-entry structure, I used the mean
+recovery rate, $\gamma = \hat{\gamma}$.
 
 
 \section{Unstructured model}
@@ -236,10 +257,11 @@ The model is
     b(t) R(t) - \omega M(t) - \mu M(t),
     \\
     \frac{\md}{\md t} S(t) &=
-    b(t) \left[N(t) - R(t)\right] + \omega M(t) - \lambda(t) S(t) - \mu S(t),
+    b(t) \left[N(t) - R(t)\right] + \omega M(t) - \lambda(t) S(t)
+    - \mu S(t),
     \\
     \frac{\md}{\md t} E(t) &=
-    \lambda(t) S(t) - \rho E(t) - \mu E(t),
+    \lambda(t) S(t) - \hat{\rho} E(t) - \mu E(t),
     \\
     \frac{\md}{\md t} I(t) &=
     \rho E(t) - \gamma I(t) - \mu I(t),
@@ -269,8 +291,8 @@ The total population follows
     &= b(t) N(t) - \mu N(t)
     \\
     &= \left[
-      \bar{b} - \mu
-      + \bar{b} \sigma \sqrt{2} \cos\left(2 \pi t / T\right)
+      \tilde{b} - \mu
+      + \tilde{b} \sigma \sqrt{2} \cos\left(2 \pi t / T\right)
     \right]
     N(t),
   \end{split}
@@ -278,12 +300,12 @@ The total population follows
 so that
 \begin{equation}
   N(t) = N(0) \exp\left[
-    \left(\bar{b} - \mu\right) t
-    + \frac{\bar{b} \sigma T}{\pi \sqrt{2}}
+    \left(\tilde{b} - \mu\right) t
+    + \frac{\tilde{b} \sigma T}{\pi \sqrt{2}}
     \sin\left(2 \pi t / T\right)
   \right].
 \end{equation}
-We chose $\bar{b} = \mu$ so that
+I chose $\tilde{b} = \mu$ so that
 \begin{equation}
   N(t) = N(0) \exp\left[
     \frac{\mu \sigma T}{\pi \sqrt{2}}
@@ -296,9 +318,9 @@ i.e.~periodic with period $T = \unit[1]{y}$.
 \subsection{Numerical method}
 
 \begin{subequations}
-  To numerically solve the system \eqref{model_unstructured}, we used
+  To numerically solve the system \eqref{model_unstructured}, I used
   the Crank--Nicolson method. Given the time step $\Delta t$, let
-  $t^{\ell} = t_0 + \ell \Delta t$ for $\ell \in \{0, 1, \ldots, L - 1\}$;
+  $t^{\ell} = t_0 + \ell \Delta t$ for $\ell \in \{0, 1, \ldots, L\}$;
   $X^{\ell} \approx X(t^{\ell})$ for $X \in \{M, S, E, I, R\}$;
   and $b^{\ell - 1 / 2} = b(t^{\ell - 1 / 2})$.
   For each $\ell \geq 1$, the Crank--Nicolson method is
@@ -434,7 +456,7 @@ System \eqref{numerics_unstructured} is then
     \vec{x}^{\ell - 1}.
   \end{align}
 \end{subequations}
-For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
+For each $\ell \in \{1, 2, \ldots, L\}$, I used a nonlinear
 solver to find $\vec{x}^{\ell}$.
 
 
@@ -512,21 +534,21 @@ The total population follows the linear PDE
   \end{align}
 \end{subequations}
 
-Because $b(t)$ is periodic with period $T = \unit[1]{y}$, we used
+Because $b(t)$ is periodic with period $T = \unit[1]{y}$, I used
 Floquet theory to find the stable age distribution and the asymptotic
 population growth rate and then a nonlinear solver to find the value
-of the mean birth rate $\bar{b}$ that gives population growth rate $r
+of the mean birth rate $\tilde{b}$ that gives population growth rate $r
 = 0$. See \autoref{appendix_Floquet_theory} for more details.
 
 
 \subsection{Numerical method}
 
-To numerically solve the system \eqref{model_age_structured}, we used
+To numerically solve the system \eqref{model_age_structured}, I used
 the Crank--Nicolson method on characteristics and the composite
 rectangular rule for the integrals \autocite{milner_1992}.  Given the
 time step $\Delta t$, let
 $a_j = j \Delta t$ for $j \in \{0, 1, 2, \ldots, J - 1\}$;
-$t^{\ell} = t_0 + \ell \Delta t$ for $\ell \in \{0, 1, \ldots, L - 1\}$;
+$t^{\ell} = t_0 + \ell \Delta t$ for $\ell \in \{0, 1, \ldots, L\}$;
 $X_j^{\ell} \approx X(t^{\ell}, a_j)$ for $X \in \{M, S, E, I, R\}$;
 $b^{\ell - 1 / 2} = b(t^{\ell - 1 / 2})$; and
 $\pi_j = \pi(a_j)$ for $\pi \in \{\mu, \nu\}$.
@@ -842,7 +864,7 @@ System \eqref{numerics_age_structured} is then
     \vec{x}^{\ell - 1}.
   \end{align}
 \end{subequations}
-For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
+For each $\ell \in \{1, 2, \ldots, L\}$, I used a nonlinear
 solver to find $\vec{x}^{\ell}$.
 
 
@@ -910,20 +932,20 @@ The total population follows
   = b(t) N(t) - \mu N(t).
 \end{equation}
 This is the same as model \eqref{model_unstructured_total} for the
-total population for the unstructured model: as we did for that model,
-we chose $\bar{b} = \mu$ so that $N(t)$ is periodic.
+total population for the unstructured model: as I did for that model,
+I chose $\tilde{b} = \mu$ so that $N(t)$ is periodic.
 
 
 \subsection{Numerical method}
 
 To numerically solve the system
-\eqref{model_time_since_entry_structured}, we used the Crank--Nicolson
+\eqref{model_time_since_entry_structured}, I used the Crank--Nicolson
 method on characteristics and the composite rectangle rule for the
 integrals \autocite{milner_1992}.  Given the time step $\Delta t$,
 let $z_k = k \Delta t$
 for $k \in \{0, 1, 2, \ldots, K - 1\}$;
 $t^{\ell} = t_0 + \ell \Delta t$
-for $\ell \in \{0, 1, \ldots, L - 1\}$;
+for $\ell \in \{0, 1, \ldots, L\}$;
 $X^{\ell} \approx X(t^{\ell})$
 for $X \in \{S, R\}$;
 $y_k^{\ell} \approx y(t^{\ell}, z_k)$
@@ -1195,7 +1217,7 @@ System \eqref{numerics_time_since_entry_structured} is then
     \vec{x}^{\ell - 1}.
   \end{align}
 \end{subequations}
-For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
+For each $\ell \in \{1, 2, \ldots, L\}$, I used a nonlinear
 solver to find $\vec{x}^{\ell}$.
 
 
@@ -1293,16 +1315,16 @@ The total population follows the linear PDE
   \end{align}
 \end{subequations}
 This is the same as model \eqref{model_age_structured_total} for the
-total population for the age-structured model: as we did for that
-model, we used Floquet theory and a nonlinear solver to find the value
-of the mean birth rate $\bar{b}$ that gives population growth rate
+total population for the age-structured model: as I did for that
+model, I used Floquet theory and a nonlinear solver to find the value
+of the mean birth rate $\tilde{b}$ that gives population growth rate
 $r = 0$.  See \autoref{appendix_Floquet_theory} for more details.
 
 
 \subsection{Numerical method}
 
 To numerically solve the system
-\eqref{model_age_and_time_since_entry_structured}, we used the
+\eqref{model_age_and_time_since_entry_structured}, I used the
 Crank--Nicolson method on characteristics and the composite rectangle
 rule for the integrals \autocite{milner_1992}.  Given the time step
 $\Delta t$, let $a_j = j \Delta t$ for
@@ -1310,7 +1332,7 @@ $j \in \{0, 1, 2, \ldots, J - 1\}$;
 $z_k = k \Delta t$
 for $k \in \{0, 1, 2, \ldots, K - 1\}$;
 $t^{\ell} = t_0 + \ell \Delta t$ for
-$\ell \in \{0, 1, \ldots, L - 1\}$;
+$\ell \in \{0, 1, \ldots, L\}$;
 $X_j^{\ell} \approx X(t^{\ell}, a_j)$
 for $X \in \{M, S, R\}$;
 $y_{j, k}^{\ell} \approx y(t^{\ell}, a_j, z_k)$
@@ -1727,7 +1749,7 @@ System \eqref{numerics_age_and_time_since_entry_structured} is then
     \vec{x}^{\ell - 1}.
   \end{align}
 \end{subequations}
-For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a nonlinear
+For each $\ell \in \{1, 2, \ldots, L\}$, I used a nonlinear
 solver to find $\vec{x}^{\ell}$.
 
 
@@ -1750,10 +1772,9 @@ linear PDE
     &= - \mu(a) N(t, a).
   \end{align}
 \end{subequations}
-
-Because $b(t)$ is periodic with period $T = \unit[1]{y}$, we used
-Floquet theory \autocite{parker_1992} to find the stable age
-distribution and the asymptotic population growth rate. Floquet theory
+Because $b(t)$ is periodic with period $T = \unit[1]{y}$, I used
+Floquet theory \autocite{parker_1992} to find the asymptotic
+population growth rate and the stable age distribution. Floquet theory
 requires the fundamental solution $\Phi(t, a, a')$ to
 \begin{subequations}
   \begin{align}
@@ -1774,13 +1795,13 @@ where $\delta(x)$ is the Dirac delta.
 
 \subsection{Numerical method}
 
-To numerically solve the PDE for the fundamental solution, we used the
+To numerically solve the PDE for the fundamental solution, I used the
 Crank--Nicolson method on characteristics and the composite rectangle
 rule for the birth integral \autocite{milner_1992}.  Given the time
 step $\Delta t$, let $a_j = j \Delta t$ and $a'_k = k \Delta t$ for
 $j, k \in \{0, 1, 2, \ldots, J - 1\}$;
 $t^{\ell} = t_0 + \ell \Delta t$ for
-$\ell \in \{0, 1, \ldots, L - 1\}$;
+$\ell \in \{0, 1, \ldots, L\}$;
 $\Phi_{j, k}^{\ell} \approx \Phi(t^{\ell}, a_j, a'_k)$;
 $b^{\ell - 1 / 2} = b(t^{\ell - 1 / 2})$; and
 $\pi_j = \pi(a_j)$ for $\pi \in \{\mu, \nu\}$.
@@ -1871,10 +1892,10 @@ System \eqref{numerics_age_structured_fundamental} is then
     \mat{\Phi}^{\ell - 1}.
   \end{align}
 \end{subequations}
-For each $\ell \in \{1, 2, \ldots, L - 1\}$, we used a linear solver
+For each $\ell \in \{1, 2, \ldots, L\}$, I used a linear solver
 to find $\mat{\Phi}^{\ell}$.
 
-Using this numerical scheme, we solved for the monodromy matrix, the
+Using this numerical scheme, I solved for the monodromy matrix, the
 fundamental solution after one period:
 \begin{equation}
   \mat{\Psi} =
@@ -1888,7 +1909,7 @@ where
 \begin{equation}
   \Psi_{j, k} \approx \Phi(t_0 + T, a_j, a'_k).
 \end{equation}
-The monodromy matrix projects the population forward at by one period,
+The monodromy matrix projects the population forward by one period,
 \begin{equation}
   \vec{n}(t_0 + T) = \mat{\Psi} \vec{n}(t_0),
 \end{equation}
@@ -1899,7 +1920,7 @@ forward gives
   \vec{n}(t_0 + m T)
   = \mat{\Psi}^m \vec{n}(t_0)
   \to \rho_{\mathrm{dom}}^m \vec{w}_{\mathrm{dom}}
-  = \me^{r m T} \vec{w}_{\mathrm{dom}}
+  = \me^{m r T} \vec{w}_{\mathrm{dom}}
 \end{equation}
 as $m \to +\infty$, where $\rho_{\mathrm{dom}}$ is the dominant eigenvalue,
 i.e.~the eigenvalue with largest magnitude, of $\mat{\Psi}$;
@@ -1910,8 +1931,13 @@ stable age distribution; and
 \end{equation}
 is the asymptotic population growth rate.
 
-We used a nonlinear solver to find the mean birth rate $\bar{b}$ that
-gives population growth rate $r = 0$.
+I used a nonlinear solver to find the mean birth rate $\tilde{b}$ that
+gives population growth rate $r = 0$. Using this mean birth rate, the
+population stable age distribution $\tilde{N}(a)$ is given by the
+eigenvector $\vec{w}_{\mathrm{dom}}$:
+\begin{equation}
+  \tilde{N}(a_j) \approx w_{\mathrm{dom}, j}.
+\end{equation}
 
 
 \section{Jacobian}
@@ -1961,7 +1987,7 @@ $\vec{x}^{\ell - 1}$ gives
   \right),
 \end{multline}
 which, given $\vec{x}^{\ell}$ and $\vec{x}^{\ell - 1}$,
-we can solve for $\frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}$.
+can be solved for $\frac{\md \vec{x}^{\ell}}{\md \vec{x}^{\ell - 1}}$.
 The Jacobian is then
 \begin{equation}
   \begin{split}
