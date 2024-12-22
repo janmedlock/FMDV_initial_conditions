@@ -1085,8 +1085,11 @@ For solvers of time-since-entry-structured models, define
       & \text{if $q = \mathrm{new}$},
       \\
       \mat{L}_z \mat{F}_{z, \mathrm{new}}(\vec{\xi})
-      & \text{if $q = \mathrm{cur}$}.
+      & \text{if $q = \mathrm{cur}$},
     \end{cases}
+    \\
+    \mat{\Sigma}_z(\vec{\xi}) &=
+    \vec{\zeta}_z \vec{\sigma}_z(\vec{\xi}).
   \end{align}
 \end{subequations}
 For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
@@ -1129,7 +1132,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
       \vec{0} & \vec{0} & \mat{F}_{z, q}(- \vec{\rho} - \mu)
       & \mat{0} & \vec{0}
       \\
-      \vec{0} & \vec{0} & \vec{\zeta}_z \vec{\sigma}_z(\vec{\rho})
+      \vec{0} & \vec{0} & \mat{\Sigma}_z(\vec{\rho})
       & \mat{F}_{z, q}(- \vec{\gamma} - \mu) & \vec{0}
       \\
       0 & 0 & \vec{0} & \vec{\sigma}_z(\vec{\gamma}) & - \mu
@@ -1639,7 +1642,7 @@ for $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \mat{H}_{a, q} \otimes \vec{\sigma}_z(\vec{\xi}),
     \\
     \mat{\Sigma}_{az, q}(\vec{\xi}) &=
-    \mat{\Sigma}_{a, q}(\vec{\xi}) \otimes \vec{\zeta}_z,
+    \mat{H}_{a, q} \otimes \mat{\Sigma}_z(\vec{\xi}),
     \\
     \mat{F}_q &=
     \begin{bmatrix}

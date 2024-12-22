@@ -96,8 +96,8 @@ class Solver(time_since_entry_structured.solver.Mixin,
 
     def _Sigma_az(self, q, xi):  # pylint: disable=invalid-name
         '''An off-diagonal block between y states of F(q).'''
-        return _utility.sparse.kron(self._Sigma_a(q, xi),
-                                    self._zeta_z)
+        return _utility.sparse.kron(self._H_a(q),
+                                    self._Sigma_z(xi))
 
     def F(self, q):  # pylint: disable=invalid-name
         '''Build the transition matrix F(q).'''

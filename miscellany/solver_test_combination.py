@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+'''Test the solver matrices.'''
 
 import numpy
 import scipy.sparse

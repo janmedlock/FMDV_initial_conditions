@@ -84,6 +84,11 @@ class Mixin:
             F_z = self._L_z @ F_z  # pylint: disable=invalid-name
         return F_z
 
+    def _Sigma_z(self, xi):  # pylint: disable=invalid-name
+        '''The vector to integrate a vector against `xi` over time
+        since entry.'''
+        return self._zeta_z @ self._sigma_z(xi)
+
     def _get_rate_z(self, which):
         '''Get the time-since-entry-dependent rate `which` and make
         finite any infinite entries.'''
@@ -142,12 +147,12 @@ class Solver(Mixin, _model.solver.Solver):
         gamma = self._get_rate_z('recovery')
         F_z = functools.partial(self._F_z, q)  # pylint: disable=invalid-name
         sigma_z = self._sigma_z
-        zeta_z = self._zeta_z
+        Sigma_z = self._Sigma_z  # pylint: disable=invalid-name
         return _utility.sparse.bmat([
             [- omega - mu, None, None, None, None],
             [omega, - mu, None, None, None],
             [None, None, F_z(- rho - mu), None, None],
-            [None, None, zeta_z @ sigma_z(rho), F_z(- gamma - mu), None],
+            [None, None, Sigma_z(rho), F_z(- gamma - mu), None],
             [None, None, None, sigma_z(gamma), - mu]
         ])
 
