@@ -4,7 +4,7 @@ import numpy
 import scipy.sparse
 
 from context import models
-import models._utility
+from models import _utility
 
 import solver_test
 
@@ -29,7 +29,7 @@ class Tester(solver_test.Tester):
 
     @property
     def L_XX(self):
-        return models._utility.sparse.diags_from_dict({
+        return _utility.sparse.diags_from_dict({
             -1: numpy.ones(self.J - 1),
             0: numpy.hstack([numpy.zeros(self.J - 1), 1]),
         })
@@ -55,8 +55,13 @@ class Tester(solver_test.Tester):
                 F_XW = self.L_XX @ F_XW
             return F_XW
 
+        def get_rate(which):
+            waiting_time = getattr(self.model.parameters, which)
+            rate = waiting_time.rate(self.model.a)
+            return _utility.numerical.rate_make_finite(rate)
+
         mu = self.model.parameters.death.rate(self.model.a)
-        omega = 1 / self.model.parameters.waning.mean
+        omega = get_rate('waning')
         rho = 1 / self.model.parameters.progression.mean
         gamma = 1 / self.model.parameters.recovery.mean
         return scipy.sparse.bmat([

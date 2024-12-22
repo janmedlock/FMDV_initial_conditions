@@ -76,19 +76,19 @@ depend on FMDV serotype (\autoref{infection_parameters}).
     \\
     \hline
     SAT1
-    & \unit[0.37]{d} & 1.19
+    & \unit[0.37]{y} & 1.19
     & \unit[2.8]{d$^{-1}$}
     & \unit[0.5]{d} & 1.2
     & \unit[5.7]{d} & 11.8
     \\
     SAT2
-    & \unit[0.37]{d} & 1.19
+    & \unit[0.37]{y} & 1.19
     & \unit[1.6]{d$^{-1}$}
     & \unit[1.3]{d} & 1.6
     & \unit[4.6]{d} & 8.7
     \\
     SAT3
-    & \unit[0.37]{d} & 1.19
+    & \unit[0.37]{y} & 1.19
     & \unit[1.2]{d$^{-1}$}
     & \unit[2.8]{d} & 1.6
     & \unit[4.2]{d} & 11.8
@@ -96,9 +96,9 @@ depend on FMDV serotype (\autoref{infection_parameters}).
     \hline
   \end{tabular}
   \caption{The infection-related parameters by serotype. Waning,
-    progression, and recovery are based on waiting times with the
-    given means and shapes. Waning mean and shape do not vary by
-    serotype.}
+    progression, and recovery rates are the hazards of gamma random
+    variables times with the given means and shapes. Waning mean and
+    shape do not vary by serotype.}
   \label{infection_parameters}
 \end{table}
 
@@ -182,12 +182,12 @@ For the models without age structure, there is no maternity parameter.
 \subsection{Waning}
 
 The waning rate is the hazard of a gamma random variable with
-mean $\hat{\omega}$ and shape $\omega_{\mathrm{shape}}$,
+mean $\omega_{\mathrm{mean}}$ and shape $\omega_{\mathrm{shape}}$,
 \begin{equation}
-  \omega(z) =
-  h_{\Gamma}\left(z;
+  \omega(a) =
+  h_{\Gamma}\left(a;
                  \omega_{\mathrm{shape}},
-                 \frac{\hat{\omega}}{\omega_{\mathrm{shape}}}\right),
+                 \frac{\omega_{\mathrm{mean}}}{\omega_{\mathrm{shape}}}\right),
 \end{equation}
 where the hazard for the gamma random variable with shape
 $\alpha$ and scale $\theta$ is
@@ -208,8 +208,11 @@ $\alpha$ and scale $\theta$ is
   \end{equation}
 \end{subequations}
 
-For the models without time-since-entry structure, I used the mean
-waning rate, $\omega = \hat{\omega}$.
+For the models without age structure, I used the average
+waning rate,
+\begin{equation}
+  \omega = \frac{1}{\omega_{\mathrm{mean}}}.
+\end{equation}
 
 
 \subsection{Transmission}
@@ -220,31 +223,37 @@ The transmission rate is the scalar $\beta$.
 \subsection{Progression}
 
 The progression rate is the hazard of a gamma random variable with
-mean $\hat{\rho}$ and shape $\rho_{\mathrm{shape}}$,
+mean $\rho_{\mathrm{mean}}$ and shape $\rho_{\mathrm{shape}}$,
 \begin{equation}
   \rho(z) =
   h_{\Gamma}\left(z;
                  \rho_{\mathrm{shape}},
-                 \frac{\hat{\rho}}{\rho_{\mathrm{shape}}}\right).
+                 \frac{\rho_{\mathrm{mean}}}{\rho_{\mathrm{shape}}}\right).
 \end{equation}
 
-For the models without time-since-entry structure, I used the mean
-progression rate, $\rho = \hat{\rho}$.
+For the models without time-since-entry structure, I used the average
+progression rate
+\begin{equation}
+  \rho = \frac{1}{\rho_{\mathrm{mean}}}.
+\end{equation}
 
 
 \subsection{Recovery}
 
 The recovery rate is the hazard of a gamma random variable with mean
-$\hat{\gamma}$ and shape $\gamma_{\mathrm{shape}}$,
+$\gamma_{\mathrm{mean}}$ and shape $\gamma_{\mathrm{shape}}$,
 \begin{equation}
   \gamma(z) =
   h_{\Gamma}\left(z;
                  \gamma_{\mathrm{shape}},
-                 \frac{\hat{\gamma}}{\gamma_{\mathrm{shape}}}\right).
+                 \frac{\gamma_{\mathrm{mean}}}{\gamma_{\mathrm{shape}}}\right).
 \end{equation}
 
-For the models without time-since-entry structure, I used the mean
-recovery rate, $\gamma = \hat{\gamma}$.
+For the models without time-since-entry structure, I used the average
+recovery rate,
+\begin{equation}
+  \gamma = \frac{1}{\gamma_{\mathrm{mean}}}.
+\end{equation}
 
 
 \section{Unstructured model}
@@ -339,8 +348,8 @@ i.e.~periodic with period $T = \unit[1]{y}$.
       b^{\ell - 1 / 2}
       \left(\frac{N^{\ell} + N^{\ell - 1}}{2}
         - \frac{R^{\ell} + R^{\ell - 1}}{2}\right)
-      \\ & \quad {}
       + \omega \frac{M^{\ell} + M^{\ell - 1}}{2}
+      \\ & \quad {}
       - \frac{(\lambda^{\ell} + \mu) S^{\ell}
         + (\lambda^{\ell - 1} + \mu) S^{\ell - 1}}{2},
     \end{split}
@@ -472,7 +481,7 @@ The model is
     \left(\frac{\partial}{\partial t}
       + \frac{\partial}{\partial a}\right)
     M(t, a)
-    &= - \omega M(t, a) - \mu(a) M(t, a),
+    &= - \omega(a) M(t, a) - \mu(a) M(t, a),
     \\
     S(t, 0)
     &= b(t) \int_0^{+\infty} \nu(a) \left[N(t, a) - R(t, a)\right] \md a,
@@ -480,7 +489,7 @@ The model is
     \left(\frac{\partial}{\partial t}
       + \frac{\partial}{\partial a}\right)
     S(t, a)
-    &= \omega M(t, a) - \lambda(t) S(t, a) - \mu(a) S(t, a),
+    &= \omega(a) M(t, a) - \lambda(t) S(t, a) - \mu(a) S(t, a),
     \\
     E(t, 0)
     &= 0,
@@ -551,29 +560,29 @@ $a_j = j \Delta t$ for $j \in \{0, 1, 2, \ldots, J - 1\}$;
 $t^{\ell} = t_0 + \ell \Delta t$ for $\ell \in \{0, 1, \ldots, L\}$;
 $X_j^{\ell} \approx X(t^{\ell}, a_j)$ for $X \in \{M, S, E, I, R\}$;
 $b^{\ell - 1 / 2} = b(t^{\ell - 1 / 2})$; and
-$\pi_j = \pi(a_j)$ for $\pi \in \{\mu, \nu\}$.
+$\pi_j = \pi(a_j)$ for $\pi \in \{\mu, \nu, \omega\}$.
 For each $1 \leq j \leq J - 2$ and each $\ell \geq 1$, the
 Crank--Nicolson method on characteristics is
 \begin{subequations}
   \label{numerics_age_structured}
   \begin{align}
-    \left[1 + \frac{\Delta t}{2} (\omega + \mu_0)\right]
+    \left[1 + \frac{\Delta t}{2} (\omega_0 + \mu_0)\right]
     M_0^{\ell}
     &= b^{\ell - 1 / 2}
     \sum_{j = 0}^{J - 1} \nu_j \frac{R_j^{\ell} + R_j^{\ell - 1}}{2}
     \Delta t,
     \\
     \frac{M_j^{\ell} - M_{j - 1}^{\ell - 1}}{\Delta t} &=
-    - \frac{(\omega + \mu_j) M_j^{\ell}
-      + (\omega + \mu_{j - 1}) M_{j - 1}^{\ell - 1}}{2},
+    - \frac{(\omega_j + \mu_j) M_j^{\ell}
+      + (\omega_{j - 1} + \mu_{j - 1}) M_{j - 1}^{\ell - 1}}{2},
     \\
     \begin{split}
       \frac{M_{J - 1}^{\ell} - M_{J - 2}^{\ell - 1}}{\Delta t} &=
-      - \frac{(\omega + \mu_{J - 1}) M_{J - 1}^{\ell}
-        + (\omega + \mu_{J - 2}) M_{J - 2}^{\ell - 1}}{2}
+      - \frac{(\omega_{J - 1} + \mu_{J - 1}) M_{J - 1}^{\ell}
+        + (\omega_{J - 2} + \mu_{J - 2}) M_{J - 2}^{\ell - 1}}{2}
       \\ & \quad {}
       + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\omega + \mu_{J - 1})
+        1 - \frac{\Delta t}{2} (\omega_{J - 1} + \mu_{J - 1})
       \right] M_{J - 1}^{\ell - 1},
     \end{split}
     \\
@@ -584,28 +593,25 @@ Crank--Nicolson method on characteristics is
       \nu_j
       \frac{N_j^{\ell} - R_j^{\ell} + N_j^{\ell - 1} - R_j^{\ell - 1}}{2}
       \Delta t
-      \\ & \quad {}
-      + \frac{\Delta t}{2} \omega M_0^{\ell},
+      + \frac{\Delta t}{2} \omega_0 M_0^{\ell},
     \end{split}
     \\
-    \begin{split}
-      \frac{S_j^{\ell} - S_{j - 1}^{\ell - 1}}{\Delta t} &=
-      \omega \frac{M_j^{\ell} + M_{j - 1}^{\ell - 1}}{2}
-      \\ & \quad {}
-      - \frac{(\lambda^{\ell} + \mu_j) S_j^{\ell}
-        + (\lambda^{\ell - 1} + \mu_{j - 1}) S_{j - 1}^{\ell - 1}}{2},
-    \end{split}
+    \frac{S_j^{\ell} - S_{j - 1}^{\ell - 1}}{\Delta t} &=
+    \frac{\omega_j M_j^{\ell} + \omega_{j - 1} M_{j - 1}^{\ell - 1}}{2}
+    - \frac{(\lambda^{\ell} + \mu_j) S_j^{\ell}
+      + (\lambda^{\ell - 1} + \mu_{j - 1}) S_{j - 1}^{\ell - 1}}{2},
     \\
     \begin{split}
       \frac{S_{J - 1}^{\ell} - S_{J - 2}^{\ell - 1}}{\Delta t} &=
-      \omega \frac{M_{J - 1}^{\ell} + M_{J - 2}^{\ell - 1}}{2}
+      \frac{
+        \omega_{J - 1} M_{J - 1}^{\ell} + \omega_{J - 2} M_{J - 2}^{\ell - 1}
+      }{2}
       \\ & \quad {}
       - \frac{(\lambda^{\ell} + \mu_{J - 1}) S_{J - 1}^{\ell}
         + (\lambda^{\ell - 1} + \mu_{J - 2}) S_{J - 2}^{\ell - 1}}
       {2}
       \\ & \quad {}
-      + \frac{1}{2} \omega M_{J - 1}^{\ell - 1}
-      \\ & \quad {}
+      + \frac{1}{2} \omega_{J - 1} M_{J - 1}^{\ell - 1}
       + \frac{1}{\Delta t} \left[
         1 - \frac{\Delta t}{2} (\lambda^{\ell - 1} + \mu_{J - 1})
       \right] S_{J - 1}^{\ell - 1},
@@ -614,13 +620,10 @@ Crank--Nicolson method on characteristics is
     \left[1 + \frac{\Delta t}{2} (\rho + \mu_0)\right] E_0^{\ell}
     &= \frac{\Delta t}{2} \lambda^{\ell} S_0^{\ell},
     \\
-    \begin{split}
-      \frac{E_j^{\ell} - E_{j - 1}^{\ell - 1}}{\Delta t} &=
-      \frac{\lambda^{\ell} S_j^{\ell} + \lambda^{\ell - 1} S_{j - 1}^{\ell - 1}}{2}
-      \\ & \quad {}
-      - \frac{(\rho + \mu_j) E_j^{\ell}
-        + (\rho + \mu_{j - 1}) E_{j - 1}^{\ell - 1}}{2},
-    \end{split}
+    \frac{E_j^{\ell} - E_{j - 1}^{\ell - 1}}{\Delta t} &=
+    \frac{\lambda^{\ell} S_j^{\ell} + \lambda^{\ell - 1} S_{j - 1}^{\ell - 1}}{2}
+    - \frac{(\rho + \mu_j) E_j^{\ell}
+    + (\rho + \mu_{j - 1}) E_{j - 1}^{\ell - 1}}{2},
     \\
     \begin{split}
       \frac{E_{J - 1}^{\ell} - E_{J - 2}^{\ell - 1}}{\Delta t} &=
@@ -631,7 +634,6 @@ Crank--Nicolson method on characteristics is
         + (\rho + \mu_{J - 2}) E_{J - 2}^{\ell - 1}}{2}
       \\ & \quad {}
       + \frac{1}{2} \lambda^{\ell - 1} S_{J - 1}^{\ell - 1}
-      \\ & \quad {}
       + \frac{1}{\Delta t} \left[
         1 - \frac{\Delta t}{2} (\rho + \mu_{J - 1})
       \right] E_{J - 1}^{\ell - 1},
@@ -653,7 +655,6 @@ Crank--Nicolson method on characteristics is
         + (\gamma + \mu_{J - 2}) I_{J - 2}^{\ell - 1}}{2}
       \\ & \quad {}
       + \frac{1}{2} \rho E_{J - 1}^{\ell - 1}
-      \\ & \quad {}
       + \frac{1}{\Delta t} \left[
         1 - \frac{\Delta t}{2} (\gamma + \mu_{J - 1})
       \right] I_{J - 1}^{\ell - 1},
@@ -790,10 +791,10 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \\
     \mat{F}_q &=
     \begin{bmatrix}
-      \mat{F}_{a, q}(- \omega - \vec{\mu}) & \mat{0} & \mat{0}
+      \mat{F}_{a, q}(- \vec{\omega} - \vec{\mu}) & \mat{0} & \mat{0}
       & \mat{0} & \mat{0}
       \\
-      \mat{F}_{a, q}(\omega) & \mat{F}_{a, q}(- \vec{\mu}) & \mat{0}
+      \mat{F}_{a, q}(\vec{\omega}) & \mat{F}_{a, q}(- \vec{\mu}) & \mat{0}
       & \mat{0} & \mat{0}
       \\
       \mat{0} & \mat{0} & \mat{F}_{a, q}(- \rho - \vec{\mu}) & \mat{0}
@@ -874,21 +875,14 @@ The model is
 \begin{subequations}
   \label{model_time_since_entry_structured}
   \begin{align}
-    m(t, 0) &=
-    b(t) R(t),
+    \frac{\md}{\md t}
+    M(t) &=
+    b(t) R(t) - \omega M(t) - \mu M(t),
     \\
-    \left(\frac{\partial}{\partial t}
-      + \frac{\partial}{\partial z}\right)
-    m(t, z) &=
-    - \omega(z) m(t, z) - \mu m(t, z),
-    \\
-    \begin{split}
-      \frac{\md}{\md t} S(t) &=
-      b(t) \left[N(t) - R(t)\right]
-      + \int_0^{+\infty} \omega(z) m(t, z) \md z
-      \\ & \quad {}
-      - \lambda(t) S(t) - \mu S(t),
-    \end{split}
+    \frac{\md}{\md t} S(t) &=
+    b(t) \left[N(t) - R(t)\right]
+    + \omega M(t)
+    - \lambda(t) S(t) - \mu S(t),
     \\
     e(t, 0) &=
     \lambda(t) S(t),
@@ -917,8 +911,8 @@ The model is
   population size
   \begin{equation}
     N(t) =
-    S(t) + R(t)
-    + \int_0^{+\infty} m(t, z) + e(t, z) + i(t, z) \md z,
+    M(t) + S(t) + R(t)
+    + \int_0^{+\infty} e(t, z) + i(t, z) \md z,
   \end{equation}
   and periodic birth rate \eqref{birth_rate}.
 \end{subequations}
@@ -947,43 +941,27 @@ for $k \in \{0, 1, 2, \ldots, K - 1\}$;
 $t^{\ell} = t_0 + \ell \Delta t$
 for $\ell \in \{0, 1, \ldots, L\}$;
 $X^{\ell} \approx X(t^{\ell})$
-for $X \in \{S, R\}$;
+for $X \in \{M, S, R\}$;
 $y_k^{\ell} \approx y(t^{\ell}, z_k)$
-for $y \in \{m, e, i\}$;
+for $y \in \{e, i\}$;
 $b^{\ell - 1 / 2} = b(t^{\ell - 1 / 2})$;
 and $\xi_k = \xi(z_k)$
-for $\xi \in \{\omega, \rho, \gamma\}$.
+for $\xi \in \{\rho, \gamma\}$.
 For each $1 \leq k \leq K - 2$
 and each $\ell \geq 1$,
 the Crank--Nicolson method on characteristics is
 \begin{subequations}
   \label{numerics_time_since_entry_structured}
   \begin{align}
-    \left[1 + \frac{\Delta t}{2} (\omega_0 + \mu)\right] m_0^{\ell}
-    &= b^{\ell - 1 / 2} \frac{R^{\ell} + R^{\ell - 1}}{2},
-    \\
-    \frac{m_k^{\ell} - m_{k - 1}^{\ell - 1}}{\Delta t} &=
-    - \frac{(\omega_k + \mu) m_k^{\ell}
-      + (\omega_{k - 1} + \mu) m_{k - 1}^{\ell - 1}}{2},
-    \\
-    \begin{split}
-      \frac{m_{K - 1}^{\ell} - m_{K - 2}^{\ell - 1}}{\Delta t} &=
-      - \frac{(\omega_{K - 1} + \mu) m_{K - 1}^{\ell}
-        + (\omega_{K - 2} + \mu) m_{K - 2}^{\ell - 1}}{2}
-      \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} (\omega_{K - 1} + \mu)
-      \right] m_{K - 1}^{\ell - 1},
-    \end{split}
+    \frac{M^{\ell} - M^{\ell - 1}}{\Delta t} &=
+    b^{\ell - 1 / 2} \frac{R^{\ell} + R^{\ell - 1}}{2}
+    - (\omega + \mu) \frac{M^{\ell} + M^{\ell - 1}}{2},
     \\
     \begin{split}
       \frac{S^{\ell} - S^{\ell - 1}}{\Delta t} &=
       b^{\ell - 1 / 2}
       \frac{N^{\ell} - R^{\ell} + N^{\ell - 1} - R^{\ell - 1}}{2}
-      \\ & \quad {}
-      + \sum_{k = 0}^{K - 1} \omega_k
-      \frac{m_k^{\ell} + m_k^{\ell - 1}}{2}
-      \Delta t
+      + \omega \frac{M^{\ell} + M^{\ell - 1}}{2}
       \\ & \quad {}
       - \frac{(\lambda^{\ell} + \mu) S^{\ell}
         + (\lambda^{\ell - 1} + \mu) S^{\ell - 1}}{2},
@@ -1039,9 +1017,9 @@ the Crank--Nicolson method on characteristics is
   and population size
   \begin{equation}
     N^{\ell} =
-    S^{\ell} + R^{\ell}
+    M^{\ell} + S^{\ell} + R^{\ell}
     + \sum_{k = 0}^{K - 1} \left(
-      m_k^{\ell} + e_k^{\ell} + i_k^{\ell}
+      e_k^{\ell} + i_k^{\ell}
     \right) \Delta t.
   \end{equation}
 \end{subequations}
@@ -1116,7 +1094,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
   \begin{align}
     \vec{x}^{\ell} &=
     \begin{bmatrix}
-      m_0^{\ell} \\ \vdots \\ m_{K - 1}^{\ell} \\
+      M^{\ell} \\
       S^{\ell} \\
       e_0^{\ell} \\ \vdots \\ e_{K - 1}^{\ell} \\
       i_0^{\ell} \\ \vdots \\ i_{K - 1}^{\ell} \\
@@ -1126,7 +1104,7 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     \vec{\beta} &=
     \beta
     \begin{bmatrix}
-      \vec{0}_z & 0 & \vec{0}_z & \vec{\iota}_z & 0
+      0 & 0 & \vec{0}_z & \vec{\iota}_z & 0
     \end{bmatrix},
     \\
     % \lambda^{\ell} &=
@@ -1134,55 +1112,54 @@ For $q \in \{\mathrm{new}, \mathrm{cur}\}$, let
     % \\
     \mat{H}_{q} &=
     \begin{bmatrix}
-      \mat{H}_{z, q} & \vec{0} & \mat{0} & \mat{0} & \vec{0} \\
-      \vec{0} & 1 & \vec{0} & \vec{0} & 0 \\
-      \mat{0} & \vec{0} & \mat{H}_{z, q} & \mat{0} & \vec{0} \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{H}_{z, q} & \vec{0}
+      1 & 0 & \vec{0} & \vec{0} & 0 \\
+      0 & 1 & \vec{0} & \vec{0} & 0 \\
+      \vec{0} & \vec{0} & \mat{H}_{z, q} & \mat{0} & \vec{0} \\
+      \vec{0} & \vec{0} & \mat{0} & \mat{H}_{z, q} & \vec{0}
       \\
-      \vec{0} & 0 & \vec{0} & \vec{0} & 1
+      0 & 0 & \vec{0} & \vec{0} & 1
     \end{bmatrix},
     \\
     \mat{F}_q &=
     \begin{bmatrix}
-      \mat{F}_{z, q}(- \vec{\omega} - \mu) & \vec{0} & \mat{0}
+      - \omega - \mu & 0 & \vec{0} & \vec{0} & 0
+      \\
+      \omega & - \mu & \vec{0} & \vec{0} & 0
+      \\
+      \vec{0} & \vec{0} & \mat{F}_{z, q}(- \vec{\rho} - \mu)
       & \mat{0} & \vec{0}
       \\
-      \vec{\sigma}_z(\vec{\omega}) & - \mu & \vec{0} & \vec{0} & 0
-      \\
-      \mat{0} & \vec{0} & \mat{F}_{z, q}(- \vec{\rho} - \mu)
-      & \mat{0} & \vec{0}
-      \\
-      \mat{0} & \vec{0} & \vec{\zeta}_z \vec{\sigma}_z(\vec{\rho})
+      \vec{0} & \vec{0} & \vec{\zeta}_z \vec{\sigma}_z(\vec{\rho})
       & \mat{F}_{z, q}(- \vec{\gamma} - \mu) & \vec{0}
       \\
-      \vec{0} & 0 & \vec{0} & \vec{\sigma}_z(\vec{\gamma}) & - \mu
+      0 & 0 & \vec{0} & \vec{\sigma}_z(\vec{\gamma}) & - \mu
     \end{bmatrix},
     \\
     \mat{B} &=
     \begin{bmatrix}
-      \mat{0} & \vec{0} & \mat{0} & \mat{0} & \vec{\zeta}_z
+      0 & 0 & \vec{0} & \vec{0} & 1
       \\
-      \vec{\iota}_z & 1 & \vec{\iota}_z & \vec{\iota}_z & 0
+      1 & 1 & \vec{\iota}_z & \vec{\iota}_z & 0
       \\
-      \mat{0}_{z,z} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \vec{0}_z^{\mathrm{T}} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
-      \mat{0}_{z,z} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
+      \vec{0}_z^{\mathrm{T}} & \vec{0} & \mat{0} & \mat{0} & \vec{0}
       \\
-      \vec{0}_z & 0 & \vec{0} & \vec{0} & 0
+      0 & 0 & \vec{0} & \vec{0} & 0
     \end{bmatrix},
     \\
     \mat{T}_{\mathrm{new}} &=
     \mat{T}_{\mathrm{cur}} =
     \begin{bmatrix}
-      \mat{0}_{z,z} & \vec{0} & \mat{0}_{z,z} & \mat{0} & \vec{0}
+      0 & 0 & \vec{0}_z & \vec{0} & 0
       \\
-      \vec{0} & - 1 & \vec{0} & \vec{0} & 0
+      0 & - 1 & \vec{0} & \vec{0} & 0
       \\
-      \mat{0} & \vec{\zeta}_z & \mat{0} & \mat{0} & \vec{0}
+      \vec{0} & \vec{\zeta}_z & \mat{0} & \mat{0} & \vec{0}
       \\
-      \mat{0} & \vec{0} & \mat{0} & \mat{0}_{z,z} & \vec{0}
+      \vec{0} & \vec{0} & \mat{0} & \mat{0}_{z,z} & \vec{0}
       \\
-      \vec{0} & 0 & \vec{0} & \vec{0} & 0
+      0 & 0 & \vec{0} & \vec{0} & 0
     \end{bmatrix}.
   \end{align}
 \end{subequations}
@@ -1367,17 +1344,14 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
       \right] M_{J - 1}^{\ell - 1},
     \end{split}
     \\
-    \begin{split}
-      \left[1 + \frac{\Delta t}{2} (\lambda^{\ell} + \mu_0)\right] S_0^{\ell}
-      &=
-      b^{\ell - 1 / 2}
-      \sum_{j = 0}^{J - 1} \nu_j
-      \frac{N_j^{\ell} - R_j^{\ell} + N_j^{\ell - 1} - R_j^{\ell - 1}}
-      {2}
-      \Delta t
-      \\ & \quad {}
-      + \frac{\Delta t}{2} \omega_0 M_0^{\ell},
-    \end{split}
+    \left[1 + \frac{\Delta t}{2} (\lambda^{\ell} + \mu_0)\right] S_0^{\ell}
+    &=
+    b^{\ell - 1 / 2}
+    \sum_{j = 0}^{J - 1} \nu_j
+    \frac{N_j^{\ell} - R_j^{\ell} + N_j^{\ell - 1} - R_j^{\ell - 1}}
+    {2}
+    \Delta t
+    + \frac{\Delta t}{2} \omega_0 M_0^{\ell},
     \\
     \begin{split}
       \frac{S_j^{\ell} - S_{j - 1}^{\ell - 1}}{\Delta t}
@@ -1385,7 +1359,6 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
       \frac{\omega_j M_j^{\ell}
         + \omega_{j - 1} M_{j - 1}^{\ell - 1}}
       {2}
-      \\ & \quad {}
       - \frac{(\lambda^{\ell} + \mu_j) S_j^{\ell}
         + (\lambda^{\ell - 1} + \mu_{j - 1}) S_{j - 1}^{\ell - 1}}
       {2},
@@ -1403,7 +1376,6 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
       {2}
       \\ & \quad {}
       + \frac{\omega_{J - 1} M_{J - 1}^{\ell - 1}}{2}
-      \\ & \quad {}
       + \frac{1}{\Delta t} \left[
         1 - \frac{\Delta t}{2} (\lambda^{\ell - 1} + \mu_{J - 1})
       \right] S_{J - 1}^{\ell - 1},
@@ -1510,17 +1482,14 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
       \right] i_{j - 1, K - 1}^{\ell - 1},
     \end{split}
     \\
-    \begin{split}
-      \left[1 + \frac{\Delta t}{2} (\gamma_0 + \mu_{J - 1})\right]
-      i_{J - 1, 0}^{\ell}
-      &= \sum_{k = 0}^{K - 1} \rho_k
-      \frac{e_{J - 1, k}^{\ell} + e_{J - 2, k}^{\ell - 1}} {2}
-      \Delta t
-      \\ & \quad {}
-      + \sum_{k = 0}^{K - 1} \rho_k
-      \frac{e_{J - 1, k}^{\ell - 1}} {2}
-      \Delta t,
-    \end{split}
+    \left[1 + \frac{\Delta t}{2} (\gamma_0 + \mu_{J - 1})\right]
+    i_{J - 1, 0}^{\ell}
+    &= \sum_{k = 0}^{K - 1} \rho_k
+    \frac{e_{J - 1, k}^{\ell} + e_{J - 2, k}^{\ell - 1}} {2}
+    \Delta t
+    + \sum_{k = 0}^{K - 1} \rho_k
+    \frac{e_{J - 1, k}^{\ell - 1}} {2}
+    \Delta t,
     \\
     \begin{split}
       \frac{i_{J - 1, k}^{\ell} - i_{J - 2, k - 1}^{\ell - 1}}{\Delta t}
@@ -1574,7 +1543,6 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
       \frac{i_{J - 1, k}^{\ell} + i_{J - 2, k}^{\ell - 1}}
       {2}
       \Delta t
-      \\ & \quad {}
       - \frac{\mu_{J - 1} R_{J - 1}^{\ell}
         + \mu_{J - 2} R_{J - 2}^{\ell - 1}}
       {2}
@@ -1583,7 +1551,6 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
       \frac{i_{J - 1, k}^{\ell - 1}}
       {2}
       \Delta t
-      \\ & \quad {}
       + \frac{1}{\Delta t} \left[
         1 - \frac{\Delta t}{2} \mu_{J - 1}
       \right] R_{J - 1}^{\ell - 1},
@@ -2063,14 +2030,11 @@ state gives
     \frac{N_j^{\ell} - N_{j - 1}^{\ell - 1}}{\Delta t}
     &= - \frac{\mu_j N_j^{\ell} + \mu_{j - 1} N_{j - 1}^{\ell - 1}}{2},
     \\
-    \begin{split}
-      \frac{N_{J - 1}^{\ell} - N_{J - 2}^{\ell - 1}}{\Delta t}
-      &= - \frac{\mu_{J - 1} N_{J - 1}^{\ell} + \mu_{J - 2} N_{J - 2}^{\ell - 1}}{2}
-      \\ & \quad {}
-      + \frac{1}{\Delta t} \left[
-        1 - \frac{\Delta t}{2} \mu_{J - 1}
-      \right] N_{J - 1}^{\ell - 1},
-    \end{split}
+    \frac{N_{J - 1}^{\ell} - N_{J - 2}^{\ell - 1}}{\Delta t}
+    &= - \frac{\mu_{J - 1} N_{J - 1}^{\ell} + \mu_{J - 2} N_{J - 2}^{\ell - 1}}{2}
+    + \frac{1}{\Delta t} \left[
+      1 - \frac{\Delta t}{2} \mu_{J - 1}
+    \right] N_{J - 1}^{\ell - 1},
   \end{align}
 \end{subequations}
 which is identical to our Crank--Nicolson scheme applied to aggregated
@@ -2154,7 +2118,11 @@ Let
     \\
     \bar{\nu}_X(t)
     &= \frac{\int_0^{+\infty} \nu(a) X(t, a) \md a}
-    {\int_0^{+\infty} X(t, a) \md a}.
+    {\int_0^{+\infty} X(t, a) \md a},
+    \\
+    \bar{\omega}(t)
+    &= \frac{\int_0^{+\infty} \omega(a) M(t, a) \md a}
+      {\int_0^{+\infty} M(t, a) \md a}.
   \end{align}
 \end{subequations}
 Then integrating model \eqref{model_age_structured} over age gives
@@ -2163,14 +2131,14 @@ Then integrating model \eqref{model_age_structured} over age gives
   \begin{align}
     \frac{\md}{\md t} \bar{M}(t)
     &= b(t) \bar{\nu}_R(t) \bar{R}(t)
-    - \left[\omega + \bar{\mu}_M(t)\right] \bar{M}(t),
+    - \left[\bar{\omega}(t) + \bar{\mu}_M(t)\right] \bar{M}(t),
     \\
     \frac{\md}{\md t} \bar{S}(t)
     &= b(t) \left[
       \bar{\nu}_N(t) \bar{N}(t)
       - \bar{\nu}_R(t) \bar{R}(t)
     \right]
-    + \omega \bar{M}(t)
+    + \bar{\omega}(t) \bar{M}(t)
     - \left[\lambda(t) + \bar{\mu}_S(t)\right] \bar{S}(t),
     \\
     \frac{\md}{\md t} \bar{E}(t)
@@ -2211,7 +2179,11 @@ Let
     \\
     \bar{\nu}_X^{\ell}
     &= \frac{\sum_{j = 0}^{J - 1} \nu_j X_j^{\ell} \Delta t}
-    {\sum_{j = 0}^{J - 1} X_j^{\ell} \Delta t}.
+    {\sum_{j = 0}^{J - 1} X_j^{\ell} \Delta t},
+    \\
+    \bar{\omega}^{\ell}
+    &= \frac{\sum_{j = 0}^{J - 1} \omega_j M_j^{\ell} \Delta t}
+    {\sum_{j = 0}^{J - 1} M_j^{\ell} \Delta t}.
   \end{align}
 \end{subequations}
 Then summing numerical method
@@ -2221,26 +2193,29 @@ Then summing numerical method
   \begin{align}
     \begin{split}
       \frac{\bar{M}^{\ell} - \bar{M}^{\ell - 1}}{\Delta t}
-      &= - \frac{(\omega + \bar{\mu}_M^{\ell}) \bar{M}^{\ell}
-        + (\omega + \bar{\mu}_M^{\ell - 1}) \bar{M}^{\ell - 1}}{2}
-      \\ & \quad {}
-      + b^{\ell - 1 / 2}
+      &= b^{\ell - 1 / 2}
       \frac{\bar{\nu}_R^{\ell} \bar{R}^{\ell}
-        + \bar{\nu}_R^{\ell - 1} \bar{R}^{\ell - 1}}{2},
+        + \bar{\nu}_R^{\ell - 1} \bar{R}^{\ell - 1}}{2}
+      \\ & \quad {}
+      - \frac{
+        (\bar{\omega}^{\ell} + \bar{\mu}_M^{\ell}) \bar{M}^{\ell}
+        + (\bar{\omega}^{\ell - 1} + \bar{\mu}_M^{\ell - 1}) \bar{M}^{\ell - 1}
+      }{2},
     \end{split}
     \\
     \begin{split}
       \frac{\bar{S}^{\ell} - \bar{S}^{\ell - 1}}{\Delta t}
-      &= \omega \frac{\bar{M}^{\ell} + \bar{M}^{\ell - 1}}{2}
-      \\ & \quad {}
-      - \frac{(\lambda^{\ell} + \bar{\mu}_S^{\ell}) \bar{S}^{\ell}
-        + (\lambda^{\ell - 1} + \bar{\mu}_S^{\ell - 1}) \bar{S}^{\ell - 1}}{2}
-      \\ & \quad {}
-      + b^{\ell - 1 / 2}
+      &= b^{\ell - 1 / 2}
       \frac{\bar{\nu}_N^{\ell} \bar{N}^{\ell}
         - \bar{\nu}_R^{\ell} \bar{R}^{\ell}
         + \bar{\nu}_N^{\ell - 1} \bar{N}^{\ell - 1}
-        - \bar{\nu}_N^{\ell - 1} \bar{R}^{\ell - 1}}{2},
+        - \bar{\nu}_N^{\ell - 1} \bar{R}^{\ell - 1}}{2}
+      \\ & \quad {}
+      + \frac{\bar{\omega}^{\ell} \bar{M}^{\ell}
+           + \bar{\omega}^{\ell - 1} \bar{M}^{\ell - 1}}{2}
+      \\ & \quad {}
+      - \frac{(\lambda^{\ell} + \bar{\mu}_S^{\ell}) \bar{S}^{\ell}
+        + (\lambda^{\ell - 1} + \bar{\mu}_S^{\ell - 1}) \bar{S}^{\ell - 1}}{2},
     \end{split}
     \\
     \frac{\bar{E}^{\ell} - \bar{E}^{\ell - 1}}{\Delta t}
@@ -2310,18 +2285,11 @@ model \eqref{model_age_structured_agg_age_state}.
 Let
 \begin{subequations}
   \begin{align}
-    M(t)
-    &= \int_0^{+\infty} m(t, z) \md z,
-    \\
     E(t)
     &= \int_0^{+\infty} e(t, z) \md z,
     \\
     I(t)
     &= \int_0^{+\infty} i(t, z) \md z,
-    \\
-    \hat{\omega}(t)
-    &= \frac{\int_0^{+\infty} \omega(z) m(t, z) \md z}
-      {\int_0^{+\infty} m(t, z) \md z},
     \\
     \hat{\rho}(t)
     &= \frac{\int_0^{+\infty} \rho(z) e(t, z) \md z}
@@ -2338,12 +2306,10 @@ time since entry gives
   \label{model_time_since_entry_structured_agg_tse}
   \begin{align}
     \frac{\md}{\md t} M(t)
-    &= b(t) R(t)
-    - \left[\hat{\omega}(t) + \mu\right] M(t),
+    &= b(t) R(t) - \left(\omega + \mu\right) M(t),
     \\
     \frac{\md}{\md t} S(t)
-    &= b(t) \left[N(t) - R(t)\right]
-    + \hat{\omega}(t) M(t)
+    &= b(t) \left[N(t) - R(t)\right] + \omega M(t)
     - [\lambda(t) + \mu] S(t),
     \\
     \frac{\md}{\md t} E(t)
@@ -2363,18 +2329,11 @@ time since entry gives
 Let
 \begin{subequations}
   \begin{align}
-    M^{\ell}
-    &= \sum_{k = 0}^{K - 1} m_k^{\ell} \Delta t,
-    \\
     E^{\ell}
     &= \sum_{k = 0}^{K - 1} e_k^{\ell} \Delta t,
     \\
     I^{\ell}
     &= \sum_{k = 0}^{K - 1} i_k^{\ell} \Delta t,
-    \\
-    \hat{\omega}^{\ell}
-    &= \frac{\sum_{k = 0}^{K - 1} \omega_k m_k^{\ell} \Delta t}
-      {\sum_{k = 0}^{K - 1} m_k^{\ell} \Delta t},
     \\
     \hat{\rho}^{\ell}
     &= \frac{\sum_{k = 0}^{K - 1} \rho_k e_k^{\ell} \Delta t}
@@ -2392,16 +2351,14 @@ gives
   \label{numerics_time_since_entry_structured_agg_tse}
   \begin{align}
     \frac{M^{\ell}  - M^{\ell - 1}}{\Delta t}
-    &= - \frac{(\hat{\omega}^{\ell} + \mu) M^{\ell}
-      + (\hat{\omega}^{\ell - 1} + \mu) M^{\ell - 1}}{2}
-      + b^{\ell - 1 / 2} \frac{R^{\ell} + R^{\ell - 1}}{2},
+    &= b^{\ell - 1 / 2} \frac{R^{\ell} + R^{\ell - 1}}{2}
+    - (\omega + \mu) \frac{M^{\ell} + M^{\ell - 1}}{2},
     \\
     \begin{split}
       \frac{S^{\ell} - S^{\ell - 1}}{\Delta t}
       &= b^{\ell - 1 / 2}
       \frac{N^{\ell} - R^{\ell} + N^{\ell - 1} - R^{\ell - 1}}{2}
-      + \frac{\hat{\omega}^{\ell} M^{\ell}
-        + \hat{\omega}^{\ell - 1} M^{\ell - 1}}{2}
+      + \omega \frac{M^{\ell} + M^{\ell - 1}}{2}
       \\ & \quad {}
       - \frac{(\lambda^{\ell} + \mu) S^{\ell}
         + (\lambda^{\ell - 1} + \mu) S^{\ell - 1}}{2},

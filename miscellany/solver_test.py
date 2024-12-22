@@ -3,10 +3,10 @@
 import abc
 
 from context import models
-import models._utility
+from models import _utility
 
 
-SparseArray = models._utility.sparse.Array
+SparseArray = _utility.sparse.Array
 
 
 def Zeros(shape):
@@ -57,8 +57,8 @@ class Tester:
             test_fcn = getattr(self, name)
             if isinstance(matrix, dict):
                 for q in ('new', 'cur'):
-                    assert models._utility.sparse.equals(matrix[q],
-                                                         test_fcn(q))
+                    assert _utility.sparse.equals(matrix[q],
+                                                  test_fcn(q))
             else:
-                assert models._utility.sparse.equals(matrix,
-                                                     test_fcn())
+                assert _utility.sparse.equals(matrix,
+                                              test_fcn())

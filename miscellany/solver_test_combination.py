@@ -4,7 +4,7 @@ import numpy
 import scipy.sparse
 
 from context import models
-import models._utility
+from models import _utility
 
 import solver_test
 
@@ -44,14 +44,14 @@ class Tester(solver_test.Tester):
 
     @property
     def L_a(self):
-        return models._utility.sparse.diags_from_dict({
+        return _utility.sparse.diags_from_dict({
             -1: numpy.ones(self.J - 1),
             0: numpy.hstack([numpy.zeros(self.J - 1), 1]),
         })
 
     @property
     def L_z(self):
-        return models._utility.sparse.diags_from_dict({
+        return _utility.sparse.diags_from_dict({
             -1: numpy.ones(self.K - 1),
             0: numpy.hstack([numpy.zeros(self.K - 1), 1]),
         })
@@ -118,12 +118,12 @@ class Tester(solver_test.Tester):
         def get_rate_a(which):
             waiting_time = getattr(self.model.parameters, which)
             rate = waiting_time.rate(self.model.a)
-            return models._utility.numerical.rate_make_finite(rate)
+            return _utility.numerical.rate_make_finite(rate)
 
         def get_rate_z(which):
             waiting_time = getattr(self.model.parameters, which)
             rate = waiting_time.rate(self.model.z)
-            return models._utility.numerical.rate_make_finite(rate)
+            return _utility.numerical.rate_make_finite(rate)
 
         mu = get_rate_a('death')
         omega = get_rate_a('waning')

@@ -2,8 +2,6 @@
 
 import functools
 
-import numpy
-
 from .. import age_structured, time_since_entry_structured, _model, _utility
 
 

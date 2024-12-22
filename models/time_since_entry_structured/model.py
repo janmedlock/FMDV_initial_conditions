@@ -12,12 +12,9 @@ from .. import unstructured, _model
 class Model(unstructured.Model):
     '''Time-since-entry-structured model.'''
 
-    states_with_z = ['maternal_immunity', 'exposed', 'infectious']
+    states_with_z = ['exposed', 'infectious']
 
     _waiting_times_z = {
-        # For the combination model, 'maternal_immunity' is not in
-        # `states_with_z`.
-        'maternal_immunity': 'waning',
         'exposed':           'progression',
         'infectious':        'recovery',
     }

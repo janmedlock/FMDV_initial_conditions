@@ -137,15 +137,15 @@ class Solver(Mixin, _model.solver.Solver):
     def F(self, q):  # pylint: disable=invalid-name
         '''The transition matrix, F(q).'''
         mu = self.model.parameters.death_rate_mean
-        omega = self._get_rate_z('waning')
+        omega = 1 / self.model.parameters.waning.mean
         rho = self._get_rate_z('progression')
         gamma = self._get_rate_z('recovery')
         F_z = functools.partial(self._F_z, q)  # pylint: disable=invalid-name
         sigma_z = self._sigma_z
         zeta_z = self._zeta_z
         return _utility.sparse.bmat([
-            [F_z(- omega - mu), None, None, None, None],
-            [sigma_z(omega), - mu, None, None, None],
+            [- omega - mu, None, None, None, None],
+            [omega, - mu, None, None, None],
             [None, None, F_z(- rho - mu), None, None],
             [None, None, zeta_z @ sigma_z(rho), F_z(- gamma - mu), None],
             [None, None, None, sigma_z(gamma), - mu]
@@ -154,29 +154,28 @@ class Solver(Mixin, _model.solver.Solver):
     @functools.cached_property
     def B(self):  # pylint: disable=invalid-name
         '''The birth matrix, B.'''
-        zeta_z = self._zeta_z
         iota_z = self._iota_z
-        zeros_z = self._zeros_z
-        Zeros_z_z = self._Zeros_z_z  # pylint: disable=invalid-name
+        zeros_z_T = self._zeros_z.T  # pylint: disable=invalid-name
         return _utility.sparse.bmat([
-            [None,      None, None,   None,   zeta_z],
-            [iota_z,    1,    iota_z, iota_z, None],
-            [Zeros_z_z, None, None,   None,   None],
-            [Zeros_z_z, None, None,   None,   None],
-            [zeros_z,   None, None,   None,   None]
+            [None,      None, None,   None,   1],
+            [1,         1,    iota_z, iota_z, None],
+            [zeros_z_T, None, None,   None,   None],
+            [zeros_z_T, None, None,   None,   None],
+            [0,         None, None,   None,   None]
         ])
 
     @functools.cached_property
     def _T_(self):  # pylint: disable=invalid-name
         '''T is independent of q, so build once and reuse it.'''
         zeta_z = self._zeta_z
+        zeros_z = self._zeros_z
         Zeros_z_z = self._Zeros_z_z  # pylint: disable=invalid-name
         return _utility.sparse.bmat([
-            [Zeros_z_z, None,   Zeros_z_z, None,      None],
-            [None,      - 1,    None,      None,      None],
-            [None,      zeta_z, None,      None,      None],
-            [None,      None,   None,      Zeros_z_z, None],
-            [None,      None,   None,      None,      0]
+            [0,    None,   zeros_z, None,      None],
+            [None, - 1,    None,    None,      None],
+            [None, zeta_z, None,    None,      None],
+            [None, None,   None,    Zeros_z_z, None],
+            [None, None,   None,    None,      0]
         ])
 
     def _T(self, q):  # pylint: disable=invalid-name

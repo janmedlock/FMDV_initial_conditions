@@ -41,7 +41,7 @@ class Solver(Mixin, _model.solver.Solver):
     def F(self, q):  # pylint: disable=invalid-name
         '''The transition matrix, F(q).'''
         mu = self.model.parameters.death.rate(self.a)
-        omega = 1 / self.model.parameters.waning.mean
+        omega = self._get_rate_a('waning')
         rho = 1 / self.model.parameters.progression.mean
         gamma = 1 / self.model.parameters.recovery.mean
         F_a = functools.partial(self._F_a, q)  # pylint: disable=invalid-name
