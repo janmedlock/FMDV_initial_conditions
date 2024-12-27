@@ -90,10 +90,13 @@ class Population(_crank_nicolson.Mixin, metaclass=abc.ABCMeta):
     @functools.cached_property
     def A(self):  # pylint: disable=invalid-name
         '''The matrix A(q).'''
-        return {
-            q: self._A(q)
+        # Lazily evaluated
+        # `{q: self._A(q)
+        #   for q in self._q_vals}`
+        return _utility.lazy.Dict({
+            q: (self._A, (q, ))
             for q in self._q_vals
-        }
+        })
 
     # pylint: disable-next=invalid-name
     def _check_matrices(self, is_M_matrix=True):
@@ -154,10 +157,13 @@ class Solver(Population, metaclass=abc.ABCMeta):
     @functools.cached_property
     def T(self):  # pylint: disable=invalid-name
         '''The transmission matrix, T(q).'''
-        return {
-            q: self._T(q)
+        # Lazily evaluated
+        # `{q: self._T(q)
+        #   for q in self._q_vals}`
+        return _utility.lazy.Dict({
+            q: (self._T, (q, ))
             for q in self._q_vals
-        }
+        })
 
     # pylint: disable-next=invalid-name
     def _check_matrices(self, is_M_matrix=True):
