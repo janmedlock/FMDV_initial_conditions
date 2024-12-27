@@ -42,6 +42,7 @@ def find(model, y_guess, t=0, *,
     y = result.x
     # Scale `y` so that `weighted_sum()` is the same as for
     # `y_guess`.
+    # TODO: Is this wrong? Does it scale correctly for infection?
     y *= (_utility.numerical.weighted_sum(y_guess, weights)
           / _utility.numerical.weighted_sum(y, weights))
     return y
