@@ -5,10 +5,11 @@
 * What about making $a$ and $z$ finite and working with b.c.?
 
 * There are TODOs to try to get the solvers working in
-  models/_model/_poincare_map.py and miscellany/model_birth_ppl.py.
+  [[file:models/_model/_poincare.py]] and [[file:miscellany/model_birth_ppl.py]].
 
 * Unstructured model
-  * Finding limit cycles isn't working for the piecewise linear birth rate
+  * Finding limit cycles doesn't working for the piecewise-linear
+    birth rate
 
 * Time-since-infection-structured model
   * Limit-cycle solver doesn't work for SAT2 & SAT3
