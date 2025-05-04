@@ -126,11 +126,13 @@ class Model(Population, metaclass=abc.ABCMeta):
     # pylint: disable-next=too-many-arguments
     def find_equilibrium(self, eql_guess, t=0, *,
                          t_solve=0, display=False, check_nonnegative=True,
-                         **root_kwds):
+                         **kwds):
         '''Find an equilibrium of the model.'''
         eql_ = _equilibrium.find(self, eql_guess, t,
-                                 t_solve=t_solve, weights=self._weights,
-                                 display=display, **root_kwds)
+                                 t_solve=t_solve,
+                                 weights=self._weights,
+                                 display=display,
+                                 **kwds)
         eql = self.Solution(eql_)
         if check_nonnegative:
             _utility.numerical.check_nonnegative(eql)
@@ -142,16 +144,15 @@ class Model(Population, metaclass=abc.ABCMeta):
 
     # pylint: disable-next=too-many-arguments
     def find_limit_cycle(self, period_0, t_0, lcy_0_guess, *,
-                         solution=True, display=False,
-                         check_nonnegative=True,
-                         **root_kwds):
+                         solution=True, display=False, check_nonnegative=True,
+                         **kwds):
         '''Find a limit cycle of the model.'''
         result = _limit_cycle.find_subharmonic(self, period_0, t_0,
                                                lcy_0_guess,
                                                weights=self._weights,
                                                solution=solution,
                                                display=display,
-                                               **root_kwds)
+                                               **kwds)
         if solution:
             (t, lcy) = result
             soln = self.Solution(lcy, t)

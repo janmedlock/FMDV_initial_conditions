@@ -45,23 +45,18 @@ class Map:
         return diff
 
     def find_fixed_point(self, y_0_guess, weights=1, display=False,
-                         **root_kwds):
+                         **kwds):
         '''Find a fixed point `y_0` of the Poincaré map, i.e. that gives
         `y(t_0 + period) = y_0`.'''
         # TODO: a=0?
         transform = _transform.Logarithm(a=1e-6,
                                          weights=weights)
         x_0_guess = transform(y_0_guess)
-        result = _utility.optimize.root(
-            self._objective, x_0_guess,
-            args=(weights, transform, display),
-            sparse=self.sparse,
-            display=display,
-            **root_kwds
-        )
-        assert result.success, result
-        # TODO: print(result)
-        y_0 = transform.inverse(result.x)
+        x_0 = _utility.optimize.root(self._objective, x_0_guess,
+                                     args=(weights, transform, display),
+                                     display=display,
+                                     **kwds)
+        y_0 = transform.inverse(x_0)
         # Scale `y_0` so that `weighted_sum()` is the same as for
         # `y_0_guess`.
         # TODO: Is this wrong? Does it scale correctly for infection?

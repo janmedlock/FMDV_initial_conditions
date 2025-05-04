@@ -145,6 +145,7 @@ class Solver(Population, metaclass=abc.ABCMeta):
             self._check_matrices()
         if self.sparse:
             self._root_kwds = {
+                'method': 'krylov',
                 'options': {
                     'jac_options': {
                         'inner_M': self._preconditioner,
@@ -206,12 +207,9 @@ class Solver(Population, metaclass=abc.ABCMeta):
         # pylint: disable-next=invalid-name
         A_B_T_y_cur = A_B_T_cur @ y_cur
         y_new_guess = y_cur
-        result = _utility.optimize.root(self._objective, y_new_guess,
-                                        args=(A_B_new, A_B_T_y_cur),
-                                        sparse=self.sparse,
-                                        **self._root_kwds)
-        assert result.success, f'{t_cur=}\n{result=}'
-        return result.x
+        return _utility.optimize.root(self._objective, y_new_guess,
+                                      args=(A_B_new, A_B_T_y_cur),
+                                      **self._root_kwds)
 
     # pylint: disable-next=too-many-arguments
     def solve(self, t_span, y_0, *,

@@ -16,8 +16,8 @@ def check(y, weights=1, **kwds):
 
 # pylint: disable-next=too-many-arguments
 def find_with_period(model, period, t_0, y_0_guess, *,
-                     t_solve=0, weights=1, solution=True,
-                     display=False, **root_kwds):
+                     t_solve=0, weights=1, solution=True, display=False,
+                     **kwds):
     '''Find a limit cycle with period `period` while keeping
     `weighted_sum(y_0, weights)` constant.'''
     # Ensure `y_guess` is nonnegative.
@@ -27,8 +27,10 @@ def find_with_period(model, period, t_0, y_0_guess, *,
                                                            y_0_guess,
                                                            display=display)
     poincare_map = _poincare.Map(model, period, t_0)
-    y_0 = poincare_map.find_fixed_point(y_0_guess, weights=weights,
-                                        display=display, **root_kwds)
+    y_0 = poincare_map.find_fixed_point(y_0_guess,
+                                        weights=weights,
+                                        display=display,
+                                        **kwds)
     if solution:
         # Return the solution at the `t` values, not just at the end time.
         (t, y) = poincare_map.solve(y_0, display=display)
@@ -39,8 +41,8 @@ def find_with_period(model, period, t_0, y_0_guess, *,
 
 # pylint: disable-next=too-many-arguments
 def find_subharmonic(model, period_0, t_0, y_0_guess, *,
-                     t_solve=0, order_max=10, weights=1, solution=True,
-                     display=False, **root_kwds):
+                     order_max=10, t_solve=0, display=False,
+                     **kwds):
     '''Find a subharmonic limit cycle for a system with forcing period
     `period_0`.'''
     # Ensure `y_guess` is nonnegative.
@@ -53,10 +55,8 @@ def find_subharmonic(model, period_0, t_0, y_0_guess, *,
         try:
             return find_with_period(model, order * period_0,
                                     t_0, y_0_guess,
-                                    weights=weights,
-                                    solution=solution,
                                     display=display,
-                                    **root_kwds)
+                                    **kwds)
         except RuntimeError:
             pass
     msg = f'No subharmonic limit cycle found with order <= {order_max}'
