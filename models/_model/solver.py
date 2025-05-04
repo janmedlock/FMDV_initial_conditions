@@ -107,15 +107,15 @@ class Population(_crank_nicolson.Mixin, metaclass=abc.ABCMeta):
         assert _utility.linalg.is_nonnegative(self.B)
         if is_M_matrix:
             # pylint: disable-next=invalid-name
-            AB_new = self._cn_op('new',
-                                 self.A['new'],
-                                 self.parameters.birth.rate_max * self.B)
-            assert _utility.linalg.is_M_matrix(AB_new)
+            A_B_new = self._cn_op('new',
+                                  self.A['new'],
+                                  self.parameters.birth.rate_max * self.B)
+            assert _utility.linalg.is_M_matrix(A_B_new)
         # pylint: disable-next=invalid-name
-        AB_cur = self._cn_op('cur',
-                             self.A['cur'],
-                             self.parameters.birth.rate_min * self.B)
-        assert _utility.linalg.is_nonnegative(AB_cur)
+        A_B_cur = self._cn_op('cur',
+                              self.A['cur'],
+                              self.parameters.birth.rate_min * self.B)
+        assert _utility.linalg.is_nonnegative(A_B_cur)
 
 
 class Solver(Population, metaclass=abc.ABCMeta):
@@ -178,13 +178,13 @@ class Solver(Population, metaclass=abc.ABCMeta):
         return self.A['new']
 
     # pylint: disable-next=invalid-name
-    def _objective(self, y_new, AB_new, ABTy_cur):
+    def _objective(self, y_new, A_B_new, A_B_T_y_cur):
         '''Helper for `.step()`.'''
         # pylint: disable-next=invalid-name
-        ABT_new = self._cn_op('new',
-                              AB_new,
-                              self.beta @ y_new * self.T['new'])
-        return ABT_new @ y_new - ABTy_cur
+        A_B_T_new = self._cn_op('new',
+                                A_B_new,
+                                self.beta @ y_new * self.T['new'])
+        return A_B_T_new @ y_new - A_B_T_y_cur
 
     def step(self, t_cur, y_cur, display=False):
         '''Do a step.'''
@@ -194,20 +194,20 @@ class Solver(Population, metaclass=abc.ABCMeta):
         t_mid = t_cur + 0.5 * self.t_step
         b_mid = self.parameters.birth.rate(t_mid)
         # pylint: disable-next=invalid-name
-        AB_new = self._cn_op('new',
-                             self.A['new'],
-                             b_mid * self.B)
+        A_B_new = self._cn_op('new',
+                              self.A['new'],
+                              b_mid * self.B)
         # pylint: disable-next=invalid-name
-        ABT_cur = self._cn_op(
+        A_B_T_cur = self._cn_op(
             'cur',
             self.A['cur'],
             b_mid * self.B + self.beta @ y_cur * self.T['cur']
         )
         # pylint: disable-next=invalid-name
-        ABTy_cur = ABT_cur @ y_cur
+        A_B_T_y_cur = A_B_T_cur @ y_cur
         y_new_guess = y_cur
         result = _utility.optimize.root(self._objective, y_new_guess,
-                                        args=(AB_new, ABTy_cur),
+                                        args=(A_B_new, A_B_T_y_cur),
                                         sparse=self.sparse,
                                         **self._root_kwds)
         assert result.success, f'{t_cur=}\n{result=}'
