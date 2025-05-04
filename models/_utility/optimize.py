@@ -33,6 +33,7 @@ def root(*args, sparse=False, display=False, **kwds):
     return result.x
 
 
-def fixed_point(*args, maxiter=500, **kwds):
-    '''`scipy.optimize.fixed_point()`.'''
+def fixed_point(*args, maxiter=10000, **kwds):
+    '''`scipy.optimize.fixed_point()` with improved default for its
+    'maxiter' argument.'''
     return scipy.optimize.fixed_point(*args, maxiter=maxiter, **kwds)
