@@ -31,3 +31,8 @@ def root(*args, sparse=False, display=False, **kwds):
         result = scipy.optimize.root(*args, **kwds)
     assert result.success, result
     return result.x
+
+
+def fixed_point(*args, maxiter=500, **kwds):
+    '''`scipy.optimize.fixed_point()`.'''
+    return scipy.optimize.fixed_point(*args, maxiter=maxiter, **kwds)
