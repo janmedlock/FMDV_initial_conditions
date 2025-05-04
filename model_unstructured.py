@@ -3,7 +3,6 @@
 periodic birth rate.'''
 
 import collections
-import itertools
 
 import matplotlib.pyplot
 import matplotlib.rcsetup
