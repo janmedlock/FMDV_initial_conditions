@@ -47,16 +47,17 @@ def find_subharmonic(model, period_0, t_0, y_0_guess, *,
     `period_0`.'''
     # Ensure `y_guess` is nonnegative.
     y_0_guess = numpy.clip(y_0_guess, 0, None)
-    (t_0, y_0_guess) = _equilibrium.solution_after_t_solve(model,
-                                                           t_0, t_solve,
-                                                           y_0_guess,
-                                                           display=display)
+    (t_0, y_0_guess) = _equilibrium.solution_after_t_solve(
+        model, t_0, t_solve, y_0_guess,
+        display=display,
+    )
     for order in numpy.arange(1, order_max + 1):
         try:
-            return find_with_period(model, order * period_0,
-                                    t_0, y_0_guess,
-                                    display=display,
-                                    **kwds)
+            return find_with_period(
+                model, order * period_0, t_0, y_0_guess,
+                display=display,
+                **kwds
+            )
         except RuntimeError:
             pass
     msg = f'No subharmonic limit cycle found with order <= {order_max}'
