@@ -63,7 +63,7 @@ def eig_dominant(arr,
         assert all((numpy.real(eigvec_dom) >= 0)
                    | numpy.isclose(eigvec_dom, 0)), \
             f'Negative component in the dominant eigenvector: {eigvec_dom}'
-        eigvec_dom = eigvec_dom.clip(0, numpy.PINF)
+        eigvec_dom = eigvec_dom.clip(0, numpy.inf)
         result = (eigval_dom, eigvec_dom)
     else:
         result = eigval_dom

@@ -7,15 +7,17 @@ from context import models
 
 
 def get_death_rate_mean():
+    '''Get the mean death rate weighted by the stable age
+    distbribution.'''
     death = models.death.Death(parameters={})
 
     def numerator_integrand(age):
         return death.rate(age) * death.survival(age)
 
     (numerator, _) = scipy.integrate.quad(numerator_integrand,
-                                          0, numpy.PINF)
+                                          0, numpy.inf)
     (denominator, _) = scipy.integrate.quad(death.survival,
-                                            0, numpy.PINF)
+                                            0, numpy.inf)
     return numerator / denominator
 
 

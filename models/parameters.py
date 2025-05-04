@@ -37,11 +37,11 @@ class _Parameters(_MappingMixin):
     # Not handled by `dataclasses.dataclass()`.
     birth_period = 1                         # years
 
-    birth_variation: float = 0.613           # unitless
-    birth_age_menarche: float = 4            # years
-    birth_age_menopause: float = numpy.PINF  # years
-    maternal_immunity_mean: float = 0.37     # years
-    maternal_immunity_shape: float = 1.19    # unitless
+    birth_variation: float = 0.613          # unitless
+    birth_age_menarche: float = 4           # years
+    birth_age_menopause: float = numpy.inf  # years
+    maternal_immunity_mean: float = 0.37    # years
+    maternal_immunity_shape: float = 1.19   # unitless
 
     @functools.cached_property
     def birth(self):

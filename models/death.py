@@ -13,7 +13,7 @@ class Death:
     _annual_survival = {(0, 1): 0.66,
                         (1, 3): 0.79,
                         (3, 12): 0.88,
-                        (12, numpy.PINF): 0.66}
+                        (12, numpy.inf): 0.66}
 
     assert numpy.all(0 <= val <= 1
                      for val in _annual_survival.values())
