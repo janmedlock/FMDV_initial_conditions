@@ -35,6 +35,7 @@ def find(model, y_guess, t=0, *,
                                           display=display)
     y = _utility.optimize.root(_objective, y_guess,
                                args=(model.solver, t, weights),
+                               sparse=model.solver.sparse,
                                display=display,
                                **kwds)
     # Scale `y` so that `weighted_sum()` is the same as for

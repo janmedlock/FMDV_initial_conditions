@@ -54,6 +54,7 @@ class Map:
         x_0_guess = transform(y_0_guess)
         x_0 = _utility.optimize.root(self._objective, x_0_guess,
                                      args=(weights, transform, display),
+                                     sparse=self.sparse,
                                      display=display,
                                      **kwds)
         y_0 = transform.inverse(x_0)

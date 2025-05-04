@@ -15,9 +15,12 @@ _METHOD_DEFAULT = inspect.signature(scipy.optimize.root) \
 _METHODS_WITHOUT_DISP_OPTION = {'hybr', 'lm'}
 
 
-def root(*args, display=False, **kwds):
+def root(*args, sparse=False, display=False, **kwds):
     '''`scipy.optimize.root()` with improved default for its 'options'
     argument that checks `result.success` and returns `result.x`.'''
+    if sparse:
+        # Default to `method = 'krylov'`.
+        kwds = {'method': 'krylov'} | kwds
     # Set the 'disp' option from `display` for some methods.
     method = kwds.get('method', _METHOD_DEFAULT)
     if method not in _METHODS_WITHOUT_DISP_OPTION:
