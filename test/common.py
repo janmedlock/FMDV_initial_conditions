@@ -50,6 +50,10 @@ class TestModel(metaclass=abc.ABCMeta):
         except Exception as exception:
             return exception
 
+    def test_solution(self, solution):
+        '''Test solution.'''
+        assert not isinstance(solution, Exception)
+
     @pytest.fixture(scope='class')
     def limit_set(self, birth_rate_constant, model, solution):
         '''Limit set.'''
@@ -67,6 +71,12 @@ class TestModel(metaclass=abc.ABCMeta):
         except Exception as exception:
             return exception
 
+    def test_limit_set(self, limit_set):
+        '''Test limit set.'''
+        if limit_set is None:
+            pytest.skip()
+        assert not isinstance(limit_set, Exception)
+
     @pytest.fixture(scope='class')
     def exponents(self, birth_rate_constant, model, limit_set):
         '''Exponents on the limit set.'''
@@ -80,16 +90,6 @@ class TestModel(metaclass=abc.ABCMeta):
             return fcn(limit_set)
         except Exception as exception:
             return exception
-
-    def test_solution(self, solution):
-        '''Test solution.'''
-        assert not isinstance(solution, Exception)
-
-    def test_limit_set(self, limit_set):
-        '''Test limit set.'''
-        if limit_set is None:
-            pytest.skip()
-        assert not isinstance(limit_set, Exception)
 
     def test_exponents(self, exponents):
         '''Test exponents.'''
