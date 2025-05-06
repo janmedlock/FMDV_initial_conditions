@@ -1975,6 +1975,57 @@ The Jacobian is then
 \end{equation}
 
 
+\section{Fixed-point formulation}
+
+The numerical methods for the MSEIR models can be reformulated as
+solving the fixed-point problem
+\begin{subequations}
+  \begin{align}
+    \hat{\mat{A}}_{\mathrm{new}} &=
+    \frac{\Delta t}{2} \mat{F}_{\mathrm{new}},
+    \\
+    \begin{split}
+      \vec{x}^{\ell} &=
+      \left[
+        \hat{\mat{A}}_{\mathrm{new}}
+        + \frac{\Delta t}{2} \left(
+          b^{\ell - 1 / 2} \mat{B}
+          + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{new}}
+        \right)
+      \right] \vec{x}^{\ell}
+      \\ & \quad {}
+      + \left[
+        \mat{A}_{\mathrm{cur}}
+        + \frac{\Delta t}{2} \left(
+          b^{\ell - 1 / 2} \mat{B}
+          + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{cur}}
+        \right)
+      \right] \vec{x}^{\ell - 1}.
+    \end{split}
+  \end{align}
+\end{subequations}
+
+Likewise, the numerical method for the fundamental solution of the
+age-structured total-population model can be reformulated as solving
+for the fixed-point problem
+\begin{subequations}
+  \begin{align}
+    \hat{\mat{A}}_{\mathrm{new}} &=
+    \frac{\Delta t}{2} \mat{F}_{\mathrm{new}},
+    \\
+    \mat{\Phi}^{\ell} &=
+    \left(
+      \hat{\mat{A}}_{\mathrm{new}}
+      + \frac{\Delta t}{2} b^{\ell - 1 / 2} \mat{B}
+    \right) \mat{\Phi}^{\ell}
+    + \left(
+      \mat{A}_{\mathrm{cur}}
+      + \frac{\Delta t}{2} b^{\ell - 1 / 2} \mat{B}
+    \right) \mat{\Phi}^{\ell - 1}.
+  \end{align}
+\end{subequations}
+
+
 \section{Aggregated models}
 
 
