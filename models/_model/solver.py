@@ -227,7 +227,10 @@ class Solver(Population, metaclass=abc.ABCMeta):
                                            sparse=self.sparse,
                                            **self._root_kwds)
         elif solver == 'fixed_point':
-            # TODO: Should the first agrument instead be 'new'?
+            # A_hat_B_new = self.A_hat_new
+            #               + self.t_step / 2 * b_mid * self.B
+            # is `self._cn_op('cur', ...)`,
+            # not `self._cn_op('new', ...)`.
             # pylint: disable-next=invalid-name
             A_hat_B_new = self._cn_op('cur',
                                       self.A_hat_new,
