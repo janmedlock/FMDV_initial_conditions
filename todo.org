@@ -1,4 +1,12 @@
-* [[https://en.m.wikipedia.org/wiki/Crank%E2%80%93Nicolson_method#Crank%E2%80%93Nicolson_for_nonlinear_problems][Consider a fixed-point solver]]
+* Finish merging 'fixed_point' branch and delete
+  I think the difference is now just the appendix in [[file:notes/notes.tex]]
+
+* [[https://en.m.wikipedia.org/wiki/Crank%E2%80%93Nicolson_method#Crank%E2%80%93Nicolson_for_nonlinear_problems][Try the fixed-point solver]]
+
+** Consider adding the alpha parameter so that
+   phi_{i+1} = alpha * phi_i + (1 - alpha) f(phi_i)
+
+* Consider log transforming in all solvers
 
 * What about dropping the E state?
 
