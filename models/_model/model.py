@@ -3,6 +3,7 @@
 import abc
 import functools
 
+import numpy
 import pandas
 
 from . import _equilibrium, _limit_cycle
@@ -179,3 +180,33 @@ class Model(Population, metaclass=abc.ABCMeta):
         '''Get the characteristic exponents.'''
         return _limit_cycle.characteristic_exponents(self, lcy, k=k,
                                                      display=display)
+
+    def find_limit_set(self, t_0, y_guess, **kws):
+        '''Find a limit set of the model.'''
+        period = self.parameters.birth.period
+        if period is None:  # pylint: disable=no-else-return
+            return self.find_equilibrium(y_guess, t_0, **kws)
+        else:
+            return self.find_limit_cycle(period, t_0, y_guess,
+                                         solution=True, **kws)
+
+    def get_exponents(self, limit_set, **kws):
+        '''Get the exponents on `limit_set`.'''
+        if limit_set.ndim == 1:  # pylint: disable=no-else-return
+            return self.get_eigenvalues(limit_set, **kws)
+        elif limit_set.ndim == 2:
+            return self.get_characteristic_exponents(limit_set, **kws)
+        else:
+            raise ValueError(f'Unknown {limit_set.ndim=}!')
+
+    def get_multipliers(self, limit_set, **kws):
+        '''Get the multipliers on `limit_set`.'''
+        if limit_set.ndim == 1:  # pylint: disable=no-else-return
+            # Implicit period = 1.
+            return numpy.exp(
+                self.get_eigenvalues(limit_set, **kws)
+            )
+        elif limit_set.ndim == 2:
+            return self.get_characteristic_multipliers(limit_set, **kws)
+        else:
+            raise ValueError(f'Unknown {limit_set.ndim=}!')

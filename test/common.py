@@ -53,15 +53,8 @@ class TestModel(metaclass=abc.ABCMeta):
         '''Limit set.'''
         if isinstance(solution, Exception):
             return None
-        if birth_rate_constant:
-            fcn = model.find_equilibrium
-        else:
-            period = model.parameters.period
-            fcn = functools.partial(model.find_limit_cycle,
-                                    period, self.t_end % period)
-        guess = solution.loc[self.t_end]
         try:
-            return fcn(guess)
+            return model.find_limit_set(self.t_end, solution.loc[self.t_end])
         except Exception as exception:
             return exception
 
@@ -70,12 +63,8 @@ class TestModel(metaclass=abc.ABCMeta):
         '''Exponents on the limit set.'''
         if isinstance(limit_set, Exception) or (limit_set is None):
             return None
-        if birth_rate_constant:
-            fcn = model.get_eigenvalues
-        else:
-            fcn = model.get_characteristic_exponents
         try:
-            return fcn(limit_set)
+            return model.get_exponents(limit_set)
         except Exception as exception:
             return exception
 

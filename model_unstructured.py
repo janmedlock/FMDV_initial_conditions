@@ -3,6 +3,7 @@
 periodic birth rate.'''
 
 import collections
+import types
 
 import matplotlib.pyplot
 import matplotlib.rcsetup
@@ -16,21 +17,14 @@ Model = models.unstructured.Model
 PLOT_STATES = ['susceptible', 'infectious', 'recovered']
 
 
-def _get_period(parameters):
-    parameters_birth_nonconstant = parameters.copy()
-    try:
-        del parameters_birth_nonconstant['birth_variation']
-    except KeyError:
-        pass
-    return models.parameters.Parameters(**parameters_birth_nonconstant) \
-                            .birth_period
+_EMPTY = types.MappingProxyType({})
 
 
 def run_sat(SAT, birth_constant,
             t_start=0, t_end=20,
-            plot_solution=True, plot_solution_kwds={},
-            plot_limit_set=True, plot_limit_set_kwds={},
-            plot_multipliers=True, plot_multipliers_kwds={}):
+            plot_solution=True, plot_solution_kwds=_EMPTY,
+            plot_limit_set=True, plot_limit_set_kwds=_EMPTY,
+            plot_multipliers=True, plot_multipliers_kwds=_EMPTY):
     '''Run one SAT.'''
     parameters = {
         'SAT': SAT,
@@ -38,29 +32,31 @@ def run_sat(SAT, birth_constant,
     if birth_constant:
         parameters['birth_variation'] = 0
     model = Model(**parameters)
-    period = _get_period(parameters)
-    solution = model.solve((t_start, t_end))
+    try:
+        solution = model.solve((t_start, t_end))
+    except Exception as exc:
+        print(exc)
+        return
     if plot_solution:
         if callable(plot_solution_kwds):
             plot_solution_kwds = plot_solution_kwds(SAT, birth_constant)
         models.plotting.solution(solution,
                                  **plot_solution_kwds)
-    if birth_constant:
-        limit_set = model.find_equilibrium(solution.loc[t_end])
-    else:
-        limit_set = model.find_limit_cycle(period,
-                                           t_end % period,
-                                           solution.loc[t_end])
+    try:
+        limit_set = model.find_limit_set(t_end, solution.loc[t_end])
+    except Exception as exc:
+        print(exc)
+        return
     if plot_limit_set:
         if callable(plot_limit_set_kwds):
             plot_limit_set_kwds = plot_limit_set_kwds(SAT, birth_constant)
         models.plotting.state(limit_set,
                               **plot_limit_set_kwds)
-    if birth_constant:
-        exponents = model.get_eigenvalues(limit_set)
-        multipliers = numpy.exp(exponents * period)
-    else:
-        multipliers = model.get_characteristic_multipliers(limit_set)
+    try:
+        multipliers = model.get_multipliers(limit_set)
+    except Exception as exc:
+        print(exc)
+        return
     if plot_multipliers:
         if callable(plot_multipliers_kwds):
             plot_multipliers_kwds = plot_multipliers_kwds(SAT, birth_constant)
