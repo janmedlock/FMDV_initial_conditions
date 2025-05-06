@@ -3,9 +3,23 @@
 
 
 import abc
-import functools
 
 import pytest
+import pytest_dependency
+
+
+def _is_exception(obj):
+    return isinstance(obj, Exception)
+
+
+def _raise_if_exception(obj):
+    if _is_exception(obj):
+        raise obj
+
+
+def _with_params(*params):
+    '''Format parameters for `pytest_dependency.depends()`.'''
+    return f'[{"-".join(map(str, params))}]' if len(params) > 0 else ''
 
 
 class TestModel(metaclass=abc.ABCMeta):
@@ -49,39 +63,44 @@ class TestModel(metaclass=abc.ABCMeta):
             return exception
 
     @pytest.fixture(scope='class')
-    def limit_set(self, birth_rate_constant, model, solution):
+    def limit_set(self, model, solution):
         '''Limit set.'''
-        if isinstance(solution, Exception):
-            return None
         try:
+            assert not _is_exception(solution)
             return model.find_limit_set(self.t_end, solution.loc[self.t_end])
         except Exception as exception:
             return exception
 
     @pytest.fixture(scope='class')
-    def exponents(self, birth_rate_constant, model, limit_set):
+    def exponents(self, model, limit_set):
         '''Exponents on the limit set.'''
-        if isinstance(limit_set, Exception) or (limit_set is None):
-            return None
         try:
+            assert not _is_exception(limit_set)
             return model.get_exponents(limit_set)
         except Exception as exception:
             return exception
 
-    def _test_arg(self, arg):
-        if arg is None:
-            pytest.skip()
-        else:
-            assert not isinstance(arg, Exception)
-
+    @pytest.mark.dependency
     def test_solution(self, solution):
         '''Test solution.'''
-        self._test_arg(solution)
+        _raise_if_exception(solution)
 
-    def test_limit_set(self, limit_set):
+    @pytest.mark.dependency
+    def test_limit_set(self, request, SAT, birth_rate_constant, limit_set):
         '''Test limit set.'''
-        self._test_arg(limit_set)
+        pytest_dependency.depends(
+            request,
+            [f'test_solution{_with_params(SAT, birth_rate_constant)}'],
+            scope='class'
+        )
+        _raise_if_exception(limit_set)
 
-    def test_exponents(self, exponents):
+    @pytest.mark.dependency
+    def test_exponents(self, request, SAT, birth_rate_constant, exponents):
         '''Test exponents.'''
-        self._test_arg(exponents)
+        pytest_dependency.depends(
+            request,
+            [f'test_limit_set{_with_params(SAT, birth_rate_constant)}'],
+            scope='class'
+        )
+        _raise_if_exception(exponents)
