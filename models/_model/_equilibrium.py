@@ -16,16 +16,22 @@ def solution_after_t_solve(model, t_0, t_solve, y_0, **kwds):
     return (t_1, y_1)
 
 
-def _objective(y_cur, solver, t, weights):
-    '''Helper for `find`.'''
+def _root_objective(y_cur, solver, t, weights):
+    '''Helper for `find(..., solver='root', ...)`.'''
     y_new = solver.step(t, y_cur)
     diff = (y_new - y_cur) * weights
     return diff
 
 
+def _fixed_point_objective(y_cur, solver, t):
+    '''Helper for `find(..., solver='fixed_point', ...)`.'''
+    y_new = solver.step(t, y_cur)
+    return y_new
+
+
 # pylint: disable-next=too-many-arguments
 def find(model, y_guess, t=0, *,
-         t_solve=0, weights=1, display=False,
+         t_solve=0, solver='root', weights=1, display=False,
          **kwds):
     '''Find an equilibrium `y` while keeping
     `weighted_sum(y, weights)` constant.'''
@@ -33,11 +39,18 @@ def find(model, y_guess, t=0, *,
     y_guess = numpy.clip(y_guess, 0, None)
     (t, y_guess) = solution_after_t_solve(model, t, t_solve, y_guess,
                                           display=display)
-    y = _utility.optimize.root(_objective, y_guess,
-                               args=(model.solver, t, weights),
-                               sparse=model.solver.sparse,
-                               display=display,
-                               **kwds)
+    if solver == 'root':
+        y = _utility.optimize.root(_root_objective, y_guess,
+                                   args=(model.solver, t, weights),
+                                   sparse=model.solver.sparse,
+                                   display=display,
+                                   **kwds)
+    elif solver == 'fixed_point':
+        y = _utility.optimize.fixed_point(_fixed_point_objective, y_guess,
+                                          args=(model.solver, t),
+                                          **kwds)
+    else:
+        raise ValueError(f'Unknown {solver=}!')
     # Scale `y` so that `weighted_sum()` is the same as for
     # `y_guess`.
     # TODO: Is this wrong? Does it scale correctly for infection?

@@ -98,6 +98,11 @@ class Population(_crank_nicolson.Mixin, metaclass=abc.ABCMeta):
             for q in self._q_vals
         })
 
+    @functools.cached_property
+    def A_hat_new(self):  # pylint: disable=invalid-name
+        r'''The matrix \hat{A}_{new}.'''
+        return self.t_step / 2 * self.F('new')
+
     # pylint: disable-next=invalid-name
     def _check_matrices(self, is_M_matrix=True):
         '''Check the solver matrices.'''
@@ -153,6 +158,7 @@ class Solver(Population, metaclass=abc.ABCMeta):
             }
         else:
             self._root_kwds = {}
+        self._fixed_point_kwds = {}
 
     @functools.cached_property
     def T(self):  # pylint: disable=invalid-name
@@ -178,25 +184,30 @@ class Solver(Population, metaclass=abc.ABCMeta):
         return self.A['new']
 
     # pylint: disable-next=invalid-name
-    def _objective(self, y_new, A_B_new, A_B_T_y_cur):
-        '''Helper for `.step()`.'''
+    def _root_objective(self, y_new, A_B_new, A_B_T_y_cur):
+        '''Helper for `.step(..., solver='root', ...)`.'''
         # pylint: disable-next=invalid-name
         A_B_T_new = self._cn_op('new',
                                 A_B_new,
                                 self.beta @ y_new * self.T['new'])
         return A_B_T_new @ y_new - A_B_T_y_cur
 
-    def step(self, t_cur, y_cur, display=False):
+    # pylint: disable-next=invalid-name
+    def _fixed_point_objective(self, y_new, A_hat_B_new, A_B_T_y_cur):
+        '''Helper for `.step(..., solver='fixed_point', ...)`.'''
+        # pylint: disable-next=invalid-name
+        A_hat_B_T_new = self._cn_op('cur',
+                                    A_hat_B_new,
+                                    self.beta @ y_new * self.T['new'])
+        return A_hat_B_T_new @ y_new + A_B_T_y_cur
+
+    def step(self, t_cur, y_cur, solver='root', display=False):
         '''Do a step.'''
         if display:
             t_new = t_cur + self.t_step
             print(f'{t_new=}')
         t_mid = t_cur + 0.5 * self.t_step
         b_mid = self.parameters.birth.rate(t_mid)
-        # pylint: disable-next=invalid-name
-        A_B_new = self._cn_op('new',
-                              self.A['new'],
-                              b_mid * self.B)
         # pylint: disable-next=invalid-name
         A_B_T_cur = self._cn_op(
             'cur',
@@ -206,10 +217,31 @@ class Solver(Population, metaclass=abc.ABCMeta):
         # pylint: disable-next=invalid-name
         A_B_T_y_cur = A_B_T_cur @ y_cur
         y_new_guess = y_cur
-        return _utility.optimize.root(self._objective, y_new_guess,
-                                      args=(A_B_new, A_B_T_y_cur),
-                                      sparse=self.sparse,
-                                      **self._root_kwds)
+        if solver == 'root':
+            # pylint: disable-next=invalid-name
+            A_B_new = self._cn_op('new',
+                                  self.A['new'],
+                                  b_mid * self.B)
+            y_new = _utility.optimize.root(self._root_objective, y_new_guess,
+                                           args=(A_B_new, A_B_T_y_cur),
+                                           sparse=self.sparse,
+                                           **self._root_kwds)
+        elif solver == 'fixed_point':
+            # pylint: disable-next=invalid-name
+            A_hat_B_new = self._cn_op('cur',
+                                      self.A_hat_new,
+                                      b_mid * self.B)
+            try:
+                y_new = _utility.optimize.fixed_point(
+                    self._fixed_point_objective, y_new_guess,
+                    args=(A_hat_B_new, A_B_T_y_cur),
+                    **self._fixed_point_kwds
+                )
+            except RuntimeError as err:
+                raise RuntimeError(f'{t_cur=:g}') from err
+        else:
+            raise ValueError(f'Unknown {solver=}!')
+        return y_new
 
     # pylint: disable-next=too-many-arguments
     def solve(self, t_span, y_0, *,

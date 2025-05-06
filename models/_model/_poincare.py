@@ -37,14 +37,22 @@ class Map:
                                              y_temp=self.y_temp,
                                              display=display)
 
-    def _objective(self, x_0_cur, weights, transform, display):
-        '''Helper for `.find_fixed_point()`.'''
+    def _root_objective(self, x_0_cur, weights, transform, display):
+        '''Helper for `.find_fixed_point(..., solver='root', ...)`.'''
         y_0_cur = transform.inverse(x_0_cur)
         y_0_new = self(y_0_cur, display=display)
         diff = (y_0_new - y_0_cur) * weights
         return diff
 
-    def find_fixed_point(self, y_0_guess, weights=1, display=False,
+    def _fixed_point_objective(self, x_0_cur, transform, display):
+        '''Helper for `.find_fixed_point(..., solver='root', ...)`.'''
+        y_0_cur = transform.inverse(x_0_cur)
+        y_0_new = self(y_0_cur, display=display)
+        x_0_new = transform(y_0_new)
+        return x_0_new
+
+    def find_fixed_point(self, y_0_guess,
+                         solver='root', weights=1, display=False,
                          **kwds):
         '''Find a fixed point `y_0` of the Poincaré map, i.e. that gives
         `y(t_0 + period) = y_0`.'''
@@ -52,11 +60,19 @@ class Map:
         transform = _transform.Logarithm(a=1e-6,
                                          weights=weights)
         x_0_guess = transform(y_0_guess)
-        x_0 = _utility.optimize.root(self._objective, x_0_guess,
-                                     args=(weights, transform, display),
-                                     sparse=self.sparse,
-                                     display=display,
-                                     **kwds)
+        if solver == 'root':
+            x_0 = _utility.optimize.root(self._root_objective, x_0_guess,
+                                         args=(weights, transform, display),
+                                         sparse=self.sparse,
+                                         display=display,
+                                         **kwds)
+        elif solver == 'fixed_point':
+            x_0 = _utility.optimize.fixed_point(self._fixed_point_objective,
+                                                x_0_guess,
+                                                args=(transform, display),
+                                                **kwds)
+        else:
+            raise ValueError(f'Unknown {solver=}!')
         y_0 = transform.inverse(x_0)
         # Scale `y_0` so that `weighted_sum()` is the same as for
         # `y_0_guess`.
