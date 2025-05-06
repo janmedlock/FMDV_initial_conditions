@@ -28,13 +28,18 @@ class Logarithm:
         self.weights = weights
 
     def __call__(self, y):
-        z = y - self.a
-        x = numpy.log(z * self.weights)
+        z = (y - self.a) * self.weights
+        try:
+            # If `z` is a `pandas.NDFrame`, this suppresses warnings
+            # from `numpy.log()`.
+            x = z.apply(numpy.log)
+        except AttributeError:
+            x = numpy.log(z)
         return x
 
     def inverse(self, x):
-        z = numpy.exp(x) / self.weights
-        y = z + self.a
+        z = numpy.exp(x)
+        y = z / self.weights + self.a
         return y
 
 
@@ -47,13 +52,13 @@ class Logit:
         self.weights = weights
 
     def __call__(self, y):
-        z = (y - self.a) / (self.b - self.a)
-        x = scipy.special.logit(z * self.weights)
+        z = (y - self.a) / (self.b - self.a) / self.weights
+        x = scipy.special.logit(z)
         return x
 
     def inverse(self, x):
-        z = scipy.special.expit(x) / self.weights
-        y = z * (self.b - self.a) + self.a
+        z = scipy.special.expit(x)
+        y = z / self.weights * (self.b - self.a) + self.a
         return y
 
 

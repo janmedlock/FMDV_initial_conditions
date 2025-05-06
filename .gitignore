@@ -12,6 +12,7 @@ __pycache__/
 *.synctex.gz
 *.pdf
 _cache/
+flycheck_*
 miscellany/limit_cycle_*.pkl
 
 ### JetBrains+all ###

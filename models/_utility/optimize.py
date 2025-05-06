@@ -26,9 +26,7 @@ def root(*args, sparse=False, display=False, **kwds):
     if method not in _METHODS_WITHOUT_DISP_OPTION:
         # Default to `options['disp'] = display`.
         kwds['options'] = {'disp': display} | kwds.get('options', {})
-    # Ignore some spurious warnings.
-    with numpy.errstate(invalid='ignore'):
-        result = scipy.optimize.root(*args, **kwds)
+    result = scipy.optimize.root(*args, **kwds)
     assert result.success, result
     return result.x
 

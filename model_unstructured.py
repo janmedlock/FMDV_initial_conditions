@@ -36,32 +36,33 @@ def run_sat(SAT, birth_constant,
         solution = model.solve((t_start, t_end))
     except Exception as exc:
         print(exc)
-        return
+        solution = model.Solution([], [])  # Dummy for plotting.
     if plot_solution:
         if callable(plot_solution_kwds):
             plot_solution_kwds = plot_solution_kwds(SAT, birth_constant)
-        models.plotting.solution(solution,
-                                 **plot_solution_kwds)
+        models.plotting.solution(solution, **plot_solution_kwds)
     try:
+        if len(solution) == 0:  # `.solve()` failed.
+            raise ValueError
         limit_set = model.find_limit_set(t_end, solution.loc[t_end])
     except Exception as exc:
         print(exc)
-        return
+        limit_set = model.Solution([], [])  # Dummy for plotting.
     if plot_limit_set:
         if callable(plot_limit_set_kwds):
             plot_limit_set_kwds = plot_limit_set_kwds(SAT, birth_constant)
-        models.plotting.state(limit_set,
-                              **plot_limit_set_kwds)
+        models.plotting.state(limit_set, **plot_limit_set_kwds)
     try:
+        if len(limit_set) == 0:  # `.find_limit_set()` failed.
+            raise ValueError
         multipliers = model.get_multipliers(limit_set)
     except Exception as exc:
         print(exc)
-        return
+        multipliers = numpy.array([])  # Dummy for plotting.
     if plot_multipliers:
         if callable(plot_multipliers_kwds):
             plot_multipliers_kwds = plot_multipliers_kwds(SAT, birth_constant)
-        models.plotting.multipliers(multipliers,
-                                    **plot_multipliers_kwds)
+        models.plotting.multipliers(multipliers, **plot_multipliers_kwds)
 
 
 def plot_solution_kwds_build(SATs, birth_constants):
