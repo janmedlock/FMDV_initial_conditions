@@ -12,7 +12,7 @@ class TestModel(metaclass=abc.ABCMeta):
     '''Base class for testing a model.'''
 
     t_start = 0
-    t_end = 10
+    t_end = 20
 
     @property
     @abc.abstractmethod
@@ -20,14 +20,12 @@ class TestModel(metaclass=abc.ABCMeta):
         '''The model class to test.'''
         raise NotImplementedError
 
-    @pytest.fixture(params=[1, 2, 3],
-                    scope='class')
+    @pytest.fixture(params=[1, 2, 3], scope='class')
     def SAT(self, request):
         '''`SAT`.'''
         return request.param
 
-    @pytest.fixture(params=[True, False],
-                    scope='class')
+    @pytest.fixture(params=[True, False], scope='class')
     def birth_rate_constant(self, request):
         '''Whether `birth_rate` is constant.'''
         return request.param
@@ -50,10 +48,6 @@ class TestModel(metaclass=abc.ABCMeta):
         except Exception as exception:
             return exception
 
-    def test_solution(self, solution):
-        '''Test solution.'''
-        assert not isinstance(solution, Exception)
-
     @pytest.fixture(scope='class')
     def limit_set(self, birth_rate_constant, model, solution):
         '''Limit set.'''
@@ -71,12 +65,6 @@ class TestModel(metaclass=abc.ABCMeta):
         except Exception as exception:
             return exception
 
-    def test_limit_set(self, limit_set):
-        '''Test limit set.'''
-        if limit_set is None:
-            pytest.skip()
-        assert not isinstance(limit_set, Exception)
-
     @pytest.fixture(scope='class')
     def exponents(self, birth_rate_constant, model, limit_set):
         '''Exponents on the limit set.'''
@@ -91,8 +79,20 @@ class TestModel(metaclass=abc.ABCMeta):
         except Exception as exception:
             return exception
 
+    def _test_arg(self, arg):
+        if arg is None:
+            pytest.skip()
+        else:
+            assert not isinstance(arg, Exception)
+
+    def test_solution(self, solution):
+        '''Test solution.'''
+        self._test_arg(solution)
+
+    def test_limit_set(self, limit_set):
+        '''Test limit set.'''
+        self._test_arg(limit_set)
+
     def test_exponents(self, exponents):
         '''Test exponents.'''
-        if exponents is None:
-            pytest.skip()
-        assert not isinstance(exponents, Exception)
+        self._test_arg(exponents)
