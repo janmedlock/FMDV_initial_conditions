@@ -42,8 +42,8 @@ def run_sat(SAT, birth_constant,
             plot_solution_kwds = plot_solution_kwds(SAT, birth_constant)
         models.plotting.solution(solution, **plot_solution_kwds)
     try:
-        if len(solution) == 0:  # `.solve()` failed.
-            raise ValueError
+        if len(solution) == 0:
+            raise ValueError('`.solve()` failed.')
         limit_set = model.find_limit_set(t_end, solution.loc[t_end])
     except Exception as exc:
         print(exc)
@@ -53,8 +53,8 @@ def run_sat(SAT, birth_constant,
             plot_limit_set_kwds = plot_limit_set_kwds(SAT, birth_constant)
         models.plotting.state(limit_set, **plot_limit_set_kwds)
     try:
-        if len(limit_set) == 0:  # `.find_limit_set()` failed.
-            raise ValueError
+        if len(limit_set) == 0:
+            raise ValueError('`.find_limit_set()` failed.')
         multipliers = model.get_multipliers(limit_set)
     except Exception as exc:
         print(exc)
@@ -104,6 +104,7 @@ def plot_limit_set_kwds_build(SATs, birth_constants):
             'linestyle': 'none',
         },
         False: {
+            'linestyle': 'solid',
             'marker': 'none',
         },
     }
@@ -156,19 +157,41 @@ def plot_multipliers_kwds_build(SATs, birth_constants):
     return plot_multipliers_kwds
 
 
+def run_sat_kwds_build(SATs, birth_constants,
+                       plot_solution=True,
+                       plot_limit_set=True,
+                       plot_multipliers=True):
+    run_sat_kwds = {
+        'plot_solution': plot_solution,
+        'plot_limit_set': plot_limit_set,
+        'plot_multipliers': plot_multipliers,
+    }
+    if plot_solution:
+        run_sat_kwds['plot_solution_kwds'] = plot_solution_kwds_build(
+            SATs, birth_constants
+        )
+    if plot_limit_set:
+        run_sat_kwds['plot_limit_set_kwds'] = plot_limit_set_kwds_build(
+            SATs, birth_constants
+        )
+    if plot_multipliers:
+        run_sat_kwds['plot_multipliers_kwds'] = plot_multipliers_kwds_build(
+            SATs, birth_constants
+        )
+    return run_sat_kwds
+
+
+def run(SATs, birth_constants, show=True, **kwds):
+    run_sat_kwds = run_sat_kwds_build(SATs, birth_constants, **kwds)
+    for SAT in SATs:
+        for birth_constant in birth_constants:
+            run_sat(SAT, birth_constant, **run_sat_kwds)
+    if show:
+        matplotlib.pyplot.show()
+
+
 if __name__ == '__main__':
     SATs = (1, 2, 3)
     birth_constants = (True, False)
 
-    plot_solution_kwds = plot_solution_kwds_build(SATs, birth_constants)
-    plot_limit_set_kwds = plot_limit_set_kwds_build(SATs, birth_constants)
-    plot_multipliers_kwds = plot_multipliers_kwds_build(SATs, birth_constants)
-
-    for SAT in SATs:
-        for birth_constant in birth_constants:
-            run_sat(SAT, birth_constant,
-                    plot_solution_kwds=plot_solution_kwds,
-                    plot_limit_set_kwds=plot_limit_set_kwds,
-                    plot_multipliers_kwds=plot_multipliers_kwds)
-
-    matplotlib.pyplot.show()
+    run(SATs, birth_constants)

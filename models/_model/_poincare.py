@@ -56,8 +56,7 @@ class Map:
                          **kwds):
         '''Find a fixed point `y_0` of the Poincaré map, i.e. that gives
         `y(t_0 + period) = y_0`.'''
-        # TODO: a=0?
-        transform = _transform.Logarithm(a=1e-6,
+        transform = _transform.Logarithm(a=0,
                                          weights=weights)
         x_0_guess = transform(y_0_guess)
         if solver == 'root':
