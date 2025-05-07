@@ -1,13 +1,8 @@
-* There are TODOs to try to get the solvers working in
-  [[file:models/_model/_equilibrium.py]]
-  [[file:models/_model/_poincare.py]]
-  [[file:miscellany/model_birth_ppl.py]]
+* Consider Simplex transforming the step solvers
 
 * [[https://en.m.wikipedia.org/wiki/Crank%E2%80%93Nicolson_method#Crank%E2%80%93Nicolson_for_nonlinear_problems][Try the fixed-point solver]]
   * Consider adding the alpha parameter to solve
     phi = alpha * phi + (1 - alpha) * f(phi)
-
-* Consider log transforming in all solvers
 
 * What about dropping the E state?
 
@@ -15,6 +10,7 @@
 
 * Unstructured model
   * Finding limit cycles isn't working for the piecewise-linear birth rate
+    [[file:miscellany/model_birth_ppl.py]]
 
 * Time-since-infection-structured model
   * Limit-cycle solver doesn't work for SAT2 & SAT3

@@ -3,6 +3,7 @@
 import numpy
 
 from .. import _utility
+from .._utility import _transform
 
 
 def solution_after_t_solve(model, t_0, t_solve, y_0, **kwds):
@@ -16,17 +17,20 @@ def solution_after_t_solve(model, t_0, t_solve, y_0, **kwds):
     return (t_1, y_1)
 
 
-def _root_objective(y_cur, solver, t, weights):
+def _root_objective(x_cur, t, solver, transform):
     '''Helper for `find(..., solver='root', ...)`.'''
+    y_cur = transform.inverse(x_cur)
     y_new = solver.step(t, y_cur)
-    diff = (y_new - y_cur) * weights
-    return diff
+    x_new = transform(y_new)
+    return x_new - x_cur
 
 
-def _fixed_point_objective(y_cur, solver, t):
+def _fixed_point_objective(x_cur, t, solver, transform):
     '''Helper for `find(..., solver='fixed_point', ...)`.'''
+    y_cur = transform.inverse(x_cur)
     y_new = solver.step(t, y_cur)
-    return y_new
+    x_new = transform(y_new)
+    return x_new
 
 
 # pylint: disable-next=too-many-arguments
@@ -39,23 +43,27 @@ def find(model, y_guess, t=0, *,
     y_guess = numpy.clip(y_guess, 0, None)
     (t, y_guess) = solution_after_t_solve(model, t, t_solve, y_guess,
                                           display=display)
+    total = _utility.numerical.weighted_sum(y_guess, weights)
+    weights_total = weights / total
+    transform = _transform.Simplex(weights=weights_total)
+    x_guess = transform(y_guess)
     if solver == 'root':
-        y = _utility.optimize.root(_root_objective, y_guess,
-                                   args=(model.solver, t, weights),
+        x = _utility.optimize.root(_root_objective, x_guess,
+                                   args=(t, model.solver, transform),
                                    sparse=model.solver.sparse,
                                    display=display,
                                    **kwds)
     elif solver == 'fixed_point':
-        y = _utility.optimize.fixed_point(_fixed_point_objective, y_guess,
-                                          args=(model.solver, t),
+        x = _utility.optimize.fixed_point(_fixed_point_objective, x_guess,
+                                          args=(t, model.solver, transform),
                                           **kwds)
     else:
         raise ValueError(f'Unknown {solver=}!')
-    # Scale `y` so that `weighted_sum()` is the same as for
-    # `y_guess`.
-    # TODO: Is this wrong? Does it scale correctly for infection?
-    y *= (_utility.numerical.weighted_sum(y_guess, weights)
-          / _utility.numerical.weighted_sum(y, weights))
+    y = transform.inverse(x)
+    assert numpy.isclose(
+        _utility.numerical.weighted_sum(y, weights),
+        total
+    )
     return y
 
 

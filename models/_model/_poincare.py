@@ -37,12 +37,12 @@ class Map:
                                              y_temp=self.y_temp,
                                              display=display)
 
-    def _root_objective(self, x_0_cur, weights, transform, display):
+    def _root_objective(self, x_0_cur, transform, display):
         '''Helper for `.find_fixed_point(..., solver='root', ...)`.'''
         y_0_cur = transform.inverse(x_0_cur)
         y_0_new = self(y_0_cur, display=display)
-        diff = (y_0_new - y_0_cur) * weights
-        return diff
+        x_0_new = transform(y_0_new)
+        return x_0_new - x_0_cur
 
     def _fixed_point_objective(self, x_0_cur, transform, display):
         '''Helper for `.find_fixed_point(..., solver='root', ...)`.'''
@@ -56,12 +56,13 @@ class Map:
                          **kwds):
         '''Find a fixed point `y_0` of the Poincaré map, i.e. that gives
         `y(t_0 + period) = y_0`.'''
-        transform = _transform.Logarithm(a=0,
-                                         weights=weights)
+        total = _utility.numerical.weighted_sum(y_0_guess, weights)
+        weights_total = weights / total
+        transform = _transform.Simplex(weights=weights_total)
         x_0_guess = transform(y_0_guess)
         if solver == 'root':
             x_0 = _utility.optimize.root(self._root_objective, x_0_guess,
-                                         args=(weights, transform, display),
+                                         args=(transform, display),
                                          sparse=self.sparse,
                                          display=display,
                                          **kwds)
@@ -73,9 +74,8 @@ class Map:
         else:
             raise ValueError(f'Unknown {solver=}!')
         y_0 = transform.inverse(x_0)
-        # Scale `y_0` so that `weighted_sum()` is the same as for
-        # `y_0_guess`.
-        # TODO: Is this wrong? Does it scale correctly for infection?
-        y_0 *= (_utility.numerical.weighted_sum(y_0_guess, weights)
-                / _utility.numerical.weighted_sum(y_0, weights))
+        assert numpy.isclose(
+            _utility.numerical.weighted_sum(y_0, weights),
+            total
+        )
         return y_0
