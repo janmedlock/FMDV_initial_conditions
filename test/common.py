@@ -34,25 +34,22 @@ class TestModel(metaclass=abc.ABCMeta):
         '''The model class to test.'''
         raise NotImplementedError
 
-    @pytest.fixture(params=[1, 2, 3], scope='class')
+    @pytest.fixture(params=[1, 2, 3],
+                    scope='class')
     def SAT(self, request):
         '''`SAT`.'''
         return request.param
 
-    @pytest.fixture(params=[True, False], scope='class')
-    def birth_rate_constant(self, request):
-        '''Whether `birth_rate` is constant.'''
+    @pytest.fixture(params=['constant', 'sinusoidal', 'piecewise_linear'],
+                    scope='class')
+    def birth_shape(self, request):
+        '''`birth_shape`.'''
         return request.param
 
     @pytest.fixture(scope='class')
-    def model(self, SAT, birth_rate_constant):
+    def model(self, SAT, birth_shape):
         '''Model instance.'''
-        parameters = {
-            'SAT': SAT,
-        }
-        if birth_rate_constant:
-            parameters['birth_variation'] = 0
-        return self.Model(**parameters)
+        return self.Model(SAT=SAT, birth_shape=birth_shape)
 
     @pytest.fixture(scope='class')
     def solution(self, model):
@@ -86,21 +83,21 @@ class TestModel(metaclass=abc.ABCMeta):
         _raise_if_exception(solution)
 
     @pytest.mark.dependency
-    def test_limit_set(self, request, SAT, birth_rate_constant, limit_set):
+    def test_limit_set(self, request, SAT, birth_shape, limit_set):
         '''Test limit set.'''
         pytest_dependency.depends(
             request,
-            [f'test_solution{_with_params(SAT, birth_rate_constant)}'],
+            [f'test_solution{_with_params(SAT, birth_shape)}'],
             scope='class'
         )
         _raise_if_exception(limit_set)
 
     @pytest.mark.dependency
-    def test_exponents(self, request, SAT, birth_rate_constant, exponents):
+    def test_exponents(self, request, SAT, birth_shape, exponents):
         '''Test exponents.'''
         pytest_dependency.depends(
             request,
-            [f'test_limit_set{_with_params(SAT, birth_rate_constant)}'],
+            [f'test_limit_set{_with_params(SAT, birth_shape)}'],
             scope='class'
         )
         _raise_if_exception(exponents)

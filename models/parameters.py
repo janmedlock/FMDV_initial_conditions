@@ -37,6 +37,7 @@ class _Parameters(_MappingMixin):
     # Not handled by `dataclasses.dataclass()`.
     birth_period = 1                         # years
 
+    birth_shape: str = 'sinusoidal'
     birth_variation: float = 0.613          # unitless
     birth_age_menarche: float = 4           # years
     birth_age_menopause: float = numpy.inf  # years

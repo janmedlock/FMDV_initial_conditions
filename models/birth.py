@@ -9,6 +9,12 @@ import numpy
 class _Birth(metaclass=abc.ABCMeta):
     '''Base for births.'''
 
+    @property
+    @abc.abstractmethod
+    def shape(self):
+        '''Shape name.'''
+        raise NotImplementedError
+
     @abc.abstractmethod
     def _rate(self, t):
         '''Birth rate before scaling by `self.mean`.'''
@@ -75,6 +81,8 @@ class _Birth(metaclass=abc.ABCMeta):
 class BirthConstant(_Birth):
     '''Constant birth rate.'''
 
+    shape = 'constant'
+
     def __init__(self, parameters):
         self.period = None
         super().__init__(parameters)
@@ -112,6 +120,8 @@ class _BirthPeriodic(_Birth):
 class BirthSinusoidal(_BirthPeriodic):
     '''Sinusoidal birth rate.'''
 
+    shape = 'sinusoidal'
+
     @functools.cached_property
     def _amplitude(self):
         '''Birth-rate amplitude before scaling by `self.mean`.'''
@@ -135,8 +145,10 @@ class BirthSinusoidal(_BirthPeriodic):
         return 1 - self._amplitude
 
 
-class BirthPeriodicPiecewiseLinear(_BirthPeriodic):
+class BirthPiecewiseLinear(_BirthPeriodic):
     '''Piecewise-linear birth rate.'''
+
+    shape = 'piecewise_linear'
 
     # This is the threshold above which the rate is 0 for some times.
     _variation_threshold = 1 / numpy.sqrt(3)
@@ -169,11 +181,21 @@ class BirthPeriodicPiecewiseLinear(_BirthPeriodic):
         return self._rate_max * numpy.clip(val, 0, None)
 
 
-BirthPeriodic = BirthSinusoidal
+def _subclasses(cls):
+    yield cls
+    for sub in cls.__subclasses__():
+        yield from _subclasses(sub)
 
 
 def Birth(parameters):  # pylint: disable=invalid-name
     '''Factory function for birth.'''
     if parameters.birth_variation == 0:
-        return BirthConstant(parameters)
-    return BirthPeriodic(parameters)
+        parameters.birth_shape = 'constant'
+    elif parameters.birth_shape == 'constant':
+        parameters.birth_variation = 0
+    for cls in _subclasses(_Birth):
+        if cls.shape == parameters.birth_shape:
+            break
+    else:
+        raise ValueError(f'Unknown {parameters.birth_shape=}!')
+    return cls(parameters)
