@@ -1,16 +1,8 @@
-* Consider Simplex transforming the step solvers
+* Consider simplex-transforming the step solvers
 
 * [[https://en.m.wikipedia.org/wiki/Crank%E2%80%93Nicolson_method#Crank%E2%80%93Nicolson_for_nonlinear_problems][Try the fixed-point solver]]
   * Consider adding the alpha parameter to solve
     phi = alpha * phi + (1 - alpha) * f(phi)
-
-* What about dropping the E state?
-
-* What about making $a$ and $z$ finite and working with b.c.?
-
-* Unstructured model
-  * Finding limit cycles isn't working for the piecewise-linear birth rate
-    [[file:miscellany/model_birth_ppl.py]]
 
 * Time-since-infection-structured model
   * Limit-cycle solver doesn't work for SAT2 & SAT3
@@ -34,6 +26,10 @@
 
 * Can I find a limit-cycle of say period 6 then see if it is actually
   period 1, 2, or 3?
+
+* What about dropping the E state?
+
+* What about making $a$ and $z$ finite and working with b.c.?
 
 * Joel Miller suggested using survivals for the compartments with time
   since entry. I don't see that this helps because now you can no
