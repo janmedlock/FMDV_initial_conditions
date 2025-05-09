@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-'''Test the solver matrices.'''
+'''Check the solver matrices.'''
 
 import numpy
 import scipy.sparse
@@ -7,11 +7,11 @@ import scipy.sparse
 from context import models
 from models import _utility
 
-import solver_test
+import solver_check
 
 
-class Tester(solver_test.Tester):
-    '''Test the time-since-entry-structured solver.'''
+class Checker(solver_check.Checker):
+    '''Check the time-since-entry-structured solver.'''
 
     @property
     def K(self):
@@ -87,10 +87,10 @@ class Tester(solver_test.Tester):
     def B(self):
         b_Xy = self.iota
         b_XX = [[1]]
-        Zeros_yw = solver_test.Zeros((self.K, self.K))
-        zeros_yX = solver_test.Zeros((self.K, 1))
-        zeros_Xy = solver_test.Zeros((1, self.K))
-        zeros_XW = solver_test.Zeros((1, 1))
+        Zeros_yw = solver_check.Zeros((self.K, self.K))
+        zeros_yX = solver_check.Zeros((self.K, 1))
+        zeros_Xy = solver_check.Zeros((1, self.K))
+        zeros_XW = solver_check.Zeros((1, 1))
         return scipy.sparse.bmat([
             [zeros_XW, zeros_XW, zeros_Xy, zeros_Xy, b_XX],
             [b_XX, b_XX, b_Xy, b_Xy, zeros_XW],
@@ -100,8 +100,8 @@ class Tester(solver_test.Tester):
         ])
 
     def beta(self):
-        zeros_X = solver_test.Zeros((1, 1))
-        zeros_y = solver_test.Zeros((1, self.K))
+        zeros_X = solver_check.Zeros((1, 1))
+        zeros_y = solver_check.Zeros((1, self.K))
         return (self.model.parameters.transmission.rate
                 * scipy.sparse.hstack(
                     [zeros_X, zeros_X, zeros_y, self.iota, zeros_X]
@@ -111,10 +111,10 @@ class Tester(solver_test.Tester):
         # `T` is independent of `q`.
         t_XX = numpy.array([[1]])
         t_yX = self.zeta
-        Zeros_yw = solver_test.Zeros((self.K, self.K))
-        zeros_yX = solver_test.Zeros((self.K, 1))
-        zeros_Xy = solver_test.Zeros((1, self.K))
-        zeros_XW = solver_test.Zeros((1, 1))
+        Zeros_yw = solver_check.Zeros((self.K, self.K))
+        zeros_yX = solver_check.Zeros((self.K, 1))
+        zeros_Xy = solver_check.Zeros((1, self.K))
+        zeros_XW = solver_check.Zeros((1, 1))
         return scipy.sparse.bmat([
             [zeros_XW, zeros_XW, zeros_Xy, zeros_Xy, zeros_XW],
             [zeros_XW, - t_XX, zeros_Xy, zeros_Xy, zeros_XW],
@@ -126,5 +126,5 @@ class Tester(solver_test.Tester):
 
 if __name__ == '__main__':
     model = models.time_since_entry_structured.Model()
-    tester = Tester(model)
-    tester.test()
+    checker = Checker(model)
+    checker.check()

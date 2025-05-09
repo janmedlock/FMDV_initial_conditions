@@ -16,6 +16,10 @@
   * Change parameters so that I can solve with larger time steps
     * It will take around a week to solve for 10 years at t_step=0.001
 
+* Convert tests in miscellany
+  Many of the files in miscellany run tests. Consider converting them
+  to run with pytest.
+
 * Bootstrap equilibria & limit cycles from simpler models
   * Equilibria
     * time-since-infection & age -> combination

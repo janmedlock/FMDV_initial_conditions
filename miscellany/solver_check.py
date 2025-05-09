@@ -14,8 +14,8 @@ def Zeros(shape):
     return SparseArray(shape)
 
 
-class Tester:
-    '''Base tester for solver matrices.'''
+class Checker:
+    '''Base checker for solver matrices.'''
 
     def __init__(self, model):
         self.model = model
@@ -49,16 +49,16 @@ class Tester:
             raise ValueError(f'{q=}')
         return A_
 
-    def test(self):
+    def check(self):
         solver = self.model.solver
         names = ('A', 'B', 'beta', 'T')
         for name in names:
             matrix = getattr(solver, name)
-            test_fcn = getattr(self, name)
+            checker = getattr(self, name)
             if isinstance(matrix, dict):
                 for q in ('new', 'cur'):
                     assert _utility.sparse.equals(matrix[q],
-                                                  test_fcn(q))
+                                                  checker(q))
             else:
                 assert _utility.sparse.equals(matrix,
-                                              test_fcn())
+                                              checker())

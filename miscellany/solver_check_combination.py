@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-'''Test the solver matrices.'''
+'''Check the solver matrices.'''
 
 import numpy
 import scipy.sparse
@@ -7,11 +7,11 @@ import scipy.sparse
 from context import models
 from models import _utility
 
-import solver_test
+import solver_check
 
 
-class Tester(solver_test.Tester):
-    '''Test the age– and time-since-entry–structured solver.'''
+class Checker(solver_check.Checker):
+    '''Check the age– and time-since-entry–structured solver.'''
 
     @property
     def J(self):
@@ -146,10 +146,10 @@ class Tester(solver_test.Tester):
     def B(self):
         B_XW = self.zeta_a @ self.tau_a
         B_Xy = self.zeta_a @ scipy.sparse.kron(self.tau_a, self.iota_z)
-        Zeros_yw = solver_test.Zeros((self.J * self.K, self.J * self.K))
-        Zeros_yX = solver_test.Zeros((self.J * self.K, self.J))
-        Zeros_Xy = solver_test.Zeros((self.J, self.J * self.K))
-        Zeros_XW = solver_test.Zeros((self.J, self.J))
+        Zeros_yw = solver_check.Zeros((self.J * self.K, self.J * self.K))
+        Zeros_yX = solver_check.Zeros((self.J * self.K, self.J))
+        Zeros_Xy = solver_check.Zeros((self.J, self.J * self.K))
+        Zeros_XW = solver_check.Zeros((self.J, self.J))
         return scipy.sparse.bmat([
             [Zeros_XW, Zeros_XW, Zeros_Xy, Zeros_Xy, B_XW],
             [B_XW,     B_XW,     B_Xy,     B_Xy,     Zeros_XW],
@@ -160,8 +160,8 @@ class Tester(solver_test.Tester):
 
     def beta(self):
         iota_y = scipy.sparse.kron(self.iota_a, self.iota_z)
-        zeros_X = solver_test.Zeros((1, self.J))
-        zeros_y = solver_test.Zeros((1, self.J * self.K))
+        zeros_X = solver_check.Zeros((1, self.J))
+        zeros_y = solver_check.Zeros((1, self.J * self.K))
         return (self.model.parameters.transmission.rate
                 * scipy.sparse.hstack(
                     [zeros_X, zeros_X, zeros_y, iota_y, zeros_X]
@@ -171,10 +171,10 @@ class Tester(solver_test.Tester):
         T_a = self.H_a(q)
         T_XX = T_a
         T_yX = scipy.sparse.kron(T_a, self.zeta_z)
-        Zeros_yw = solver_test.Zeros((self.J * self.K, self.J * self.K))
-        Zeros_yX = solver_test.Zeros((self.J * self.K, self.J))
-        Zeros_Xy = solver_test.Zeros((self.J, self.J * self.K))
-        Zeros_XW = solver_test.Zeros((self.J, self.J))
+        Zeros_yw = solver_check.Zeros((self.J * self.K, self.J * self.K))
+        Zeros_yX = solver_check.Zeros((self.J * self.K, self.J))
+        Zeros_Xy = solver_check.Zeros((self.J, self.J * self.K))
+        Zeros_XW = solver_check.Zeros((self.J, self.J))
         return scipy.sparse.bmat([
             [Zeros_XW, Zeros_XW, Zeros_Xy, Zeros_Xy, Zeros_XW],
             [Zeros_XW, - T_XX,   Zeros_Xy, Zeros_Xy, Zeros_XW],
@@ -186,5 +186,5 @@ class Tester(solver_test.Tester):
 
 if __name__ == '__main__':
     model = models.combination.Model()
-    tester = Tester(model)
-    tester.test()
+    checker = Checker(model)
+    checker.check()

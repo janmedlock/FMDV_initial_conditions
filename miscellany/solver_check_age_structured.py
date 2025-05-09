@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+'''Check the solver matrices.'''
 
 import numpy
 import scipy.sparse
@@ -6,11 +7,11 @@ import scipy.sparse
 from context import models
 from models import _utility
 
-import solver_test
+import solver_check
 
 
-class Tester(solver_test.Tester):
-    '''Test the age-structured solver.'''
+class Checker(solver_check.Checker):
+    '''Check the age-structured solver.'''
 
     @property
     def J(self):
@@ -79,7 +80,7 @@ class Tester(solver_test.Tester):
 
     def B(self):
         B_XW = self.zeta @ self.tau
-        Zeros = solver_test.Zeros((self.J, self.J))
+        Zeros = solver_check.Zeros((self.J, self.J))
         return scipy.sparse.bmat([
             [Zeros, Zeros, Zeros, Zeros, B_XW],
             [B_XW, B_XW, B_XW, B_XW, Zeros],
@@ -89,7 +90,7 @@ class Tester(solver_test.Tester):
         ])
 
     def beta(self):
-        zeros = solver_test.Zeros((1, self.J))
+        zeros = solver_check.Zeros((1, self.J))
         return (self.model.parameters.transmission.rate
                 * scipy.sparse.hstack(
                     [zeros, zeros, zeros, self.iota, zeros]
@@ -97,7 +98,7 @@ class Tester(solver_test.Tester):
 
     def T(self, q):
         T_XW = self.H_XX(q)
-        Zeros = solver_test.Zeros((self.J, self.J))
+        Zeros = solver_check.Zeros((self.J, self.J))
         return scipy.sparse.bmat([
             [Zeros, Zeros, Zeros, Zeros, Zeros],
             [Zeros, - T_XW, Zeros, Zeros, Zeros],
@@ -109,5 +110,5 @@ class Tester(solver_test.Tester):
 
 if __name__ == '__main__':
     model = models.age_structured.Model()
-    tester = Tester(model)
-    tester.test()
+    checker = Checker(model)
+    checker.check()
