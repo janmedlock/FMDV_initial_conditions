@@ -7,10 +7,10 @@ import scipy.sparse
 from context import models
 from models import _utility
 
-import solver_check
+import check_solver
 
 
-class Checker(solver_check.Checker):
+class Checker(check_solver.Checker):
     '''Check the time-since-entry-structured solver.'''
 
     @property
@@ -87,10 +87,10 @@ class Checker(solver_check.Checker):
     def B(self):
         b_Xy = self.iota
         b_XX = [[1]]
-        Zeros_yw = solver_check.Zeros((self.K, self.K))
-        zeros_yX = solver_check.Zeros((self.K, 1))
-        zeros_Xy = solver_check.Zeros((1, self.K))
-        zeros_XW = solver_check.Zeros((1, 1))
+        Zeros_yw = check_solver.Zeros((self.K, self.K))
+        zeros_yX = check_solver.Zeros((self.K, 1))
+        zeros_Xy = check_solver.Zeros((1, self.K))
+        zeros_XW = check_solver.Zeros((1, 1))
         return scipy.sparse.bmat([
             [zeros_XW, zeros_XW, zeros_Xy, zeros_Xy, b_XX],
             [b_XX, b_XX, b_Xy, b_Xy, zeros_XW],
@@ -100,8 +100,8 @@ class Checker(solver_check.Checker):
         ])
 
     def beta(self):
-        zeros_X = solver_check.Zeros((1, 1))
-        zeros_y = solver_check.Zeros((1, self.K))
+        zeros_X = check_solver.Zeros((1, 1))
+        zeros_y = check_solver.Zeros((1, self.K))
         return (self.model.parameters.transmission.rate
                 * scipy.sparse.hstack(
                     [zeros_X, zeros_X, zeros_y, self.iota, zeros_X]
@@ -111,10 +111,10 @@ class Checker(solver_check.Checker):
         # `T` is independent of `q`.
         t_XX = numpy.array([[1]])
         t_yX = self.zeta
-        Zeros_yw = solver_check.Zeros((self.K, self.K))
-        zeros_yX = solver_check.Zeros((self.K, 1))
-        zeros_Xy = solver_check.Zeros((1, self.K))
-        zeros_XW = solver_check.Zeros((1, 1))
+        Zeros_yw = check_solver.Zeros((self.K, self.K))
+        zeros_yX = check_solver.Zeros((self.K, 1))
+        zeros_Xy = check_solver.Zeros((1, self.K))
+        zeros_XW = check_solver.Zeros((1, 1))
         return scipy.sparse.bmat([
             [zeros_XW, zeros_XW, zeros_Xy, zeros_Xy, zeros_XW],
             [zeros_XW, - t_XX, zeros_Xy, zeros_Xy, zeros_XW],

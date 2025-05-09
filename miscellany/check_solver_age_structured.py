@@ -7,10 +7,10 @@ import scipy.sparse
 from context import models
 from models import _utility
 
-import solver_check
+import check_solver
 
 
-class Checker(solver_check.Checker):
+class Checker(check_solver.Checker):
     '''Check the age-structured solver.'''
 
     @property
@@ -80,7 +80,7 @@ class Checker(solver_check.Checker):
 
     def B(self):
         B_XW = self.zeta @ self.tau
-        Zeros = solver_check.Zeros((self.J, self.J))
+        Zeros = check_solver.Zeros((self.J, self.J))
         return scipy.sparse.bmat([
             [Zeros, Zeros, Zeros, Zeros, B_XW],
             [B_XW, B_XW, B_XW, B_XW, Zeros],
@@ -90,7 +90,7 @@ class Checker(solver_check.Checker):
         ])
 
     def beta(self):
-        zeros = solver_check.Zeros((1, self.J))
+        zeros = check_solver.Zeros((1, self.J))
         return (self.model.parameters.transmission.rate
                 * scipy.sparse.hstack(
                     [zeros, zeros, zeros, self.iota, zeros]
@@ -98,7 +98,7 @@ class Checker(solver_check.Checker):
 
     def T(self, q):
         T_XW = self.H_XX(q)
-        Zeros = solver_check.Zeros((self.J, self.J))
+        Zeros = check_solver.Zeros((self.J, self.J))
         return scipy.sparse.bmat([
             [Zeros, Zeros, Zeros, Zeros, Zeros],
             [Zeros, - T_XW, Zeros, Zeros, Zeros],
