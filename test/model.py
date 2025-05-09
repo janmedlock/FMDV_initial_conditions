@@ -23,7 +23,7 @@ def _with_params(*params):
 
 
 class TestModel(metaclass=abc.ABCMeta):
-    '''Base class for testing a model.'''
+    '''Base class for testing models.'''
 
     t_start = 0
     t_end = 20

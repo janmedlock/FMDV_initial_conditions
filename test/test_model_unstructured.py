@@ -2,10 +2,10 @@
 '''Test the unstructured model.'''
 
 
-import common
+import model
 from context import models
 
 
-class TestUnstructuredModel(common.TestModel):
+class TestModel(model.TestModel):
     '''Test the unstructured model.'''
     Model = models.unstructured.Model
