@@ -8,7 +8,7 @@ from . import eigen
 
 def is_finite(arr):
     '''Check whether `arr` has all entries finite (i.e. not infinite
-    or NaN).'''
+    or nan).'''
     if scipy.sparse.issparse(arr):
         result = numpy.isfinite(arr[numpy.nonzero(arr)]).all()
     else:

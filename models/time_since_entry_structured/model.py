@@ -54,7 +54,7 @@ class Model(unstructured.Model):
         # `pandas.MultiIndex()`.
         dfr_other = idx_other.to_frame()
         z_with_z = pandas.Series(self.z, name='time_since_entry')
-        z_without_z = pandas.Series([numpy.NaN], name=z_with_z.name)
+        z_without_z = pandas.Series([numpy.nan], name=z_with_z.name)
         blocks = []
         for state in self.states:
             other = dfr_other[dfr_other['state'] == state]

@@ -23,9 +23,9 @@ def eigs(arr,
     size = arr.shape[0]
     if k < size - 1:
         # Use `scipy.sparse.linalg.eigs()` for efficiency.
-        # The solver just spins when `arr` has inf or NaN entries, so
+        # The solver just spins when `arr` has inf or nan entries, so
         # make sure `arr` is finite.
-        assert linalg.is_finite(arr), '`arr` has inf or NaN entries.'
+        assert linalg.is_finite(arr), '`arr` has inf or nan entries.'
         result = scipy.sparse.linalg.eigs(
             arr, k=k, which=which,
             return_eigenvectors=return_eigenvectors,

@@ -51,7 +51,7 @@ def rate_make_finite(rates):
     if numpy.ndim(rates) != 1:
         raise NotImplementedError
     rates = pandas.Series(rates)
-    rates[numpy.isposinf(rates)] = numpy.NaN
+    rates[numpy.isposinf(rates)] = numpy.nan
     rates = rates.ffill() \
                  .to_numpy()
     assert numpy.isfinite(rates).all()
