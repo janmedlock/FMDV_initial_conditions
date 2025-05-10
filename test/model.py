@@ -8,6 +8,11 @@ import pytest
 import pytest_dependency
 
 
+SATS = (1, 2, 3)
+
+BIRTH_SHAPES = ('constant', 'sinusoidal', 'piecewise_linear')
+
+
 def _is_exception(obj):
     return isinstance(obj, Exception)
 
@@ -34,14 +39,12 @@ class TestModel(metaclass=abc.ABCMeta):
         '''The model class to test.'''
         raise NotImplementedError
 
-    @pytest.fixture(params=[1, 2, 3],
-                    scope='class')
+    @pytest.fixture(params=SATS, scope='class')
     def SAT(self, request):
         '''`SAT`.'''
         return request.param
 
-    @pytest.fixture(params=['constant', 'sinusoidal', 'piecewise_linear'],
-                    scope='class')
+    @pytest.fixture(params=BIRTH_SHAPES, scope='class')
     def birth_shape(self, request):
         '''`birth_shape`.'''
         return request.param
