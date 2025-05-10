@@ -18,7 +18,7 @@ def _model_class(model_name):
 # The keywords used when initiating each model.
 MODEL_KWS = {
     # Keep vectors short for fast testing ...
-    't_step': 1e-1,
+    't_step': 1e-2,
     # ... which requires turning off matrix checks.
     'solver_kwds': {
         '_check_matrices': False,
