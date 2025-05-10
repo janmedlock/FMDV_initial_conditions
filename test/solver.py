@@ -31,7 +31,7 @@ class TestSolver(metaclass=abc.ABCMeta):
         '''The model instance.'''
         return self.Model()
 
-    @pytest.fixture(params=['new', 'cur'], scope='function')
+    @pytest.fixture(params=['new', 'cur'])
     def q(self, request):
         '''`q`.'''
         return request.param

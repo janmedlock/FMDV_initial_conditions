@@ -10,19 +10,12 @@ import pytest
 from context import models
 
 
-INTEGRAL = {
-    'time_since_entry_structured': operator.attrgetter('integral_over_z'),
-    'age_structured': operator.attrgetter('integral_over_a'),
-    'combination': operator.attrgetter('integral_over_a_and_z'),
-}
+def _model_class(model_name):
+    '''Get the model class.'''
+    return getattr(models, model_name).Model
 
 
-HOW_VALUES = (
-    'survival',
-    'all_in_first',
-)
-
-
+# The keywords used when initiating each model.
 MODEL_KWS = {
     # Keep vectors short for fast testing ...
     't_step': 1e-1,
@@ -33,60 +26,98 @@ MODEL_KWS = {
 }
 
 
-def model_class(model_name):
-    return getattr(models, model_name).Model
+def _model(model_name):
+    '''Build a model instance.'''
+    return _model_class(model_name)(**MODEL_KWS)
 
 
-def build_model(model_name):
-    return model_class(model_name)(**MODEL_KWS)
-
-
-def build_vector(model):
+def _state_method(model):
+    '''The method used to build a state vector for `model`.'''
     return model.build_initial_conditions
 
 
-@pytest.fixture(scope='module')
-def vector_unstructured():
-    model = build_model('unstructured')
-    return build_vector(model)()
+def _state(model, **kws):
+    '''A state vector for `model`.'''
+    return _state_method(model)(**kws)
 
 
-def has_how(model_name):
-    cls = model_class(model_name)
-    method = build_vector(cls)
+# For each structured model, the integral method that integrates over
+# the structure variables.
+_INTEGRALS = {
+    'time_since_entry_structured': operator.attrgetter('integral_over_z'),
+    'age_structured': operator.attrgetter('integral_over_a'),
+    'combination': operator.attrgetter('integral_over_a_and_z'),
+}
+
+
+def _integral_method(model):
+    '''The integral method for `model`.'''
+    for (model_name, integral_attr) in _INTEGRALS.items():
+        # Use `type()` to get exact matches, not subclasses.
+        if type(model) is _model_class(model_name):
+            return integral_attr(model)
+    raise ValueError(f'Unknown {type(model)=}!')
+
+
+_MODELS_STRUCTURED = _INTEGRALS.keys()
+
+
+# For models whose `_state_method(model)` takes a `how` argument, the
+# allowed values of the `how` argument.
+_HOW_VALUES = (
+    'survival',
+    'all_in_first',
+)
+
+
+def _state_method_takes_how(model_name):
+    '''Whether `_state_method(model)` has the `how` argument.'''
+    model_class = _model_class(model_name)
+    method = _state_method(model_class)
     sig = inspect.signature(method)
     return 'how' in sig.parameters
 
 
-def build_hows(model_name):
-    if has_how(model_name):
-        return HOW_VALUES
+def _how_values(model_name):
+    if _state_method_takes_how(model_name):
+        return _HOW_VALUES
     return (None, )
 
 
-model_names_and_hows = [
+_model_name_and_how_values = [
     (model_name, how)
-    for model_name in INTEGRAL.keys()
-    for how in build_hows(model_name)
+    for model_name in _MODELS_STRUCTURED
+    for how in _how_values(model_name)
 ]
 
 
+@pytest.fixture(scope='module')
+def state_unstructured():
+    '''A state vector for the unstructured model.'''
+    model = _model('unstructured')
+    return _state(model)
+
+
+@pytest.fixture(scope='class')
+def model(model_name):
+    '''A model instance.'''
+    return _model(model_name)
+
+
+@pytest.fixture
+def state_integrated(model, how):
+    '''The integral of the state vector.'''
+    kws = {'how': how} if how is not None else {}
+    state = _state(model, **kws)
+    return _integral_method(model)(state)
+
+
 @pytest.mark.parametrize('model_name, how',
-                         model_names_and_hows,
+                         _model_name_and_how_values,
                          scope='class')
 class TestIntegral:
     '''Test integrals.'''
-    @pytest.fixture(scope='class')
-    def model(self, model_name):
-        return build_model(model_name)
-
-    @pytest.fixture
-    def integral(self, model_name, model, how):
-        kws = {'how': how} if how is not None else {}
-        vector = build_vector(model)(**kws)
-        return INTEGRAL[model_name](model)(vector)
-
-    def test_integral(self, integral, vector_unstructured):
+    def test_integral(self, state_integrated, state_unstructured):
         pandas.testing.assert_series_equal(
-            integral, vector_unstructured
+            state_integrated, state_unstructured
         )
