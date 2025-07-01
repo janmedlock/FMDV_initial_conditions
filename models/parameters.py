@@ -137,10 +137,8 @@ class _ModelParameters(PopulationParameters):
         self.waning = waning.Waning(parameters)
 
     def _set_for_zero_population_growth(self, **kwds):
-        '''Set the mean birth and death rates so that the population
-        growth rate is zero.'''
-        # For the age-dependent parameters, set the mean birth rate
-        # for zero population growth and do not adjust death.
+        '''Set the mean birth rate so that the population growth rate
+        is zero.'''
         if self.birth.mean is None:
             self.birth.mean = 0.5  # Starting guess.
         bscl = self._population_model.birth_scaling_for_zero_population_growth(
@@ -164,7 +162,7 @@ class ModelParametersAgeIndependent(_ModelParameters):
     def _set_for_zero_population_growth(self, **kwds):
         '''Set the mean birth and death rates so that the population
         growth rate is zero.'''
-        # Set the age-dependent mean birth and death rates.
+        # Setup the age-dependent population model for zero growth.
         super()._set_for_zero_population_growth(**kwds)
         # Find the mean death rate over age using the stable age
         # density of the age-dependent population model with the
