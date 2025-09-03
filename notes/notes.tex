@@ -459,7 +459,7 @@ System \eqref{numerics_unstructured} is then
       \mat{A}_{\mathrm{cur}}
       + \frac{\Delta t}{2} \left(
         b^{\ell - 1 / 2} \mat{B}
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{cur}}
+        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
       \right)
     \right]
     \vec{x}^{\ell - 1}.
@@ -859,7 +859,7 @@ System \eqref{numerics_age_structured} is then
       \mat{A}_{\mathrm{cur}}
       + \frac{\Delta t}{2} \left(
         b^{\ell - 1 / 2} \mat{B}
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{cur}}
+        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
       \right)
     \right]
     \vec{x}^{\ell - 1}.
@@ -1191,7 +1191,7 @@ System \eqref{numerics_time_since_entry_structured} is then
       \mat{A}_{\mathrm{cur}}
       + \frac{\Delta t}{2} \left(
         b^{\ell - 1 / 2} \mat{B}
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{cur}}
+        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
       \right)
     \right]
     \vec{x}^{\ell - 1}.
@@ -1713,7 +1713,7 @@ System \eqref{numerics_age_and_time_since_entry_structured} is then
       \mat{A}_{\mathrm{cur}}
       + \frac{\Delta t}{2} \left(
         b^{\ell - 1 / 2} \mat{B}
-        + \vec{\beta} \vec{x}^{\ell} \mat{T}_{\mathrm{cur}}
+        + \vec{\beta} \vec{x}^{\ell - 1} \mat{T}_{\mathrm{cur}}
       \right)
     \right]
     \vec{x}^{\ell - 1}.
