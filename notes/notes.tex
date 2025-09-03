@@ -1454,7 +1454,7 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
     \end{split}
     \\
     \left[1 + \frac{\Delta t}{2} (\gamma_0 + \mu_0)\right] i_{0, 0}^{\ell}
-    &= \sum_{k = 0}^{K - 1} \frac{\rho_k e_{0, k}^{\ell}} {2}
+    &= \sum_{k = 0}^{K - 1} \rho_k \frac{e_{0, k}^{\ell}}{2}
     \Delta t,
     \\
     \left[1 + \frac{\Delta t}{2} (\gamma_k + \mu_0)\right] i_{0, k}^{\ell}
@@ -1466,7 +1466,7 @@ $\ell \geq 1$, the Crank--Nicolson method on characteristics is
     \\
     \left[1 + \frac{\Delta t}{2} (\gamma_0 + \mu_j)\right] i_{j, 0}^{\ell}
     &= \sum_{k = 0}^{K - 1} \rho_k
-    \frac{e_{j, k}^{\ell} + e_{j - 1, k}^{\ell - 1}} {2}
+    \frac{e_{j, k}^{\ell} + e_{j - 1, k}^{\ell - 1}}{2}
     \Delta t,
     \\
     \frac{i_{j, k}^{\ell} - i_{j - 1, k - 1}^{\ell - 1}}{\Delta t}
